@@ -1,0 +1,7 @@
+node_modules
+dist
+doc
+coverage
+*.log
+report.*
+mix-manifest.json

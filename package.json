@@ -1,0 +1,20 @@
+{
+  "name": "unidoc",
+  "version": "0.0.1",
+  "description": "A universal scientific documentation validator and compiler.",
+  "main": "index.js",
+  "repository": "https://gitlab.com/FlorentinTh/unidoc.git",
+  "author": "Cédric DEMONGIVERT <cedric.demongivert@gmail.com>",
+  "license": "Apache-2",
+  "private": true,
+  "scripts": {
+    "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "watch": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "hot": "cross-env NODE_ENV=development webpack-dev-server --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js"
+  },
+  "devDependencies": {
+    "laravel-mix": "^5.0.1",
+    "typedoc-webpack-plugin": "^1.1.4"
+  }
+}
