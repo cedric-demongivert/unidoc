@@ -1,7 +1,9 @@
 node_modules
-dist
-doc
+distribution
+documentation
+sources/generated
 coverage
 *.log
 report.*
 mix-manifest.json
+local

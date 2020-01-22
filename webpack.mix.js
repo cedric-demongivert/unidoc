@@ -5,7 +5,7 @@ const package = require('./package.json')
 const fileSystem = require('fs')
 
 for (const file of fileSystem.readdirSync('./sources/typescript/commands')) {
-  mix.ts('./sources/typescript/commands/' + file, 'dist')
+  mix.ts('./sources/typescript/commands/' + file, 'distribution')
 }
 
 const externals = []
@@ -14,11 +14,11 @@ for (const name in package.dependencies) {
   externals.push(new RegExp(`^${name}(\\/.+)?$`))
 }
 
-mix.ts('./sources/typescript/index.ts', 'dist')
-   .copy('LICENSE.md', 'dist')
-   .copy('package.json', 'dist')
-   .copy('README.md', 'dist')
-   .setPublicPath('dist')
+mix.ts('./sources/typescript/index.ts', 'distribution')
+   .copy('LICENSE.md', 'distribution')
+   .copy('package.json', 'distribution')
+   .copy('README.md', 'distribution')
+   .setPublicPath('distribution')
    .disableNotifications()
    .webpackConfig({
      'externals': externals,
@@ -30,10 +30,15 @@ mix.ts('./sources/typescript/index.ts', 'dist')
        'libraryTarget': 'umd',
        'globalObject': 'this' // webpack bug
      },
+     'module': {
+       'rules': [
+         { 'test': /\.unidoc$/i, 'use': 'raw-loader' },
+       ]
+     },
      'plugins': [
-       new TypedocWebpackPlugin(
+       /*new TypedocWebpackPlugin(
          { 'target': 'es6', 'mode': 'file' },
          './sources/typescript'
-       )
+       )*/
      ]
    })
