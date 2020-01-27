@@ -9,12 +9,13 @@ ESCAPED_BLOCK_OPENING: '\\}';
 ESCAPED_BLOCK_ENDING: '\\{';
 BLOCK_OPENING: '{';
 BLOCK_CLOSING: '}';
+CONTENT: .;
 
 unidoc: content EOF;
 
 content: (element | block | word | whitespace)*;
 
-block: (IDENTIFIER_MARKER identifier=IDENTIFIER)? whitespace? (CLASS_MARKER classes+=IDENTIFIER whitespace? )* BLOCK_OPENING content? BLOCK_CLOSING;
+block: (IDENTIFIER_MARKER identifier=IDENTIFIER)? whitespace? (CLASS_MARKER classes+=IDENTIFIER whitespace? )* BLOCK_OPENING content BLOCK_CLOSING;
 
 word: ~(BLOCK_OPENING|BLOCK_CLOSING|WHITESPACE)+;
 

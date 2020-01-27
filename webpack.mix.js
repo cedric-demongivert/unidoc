@@ -30,6 +30,11 @@ mix.ts('./sources/typescript/index.ts', 'distribution')
        'libraryTarget': 'umd',
        'globalObject': 'this' // webpack bug
      },
+     'resolve': {
+       'alias': {
+         'library': path.resolve('./src/index.js')
+       }
+     },
      'module': {
        'rules': [
          { 'test': /\.unidoc$/i, 'use': 'raw-loader' },
