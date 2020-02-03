@@ -7,5 +7,9 @@ module.exports = {
     "/node_modules",
     "/distribution",
     "/sources"
-  ]
+  ],
+  "moduleNameMapper": {
+    '^@library/(.*)$': '<rootDir>/sources/typescript/$1',
+    '^@grammar/(.*)$': '<rootDir>/sources/generated/$1'
+  }
 }

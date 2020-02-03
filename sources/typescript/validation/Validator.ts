@@ -1,58 +1,25 @@
-import { UnidocListener } from '../../generated/UnidocListener'
+import { UnidocContext } from '@grammar/UnidocParser'
+import { ContentContext } from '@grammar/UnidocParser'
+import { BlockContext } from '@grammar/UnidocParser'
+import { WordContext } from '@grammar/UnidocParser'
+import { WhitespaceContext } from '@grammar/UnidocParser'
+import { ElementContext } from '@grammar/UnidocParser'
 
-import { UnidocContext } from "../../generated/UnidocParser"
-import { ContentContext } from "../../generated/UnidocParser"
-import { BlockContext } from "../../generated/UnidocParser"
-import { WordContext } from "../../generated/UnidocParser"
-import { WhitespaceContext } from "../../generated/UnidocParser"
-import { ElementContext } from "../../generated/UnidocParser"
+import { Validation } from './Validation'
 
-export class Validator implements UnidocListener {
-  public enterUnidoc (context: UnidocContext) : void {
-    console.log('entering unidoc')
-  }
+export interface Validator {
+  public begin () : void
 
-  public exitUnidoc (context: UnidocContext) : void {
-    console.log('exiting unidoc')
-  }
+  public enterContent (context: ContentContext) : void
+  public exitContent (context: ContentContext) : void
+  public enterBlock (context: BlockContext) : void
+  public exitBlock (context: BlockContext) : void
+  public enterWord (context: WordContext) : void
+  public exitWord (context: WordContext) : void
+  public enterWhitespace (context: WhitespaceContext) : void
+  public exitWhitespace (context: WhitespaceContext) : void
+  public enterElement (context: ElementContext) : void
+  public exitElement (context: ElementContext) : void
 
-  public enterContent (context: ContentContext) : void {
-    console.log('entering content')
-  }
-
-  public exitContent (context: ContentContext) : void {
-    console.log('exiting content')
-  }
-
-  public enterBlock (context: BlockContext) : void {
-    console.log('entering block')
-  }
-
-  public exitBlock (context: BlockContext) : void {
-    console.log('exiting block')
-  }
-
-  public enterWord (context: WordContext) : void {
-    console.log('entering word')
-  }
-
-  public exitWord (context: WordContext) : void {
-    console.log('exiting word')
-  }
-
-  public enterWhitespace (context: WhitespaceContext) : void {
-    console.log('entering whitespace')
-  }
-
-  public exitWhitespace (context: WhitespaceContext) : void {
-    console.log('exiting whitespace')
-  }
-
-  public enterElement (context: ElementContext) : void {
-    console.log('entering element')
-  }
-
-  public exitElement (context: ElementContext) : void {
-    console.log('exiting element')
-  }
+  public terminate () : Validation
 }

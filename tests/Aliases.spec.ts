@@ -1,6 +1,6 @@
 /** eslint-env jest */
 
-import { Aliases } from '../sources/typescript/parsing/alias/Aliases'
+import { Aliases } from '@library/parsing/alias/Aliases'
 
 describe('Aliases', function () {
   describe('#constructor', function () {
