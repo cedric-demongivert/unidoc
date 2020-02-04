@@ -1,8 +1,11 @@
 /**
 * The location of a symbol in a unidoc document.
 */
-export class UnidocLocation {
-  public static ZERO : UnidocLocation = new UnidocLocation()
+export class Location {
+  /**
+  * 0:0 location.
+  */
+  public static ZERO : Location = new Location()
 
   /**
   * The symbol column.
@@ -13,20 +16,6 @@ export class UnidocLocation {
   * The symbol line.
   */
   public line : number
-
-  /**
-  * Return a deep copy of the given instance.
-  *
-  * @param toCopy - An instance to copy.
-  *
-  * @return A deep copy of the given instance.
-  */
-  public static copy (toCopy : UnidocLocation) : UnidocLocation {
-    const result : UnidocLocation = new UnidocLocation()
-    result.copy(toCopy)
-
-    return result
-  }
 
   /**
   * Instantiate a new unidoc location.
@@ -55,7 +44,7 @@ export class UnidocLocation {
   *
   * @param toCopy - Another instance to copy.
   */
-  public copy (toCopy : UnidocLocation) : void  {
+  public copy (toCopy : Location) : void  {
     this.column = toCopy.column
     this.line = toCopy.line
   }
@@ -74,9 +63,25 @@ export class UnidocLocation {
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof UnidocLocation) {
+    if (other instanceof Location) {
       return other.line === this.line &&
              other.column === this.column
     }
+  }
+}
+
+export namespace Location {
+  /**
+  * Return a deep copy of the given instance.
+  *
+  * @param toCopy - An instance to copy.
+  *
+  * @return A deep copy of the given instance.
+  */
+  export function copy (toCopy : Location) : Location {
+    const result : Location = new Location()
+    result.copy(toCopy)
+
+    return result
   }
 }

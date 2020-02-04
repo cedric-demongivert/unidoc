@@ -1,1 +1,1 @@
-import * as UnidocPath from './UnidocPath'
+export { Path } from './Path'

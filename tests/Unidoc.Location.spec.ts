@@ -1,11 +1,11 @@
 /** eslint-env jest */
 
-import { UnidocLocation } from '@library/UnidocLocation'
+import { Unidoc } from '@library/index'
 
-describe('UnidocLocation', function () {
+describe('Unidoc.Location', function () {
   describe('#constructor', function () {
     it('instantiate a zero location', function () {
-      const location : UnidocLocation = new UnidocLocation()
+      const location : Unidoc.Location = new Unidoc.Location()
 
       expect(location.line).toBe(0)
       expect(location.column).toBe(0)
@@ -14,8 +14,8 @@ describe('UnidocLocation', function () {
 
   describe('#static copy', function () {
     it('instantiate a copy of a given location', function () {
-      const source : UnidocLocation = new UnidocLocation(8, 9)
-      const copy : UnidocLocation = UnidocLocation.copy(source)
+      const source : Unidoc.Location = new Unidoc.Location(8, 9)
+      const copy : Unidoc.Location = Unidoc.Location.copy(source)
 
       expect(copy.equals(source)).toBeTruthy()
       expect(copy).not.toBe(source)
@@ -24,7 +24,7 @@ describe('UnidocLocation', function () {
 
   describe('#set', function () {
     it('update the location', function () {
-      const location : UnidocLocation = new UnidocLocation()
+      const location : Unidoc.Location = new Unidoc.Location()
 
       expect(location.line).toBe(0)
       expect(location.column).toBe(0)
@@ -38,8 +38,8 @@ describe('UnidocLocation', function () {
 
   describe('#copy', function () {
     it('copy another location instance', function () {
-      const source : UnidocLocation = new UnidocLocation()
-      const copy : UnidocLocation = new UnidocLocation()
+      const source : Unidoc.Location = new Unidoc.Location()
+      const copy : Unidoc.Location = new Unidoc.Location()
 
       source.set(8, 3)
       copy.set(5, 9)
@@ -56,7 +56,7 @@ describe('UnidocLocation', function () {
 
   describe('#toString', function () {
     it('return a string representation of the location', function () {
-      const location : UnidocLocation = new UnidocLocation()
+      const location : Unidoc.Location = new Unidoc.Location()
       location.set(8, 3)
 
       expect(location.toString()).toBe('8:3')
@@ -65,20 +65,20 @@ describe('UnidocLocation', function () {
 
   describe('#equals', function () {
     it('return false if the given value is null', function () {
-      const location : UnidocLocation = new UnidocLocation()
+      const location : Unidoc.Location = new Unidoc.Location()
 
       expect(location.equals(null)).toBeFalsy()
       expect(location.equals(undefined)).toBeFalsy()
     })
 
     it('return true if the given value is the same instance', function () {
-      const location : UnidocLocation = new UnidocLocation()
+      const location : Unidoc.Location = new Unidoc.Location()
 
       expect(location.equals(location)).toBeTruthy()
     })
 
     it('return false if another type is compared', function () {
-      const location : UnidocLocation = new UnidocLocation()
+      const location : Unidoc.Location = new Unidoc.Location()
 
       expect(location.equals('location')).toBeFalsy()
       expect(location.equals(10)).toBeFalsy()
@@ -86,8 +86,8 @@ describe('UnidocLocation', function () {
     })
 
     it('return false if both instance are different', function () {
-      const first : UnidocLocation = new UnidocLocation()
-      const second : UnidocLocation = new UnidocLocation()
+      const first : Unidoc.Location = new Unidoc.Location()
+      const second : Unidoc.Location = new Unidoc.Location()
 
       second.set(8, 3)
 
@@ -95,8 +95,8 @@ describe('UnidocLocation', function () {
     })
 
     it('return true if both instance are equals', function () {
-      const first : UnidocLocation = new UnidocLocation()
-      const second : UnidocLocation = new UnidocLocation()
+      const first : Unidoc.Location = new Unidoc.Location()
+      const second : Unidoc.Location = new Unidoc.Location()
 
       second.set(8, 3)
       first.set(8, 3)

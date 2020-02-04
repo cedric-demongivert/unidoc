@@ -1,40 +1,15 @@
-import { UnidocLocation } from '@library/UnidocLocation'
+import { Location } from '@library/Location'
 
-import { Step as TypescriptMongolienStep } from './Step'
-import { Text as TypescriptMongolienText } from './Text'
-import { Block as TypescriptMongolienBlock } from './Block'
-import { Element as TypescriptMongolienElement } from './Element'
-
-export namespace UnidocPath {
-  export import Step = TypescriptMongolienStep
-  export import Text = TypescriptMongolienText
-  export import Block = TypescriptMongolienBlock
-  export import Element = TypescriptMongolienElement
-}
+import { Element } from './element'
 
 /**
 * A path in a unidoc document.
 */
-export class UnidocPath {
-  /**
-  * Instantiate a deep copy of the given instance.
-  *
-  * @param toCopy - An instance to copy.
-  *
-  * @return A deep copy of the given instance.
-  */
-  public static copy (toCopy : UnidocPath) : UnidocPath {
-    const result : UnidocPath = new UnidocPath()
-
-    result.copy(toCopy)
-
-    return result
-  }
-
+export class Path {
   /**
   * Step in the path.
   */
-  private _steps : UnidocPath.Step[]
+  private _steps : Element.Element[]
 
   /**
   * Instantiate a new empty path.
@@ -57,7 +32,7 @@ export class UnidocPath {
   *
   * @return The element at the requested index.
   */
-  public get (index : number) : UnidocPath.Step {
+  public get (index : number) : Element.Element {
     return this._steps[index]
   }
 
@@ -67,7 +42,7 @@ export class UnidocPath {
   * @param index - Index of the element to replace.
   * @param step - New element to set at the given location.
   */
-  public set (index : number, step : UnidocPath.Step) : void {
+  public set (index : number, step : Element.Element) : void {
     this._steps[index] = step
   }
 
@@ -76,7 +51,7 @@ export class UnidocPath {
   *
   * @param step - New element to append at the end of the path.
   */
-  public push (step : UnidocPath.Step) : void {
+  public push (step : Element.Element) : void {
     this._steps.push(step)
   }
 
@@ -87,9 +62,9 @@ export class UnidocPath {
   *
   * @param toConcat - A path to append at the end of this path.
   */
-  public concat (toConcat : UnidocPath) : void {
+  public concat (toConcat : Path) : void {
     for (const element of toConcat._steps) {
-      this._steps.push(Step.copy(element))
+      this._steps.push(Element.Element.copy(element))
     }
   }
 
@@ -100,7 +75,7 @@ export class UnidocPath {
   * @param [length = 1] - Number of elements to delete.
   */
   public delete (from : number, length : number = 1) : void {
-    this._steps.splice(from, from + length)
+    this._steps.splice(from, length)
   }
 
   /**
@@ -109,7 +84,7 @@ export class UnidocPath {
   * @param from - Index of the first element to keep.
   * @param length - Number of elements to keep.
   */
-  public subpath (from : number, length : number) : void {
+  public keep (from : number, length : number) : void {
     for (let index = from, end = from + length; index < end; ++index) {
       this._steps[index - from] = this._steps[index]
     }
@@ -122,7 +97,7 @@ export class UnidocPath {
   *
   * @param toCopy - A path instance to copy.
   */
-  public copy (toCopy : UnidocPath) : void {
+  public copy (toCopy : Path) : void {
     this._steps.length = 0
     this.concat(toCopy)
   }
@@ -132,6 +107,33 @@ export class UnidocPath {
   */
   public clear () : void {
     this._steps.length = 0
+  }
+
+  /**
+  * Append a text element to this path.
+  *
+  * @param location - Location of the text element to append.
+  */
+  public text (location : Location) : void {
+    this._steps.push(new Element.Text(location))
+  }
+
+  /**
+  * Append a block element to this path.
+  *
+  * @param configuration - Options of the block element to append.
+  */
+  public block (configuration : Element.Block.Configuration) : void {
+    this._steps.push(new Element.Block(configuration))
+  }
+
+  /**
+  * Append an element to this path.
+  *
+  * @param configuration - Options of the element to append.
+  */
+  public tag (configuration : Element.Tag.Configuration) : void {
+    this._steps.push(new Element.Tag(configuration))
   }
 
   /**
@@ -148,40 +150,13 @@ export class UnidocPath {
   }
 
   /**
-  * Append a text element to this path.
-  *
-  * @param location - Location of the text element to append.
-  */
-  public text (location : UnidocLocation) : void {
-    this._steps.push(new Text(location))
-  }
-
-  /**
-  * Append a block element to this path.
-  *
-  * @param options - Options of the block element to append.
-  */
-  public block (builder : UnidocPath.Block.Builder) : void {
-    this._steps.push(new Block(builder))
-  }
-
-  /**
-  * Append an element to this path.
-  *
-  * @param options - Options of the element to append.
-  */
-  public element (builder : UnidocPath.Element.Builder) : void {
-    this._steps.push(new Element(builder))
-  }
-
-  /**
   * @see Object#equals
   */
   public equals (other : any) : boolean {
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof UnidocPath) {
+    if (other instanceof Path) {
       if (other.size !== this._steps.length) {
         return false
       }
@@ -199,7 +174,29 @@ export class UnidocPath {
   /**
   * @see Symbol.iterator
   */
-  public * [Symbol.iterator] () : Iterator<UnidocPath.Step> {
+  public * [Symbol.iterator] () : Iterator<Element.Element> {
     yield * this._steps
+  }
+}
+
+export namespace Path {
+  export import Block = Element.Block
+  export import Text = Element.Text
+  export import Tag = Element.Tag
+  export import Any = Element.Element
+
+  /**
+  * Instantiate a deep copy of the given instance.
+  *
+  * @param toCopy - An instance to copy.
+  *
+  * @return A deep copy of the given instance.
+  */
+  export function copy (toCopy : Path) : Path {
+    const result : Path = new Path()
+
+    result.copy(toCopy)
+
+    return result
   }
 }

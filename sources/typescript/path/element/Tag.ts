@@ -1,18 +1,16 @@
-import { UnidocLocation } from '@library/UnidocLocation'
+import { Location } from '@library/Location'
 
-import { Step } from './Step'
+import { Element } from './Element'
 
-export namespace Element {
-  export type Builder = {
-    location? : UnidocLocation,
-    type? : number,
-    label? : string,
-    identifier? : string,
-    classes? : string[]
-  }
+const CONFIGURATION : Tag.Configuration = {
+  location: Location.ZERO,
+  type: 0,
+  label: null,
+  identifier: null,
+  classes: []
 }
 
-export class Element extends Step {
+export class Tag extends Element {
   /**
   * Type of the element.
   */
@@ -34,38 +32,17 @@ export class Element extends Step {
   public classes : string[]
 
   /**
-  * Instantiate a deep copy of the given instance.
-  *
-  * @param toCopy - An instance to copy.
-  *
-  * @return A deep copy of the given instance.
-  */
-  public static copy (toCopy : any) : Element {
-    const result : Element = new Element()
-
-    result.copy(toCopy)
-
-    return result
-  }
-
-  /**
   * Instantiate a new unidoc path element.
   *
   * @param configuration - Configuration of the element to build.
   */
-  public constructor ({
-    location = UnidocLocation.ZERO,
-    type = 0,
-    label = null,
-    identifier = null,
-    classes = []
-  } : Element.Builder = {}) {
-    super(location)
+  public constructor (configuration : Tag.Configuration = CONFIGURATION) {
+    super(configuration.location)
 
-    this.type = type
-    this.label = label
-    this.identifier = identifier
-    this.classes = [...classes]
+    this.type = configuration.type
+    this.label = configuration.label
+    this.identifier = configuration.identifier
+    this.classes = [...configuration.classes]
   }
 
   /**
@@ -73,7 +50,7 @@ export class Element extends Step {
   *
   * @param toCopy - An instance to copy.
   */
-  public copy (toCopy : Element) : void {
+  public copy (toCopy : Tag) : void {
     this.location.copy(toCopy.location)
     this.type = toCopy.type
     this.label = toCopy.label
@@ -83,7 +60,7 @@ export class Element extends Step {
   }
 
   /**
-  * @see Object#toString
+  * @see Tag#toString
   */
   public toString () : string {
     let result : string[] = ['unidoc:element:', this.label]
@@ -104,12 +81,12 @@ export class Element extends Step {
   }
 
   /**
-  * @see Object#equals
+  * @see Tag#equals
   */
   public equals (other : any) : boolean {
     if (!super.equals(other)) return false
 
-    if (other instanceof Element) {
+    if (other instanceof Tag) {
       if (other.classes.length !== this.classes.length) {
         return false
       }
@@ -127,5 +104,30 @@ export class Element extends Step {
     }
 
     return false
+  }
+}
+
+export namespace Tag {
+  export type Configuration = {
+    location? : Location,
+    type? : number,
+    label? : string,
+    identifier? : string,
+    classes? : string[]
+  }
+
+  /**
+  * Instantiate a deep copy of the given instance.
+  *
+  * @param toCopy - An instance to copy.
+  *
+  * @return A deep copy of the given instance.
+  */
+  export function copy (toCopy : Tag) : Tag {
+    const result : Tag = new Tag()
+
+    result.copy(toCopy)
+
+    return result
   }
 }

@@ -1,9 +1,7 @@
-import {
-  ANTLRInputStream,
-  CharStream,
-  CommonTokenStream,
-  TokenStream
-} from 'antlr4ts'
+import { ANTLRInputStream } from 'antlr4ts'
+import { CharStream } from 'antlr4ts'
+import { CommonTokenStream } from 'antlr4ts'
+import { TokenStream } from 'antlr4ts'
 
 import { ParseTreeWalker } from 'antlr4ts/tree/ParseTreeWalker'
 import { ParseTreeListener } from 'antlr4ts/tree/ParseTreeListener'
@@ -18,7 +16,7 @@ import { Validation } from './validation/Validation'
 /**
 * A complete unidoc parsing pipeline.
 */
-export class Unisource {
+export class Source {
   /**
   * Stream of symbols to parse.
   */
@@ -69,7 +67,11 @@ export class Unisource {
   * @return The result of the validation operation as a validation object.
   */
   public validate (validator : Validator) : Validation {
-    ParseTreeWalker.DEFAULT.walk(validator as ParseTreeListener, this._parser.unidoc())
+    ParseTreeWalker.DEFAULT.walk(
+      validator as ParseTreeListener,
+      this._parser.unidoc()
+    )
+
     return null
   }
 }

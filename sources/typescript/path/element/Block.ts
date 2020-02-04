@@ -1,31 +1,14 @@
-import { UnidocLocation } from '@library/UnidocLocation'
+import { Location } from '@library/Location'
 
-import { Step } from './Step'
+import { Element } from './Element'
 
-export namespace Block {
-  export type Builder = {
-    location? : UnidocLocation,
-    identifier? : string,
-    classes? : string[]
-  }
+const CONFIGURATION : Block.Configuration = {
+  location: Location.ZERO,
+  identifier: null,
+  classes: []
 }
 
-export class Block extends Step {
-  /**
-  * Instantiate a deep copy of the given instance.
-  *
-  * @param toCopy - An instance to copy.
-  *
-  * @return A deep copy of the given instance.
-  */
-  public static copy (toCopy : any) : Block {
-    const result : Block = new Block()
-
-    result.copy(toCopy)
-
-    return result
-  }
-
+export class Block extends Element {
   /**
   * Identifier of the block.
   */
@@ -39,17 +22,13 @@ export class Block extends Step {
   /**
   * Instantiate a new unidoc path block element.
   *
-  * @param [location = UnidocLocation.ZERO] - Location of this element in the document.
+  * @param configuration - Block instance configuration.
   */
-  public constructor ({
-    location = UnidocLocation.ZERO,
-    identifier = null,
-    classes = []
-  } : Block.Builder = {}) {
-    super(location)
+  public constructor (configuration : Block.Configuration = CONFIGURATION) {
+    super(configuration.location)
 
-    this.identifier = identifier
-    this.classes = [...classes]
+    this.identifier = configuration.identifier
+    this.classes = [...configuration.classes]
   }
 
   /**
@@ -109,4 +88,29 @@ export class Block extends Step {
     return false
   }
 }
+
+export namespace Block {
+  /**
+  * Block building configuration.
+  */
+  export type Configuration = {
+    location? : Location,
+    identifier? : string,
+    classes? : string[]
+  }
+
+  /**
+  * Instantiate a deep copy of the given instance.
+  *
+  * @param toCopy - An instance to copy.
+  *
+  * @return A deep copy of the given instance.
+  */
+  export function copy (toCopy : Block) : Block {
+    const result : Block = new Block()
+
+    result.copy(toCopy)
+
+    return result
+  }
 }
