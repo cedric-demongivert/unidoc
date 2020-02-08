@@ -18,14 +18,25 @@ export class Location {
   public line : number
 
   /**
+  * The symbol index.
+  */
+  public index : number
+
+  /**
   * Instantiate a new unidoc location.
   *
-  * @param [column = 0] - Document column.
   * @param [line = 0] - Document line.
+  * @param [column = 0] - Document column.
+  * @param [index = 0] - Buffer index.
   */
-  public constructor (column : number = 0, line : number = 0) {
+  public constructor (
+    line : number = 0,
+    column : number = 0,
+    index : number = 0
+  ) {
     this.column = column
     this.line = line
+    this.index = index
   }
 
   /**
@@ -33,10 +44,12 @@ export class Location {
   *
   * @param column - Document column.
   * @param line - Document line.
+  * @param index - Buffer index.
   */
-  public set (column : number, line : number) : void {
+  public set (line : number, column : number, index : number) : void {
     this.column = column
     this.line = line
+    this.index = index
   }
 
   /**
@@ -47,13 +60,14 @@ export class Location {
   public copy (toCopy : Location) : void  {
     this.column = toCopy.column
     this.line = toCopy.line
+    this.index = toCopy.index
   }
 
   /**
   * @see Object#toString
   */
   public toString () : string {
-    return `${this.column}:${this.line}`
+    return `${this.line}:${this.column}/${this.index}`
   }
 
   /**
@@ -65,7 +79,8 @@ export class Location {
 
     if (other instanceof Location) {
       return other.line === this.line &&
-             other.column === this.column
+             other.column === this.column &&
+             other.index === this.index
     }
   }
 }

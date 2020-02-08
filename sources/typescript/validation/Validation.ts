@@ -1,9 +1,9 @@
 import { Path } from '@library/path'
 
-import { Type as ValidationType } from './Type'
+import { Type } from './Type'
 
 export class Validation {
-  public type : ValidationType
+  public type : Type
   public path : Path
   public message : string
 
@@ -34,7 +34,7 @@ export class Validation {
   */
   public toString () : string {
     return (
-      `[${typeToString(this.type)}] ${this.path.toString()} : ${this.message}`
+      `[${Type.toString(this.type)}] ${this.path.toString()} : ${this.message}`
     )
   }
 
@@ -56,13 +56,11 @@ export class Validation {
 }
 
 export namespace Validation {
-  export import Type = ValidationType
-
   /**
   * Validation building configuration.
   */
   export type Configuration = {
-    type : ValidationType,
+    type : Type,
     path : Path,
     message : string
   }

@@ -1,9 +1,9 @@
 import { Validator } from './Validator'
 
 export class ElementValidator implements Validator {
-  private _allowContent : boolean
+  private _allowText : boolean
   private _allowBlocks : boolean
-  private _allowElements : boolean
+  private _allowTags : boolean
 
   public enterContent (context: ContentContext) : void {
 

@@ -28,16 +28,16 @@ function codePointToSymbol (code : number) : number {
 }
 
 /**
-* A dictionary of aliases related to a given type of values.
+* A mapping of alias to a given type of values.
 */
-export class Aliases<T> {
+export class Mapping<T> {
   /**
   * All existing states.
   */
   private _states : States
 
   /**
-  * Number of aliases into this dictionary.
+  * Number of Mapping into this dictionary.
   */
   private _size : number
 
@@ -62,21 +62,6 @@ export class Aliases<T> {
   private _terminations : Pack<T>
 
   /**
-  * @return The capacity, in states, of this alias dictionary.
-  */
-  public get capacity () : number {
-    return this._states.capacity
-  }
-
-  /**
-  * @return The number of existing aliases that currently exists into this
-  *         dictionary.
-  */
-  public get size () : number {
-    return this._size
-  }
-
-  /**
   * Instantiate an empty alias dictionary.
   *
   * @param capacity - Number of states to pre-allocate in memory.
@@ -93,6 +78,21 @@ export class Aliases<T> {
 
     this._initialize(this._start)
     this._initialize(this._error)
+  }
+
+  /**
+  * @return The capacity, in states, of this alias dictionary.
+  */
+  public get capacity () : number {
+    return this._states.capacity
+  }
+
+  /**
+  * @return The number of existing Mapping that currently exists into this
+  *         dictionary.
+  */
+  public get size () : number {
+    return this._size
   }
 
   /**
@@ -291,7 +291,7 @@ export class Aliases<T> {
   }
 
   /**
-  * Empty this dictionary of all its aliases.
+  * Empty this dictionary of all its Mapping.
   */
   public clear () : void {
     this._states.clear()
@@ -302,4 +302,8 @@ export class Aliases<T> {
 
     this._size = 0
   }
+}
+
+export namespace Mapping {
+  
 }

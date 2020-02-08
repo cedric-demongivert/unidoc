@@ -9,12 +9,13 @@ describe('Unidoc.Location', function () {
 
       expect(location.line).toBe(0)
       expect(location.column).toBe(0)
+      expect(location.index).toBe(0)
     })
   })
 
   describe('#static copy', function () {
     it('instantiate a copy of a given location', function () {
-      const source : Unidoc.Location = new Unidoc.Location(8, 9)
+      const source : Unidoc.Location = new Unidoc.Location(8, 9, 3)
       const copy : Unidoc.Location = Unidoc.Location.copy(source)
 
       expect(copy.equals(source)).toBeTruthy()
@@ -29,10 +30,11 @@ describe('Unidoc.Location', function () {
       expect(location.line).toBe(0)
       expect(location.column).toBe(0)
 
-      location.set(8, 3)
+      location.set(8, 3, 7)
 
       expect(location.line).toBe(3)
       expect(location.column).toBe(8)
+      expect(location.index).toBe(7)
     })
   })
 
@@ -41,25 +43,27 @@ describe('Unidoc.Location', function () {
       const source : Unidoc.Location = new Unidoc.Location()
       const copy : Unidoc.Location = new Unidoc.Location()
 
-      source.set(8, 3)
-      copy.set(5, 9)
+      source.set(8, 3, 6)
+      copy.set(5, 9, 7)
 
       expect(copy.line).not.toBe(source.line)
       expect(copy.column).not.toBe(source.column)
+      expect(copy.index).not.toBe(source.index)
 
       copy.copy(source)
 
       expect(copy.line).toBe(source.line)
       expect(copy.column).toBe(source.column)
+      expect(copy.index).toBe(source.index)
     })
   })
 
   describe('#toString', function () {
     it('return a string representation of the location', function () {
       const location : Unidoc.Location = new Unidoc.Location()
-      location.set(8, 3)
+      location.set(8, 3, 7)
 
-      expect(location.toString()).toBe('8:3')
+      expect(location.toString()).toBe('3:8/7')
     })
   })
 
@@ -89,7 +93,7 @@ describe('Unidoc.Location', function () {
       const first : Unidoc.Location = new Unidoc.Location()
       const second : Unidoc.Location = new Unidoc.Location()
 
-      second.set(8, 3)
+      second.set(8, 3, 6)
 
       expect(first.equals(second)).toBeFalsy()
     })
@@ -98,8 +102,8 @@ describe('Unidoc.Location', function () {
       const first : Unidoc.Location = new Unidoc.Location()
       const second : Unidoc.Location = new Unidoc.Location()
 
-      second.set(8, 3)
-      first.set(8, 3)
+      second.set(8, 3, 6)
+      first.set(8, 3, 6)
 
       expect(first.equals(second)).toBeTruthy()
     })

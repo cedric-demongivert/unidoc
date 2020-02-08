@@ -1,7 +1,11 @@
-import { Unisource } from '../Unisource'
-import { Validator } from '../validation/Validator'
+import { Source } from '@library/Source'
+import { Context } from '@library/context/Context'
 
-const source : Unisource = new Unisource()
+const source : Source = new Source()
 
 source.fromString(require('../../../local/test.unidoc').default)
-source.validate(new Validator())
+source.parse().forEach(
+  function (context : Context) : void {
+    console.log(context.toString())
+  }
+)

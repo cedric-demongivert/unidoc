@@ -1,0 +1,25 @@
+import { UnidocContext } from '@grammar/UnidocParser'
+import { ContentContext } from '@grammar/UnidocParser'
+import { BlockContext } from '@grammar/UnidocParser'
+import { WordContext } from '@grammar/UnidocParser'
+import { WhitespaceContext } from '@grammar/UnidocParser'
+import { ElementContext } from '@grammar/UnidocParser'
+
+import { Validation } from './Validation'
+
+export interface Validator {
+  begin () : void
+
+  enterContent (context: ContentContext) : void
+  exitContent (context: ContentContext) : void
+  enterBlock (context: BlockContext) : void
+  exitBlock (context: BlockContext) : void
+  enterWord (context: WordContext) : void
+  exitWord (context: WordContext) : void
+  enterWhitespace (context: WhitespaceContext) : void
+  exitWhitespace (context: WhitespaceContext) : void
+  enterElement (context: ElementContext) : void
+  exitElement (context: ElementContext) : void
+
+  terminate () : Validation
+}

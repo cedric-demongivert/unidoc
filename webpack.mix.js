@@ -33,7 +33,7 @@ mix.ts('./sources/typescript/index.ts', 'distribution')
      'resolve': {
        'alias': {
          '@library': path.resolve('./sources/typescript'),
-         '@grammar': path.resolve('./sources/grammar')
+         '@grammar': path.resolve('./sources/generated')
        }
      },
      'module': {

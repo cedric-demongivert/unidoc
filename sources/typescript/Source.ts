@@ -2,16 +2,18 @@ import { ANTLRInputStream } from 'antlr4ts'
 import { CharStream } from 'antlr4ts'
 import { CommonTokenStream } from 'antlr4ts'
 import { TokenStream } from 'antlr4ts'
-
 import { ParseTreeWalker } from 'antlr4ts/tree/ParseTreeWalker'
 import { ParseTreeListener } from 'antlr4ts/tree/ParseTreeListener'
 
-import { UnidocLexer } from '../generated/UnidocLexer'
-import { UnidocParser } from '../generated/UnidocParser'
+import { Observable } from 'rxjs'
+import { Subscriber } from 'rxjs'
 
-import { EmptyCharStream } from './common/EmptyCharStream'
-import { Validator } from './validation/Validator'
-import { Validation } from './validation/Validation'
+import { UnidocLexer } from '@grammar/UnidocLexer'
+import { UnidocParser } from '@grammar/UnidocParser'
+
+import { EmptyCharStream } from '@library/antlr/EmptyCharStream'
+import { Context } from '@library/context/Context'
+import { UnidocStreamer } from '@library/antlr/UnidocStreamer'
 
 /**
 * A complete unidoc parsing pipeline.
@@ -59,19 +61,14 @@ export class Source {
     this._parser.reset()
   }
 
-  /**
-  * Execute a validation of this source by using the given validator.
-  *
-  * @param validator - A unidoc validator instance to use for the validation.
-  *
-  * @return The result of the validation operation as a validation object.
-  */
-  public validate (validator : Validator) : Validation {
-    ParseTreeWalker.DEFAULT.walk(
-      validator as ParseTreeListener,
-      this._parser.unidoc()
+  public parse () : Observable<Context> {
+    return new Observable<Context>(
+      (subscriber : Subscriber<Context>) => {
+        ParseTreeWalker.DEFAULT.walk(
+          new UnidocStreamer(subscriber) as ParseTreeListener,
+          this._parser.unidoc()
+        )
+      }
     )
-
-    return null
   }
 }

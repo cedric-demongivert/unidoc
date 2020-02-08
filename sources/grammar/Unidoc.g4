@@ -1,24 +1,30 @@
 grammar Unidoc;
 
-WHITESPACE: [ \n\r\t];
+LINE_BREAK: '\r\n'|'\n'|'\r';
+SPACE: [ \t];
 IDENTIFIER: [a-zA-Z\-][a-zA-Z0-9\-]+;
 IDENTIFIER_MARKER: '#';
 CLASS_MARKER: '.';
-ESCAPED_BACKSLASH: '\\\\';
+ESCAPED_TYPE_PREFIX: '\\\\';
 ESCAPED_BLOCK_OPENING: '\\}';
 ESCAPED_BLOCK_ENDING: '\\{';
+TYPE_PREFIX: '\\';
 BLOCK_OPENING: '{';
 BLOCK_CLOSING: '}';
 CONTENT: .;
 
 unidoc: content EOF;
 
-content: (element | block | word | whitespace)*;
+content: (tag | block | whitespace | word)*;
 
 block: (IDENTIFIER_MARKER identifier=IDENTIFIER)? whitespace? (CLASS_MARKER classes+=IDENTIFIER whitespace? )* BLOCK_OPENING content BLOCK_CLOSING;
 
-word: ~(BLOCK_OPENING|BLOCK_CLOSING|WHITESPACE)+;
+word: ~(BLOCK_OPENING|BLOCK_CLOSING|SPACE|LINE_BREAK)+;
 
-whitespace: WHITESPACE+;
+whitespace: (space|linebreak)+;
 
-element: '\\' type=IDENTIFIER whitespace? block?;
+space: SPACE+;
+
+linebreak: LINE_BREAK;
+
+tag: TYPE_PREFIX type=IDENTIFIER whitespace? block?;

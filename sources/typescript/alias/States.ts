@@ -1,6 +1,6 @@
-import {
-  View, IdentifierSet, Sets
-} from '@cedric-demongivert/gl-tool-collection'
+import { View } from '@cedric-demongivert/gl-tool-collection'
+import { IdentifierSet } from '@cedric-demongivert/gl-tool-collection'
+import { Sets } from '@cedric-demongivert/gl-tool-collection'
 
 /**
 * A collection of states.
