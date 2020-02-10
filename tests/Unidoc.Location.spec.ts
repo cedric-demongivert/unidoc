@@ -32,8 +32,8 @@ describe('Unidoc.Location', function () {
 
       location.set(8, 3, 7)
 
-      expect(location.line).toBe(3)
-      expect(location.column).toBe(8)
+      expect(location.line).toBe(8)
+      expect(location.column).toBe(3)
       expect(location.index).toBe(7)
     })
   })
@@ -63,7 +63,7 @@ describe('Unidoc.Location', function () {
       const location : Unidoc.Location = new Unidoc.Location()
       location.set(8, 3, 7)
 
-      expect(location.toString()).toBe('3:8/7')
+      expect(location.toString()).toBe('8:3/7')
     })
   })
 
