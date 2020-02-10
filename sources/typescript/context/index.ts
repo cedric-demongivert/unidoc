@@ -1,7 +1,0 @@
-export { Context } from './Context'
-export { DocumentContext } from './DocumentContext'
-export { TagContext } from './TagContext'
-export { UnknownTagContext } from './UnknownTagContext'
-export { KnownTagContext } from './KnownTagContext'
-export { WordContext } from './WordContext'
-export { WhitespaceContext } from './WhitespaceContext'

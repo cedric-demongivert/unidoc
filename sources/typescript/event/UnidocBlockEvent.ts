@@ -1,21 +1,25 @@
-import { Tag } from '@library/tag/Tag'
+import { UnidocEvent } from './UnidocEvent'
+import { UnidocEventType } from './UnidocEventType'
 
-import { Alias } from '@library/alias/Alias'
-import { Location } from '@library/Location'
-
-import { Context } from './Context'
-
-export class BlockContext extends  Context {
+export class UnidocBlockEvent extends UnidocEvent {
+  /**
+  * Classes of the block.
+  */
   private _classes : Set<string>
+
+  /**
+  * Identifier of the block, may be undefined.
+  */
   public identifier : string
 
   /**
-  * Instanciate a new block context.
+  * Instanciate a new block event.
   */
   public constructor () {
-    super()
+    super(UnidocEventType.START_BLOCK)
+
     this.identifier = undefined
-    this._classes = new Set<string>()
+    this._classes   = new Set<string>()
   }
 
   /**
@@ -28,7 +32,7 @@ export class BlockContext extends  Context {
   /**
   * Update the classes associated to this block.
   *
-  * @param classes - An iterable over the classes of this block.
+  * @param classes - The new set of classes of this block.
   */
   public set classes (classes : Set<string>) {
     this._classes.clear()
@@ -39,22 +43,44 @@ export class BlockContext extends  Context {
   }
 
   /**
+  * Mark as a block start.
+  */
+  public start () : void {
+    this._type = UnidocEventType.START_BLOCK
+  }
+
+  /**
+  * Mark as a block end.
+  */
+  public end () : void {
+    this._type = UnidocEventType.END_BLOCK
+  }
+
+  /**
+  * @see UnidocEvent#clone
+  */
+  public clone () : UnidocBlockEvent {
+    return UnidocBlockEvent.copy(this)
+  }
+
+  /**
   * Deep copy an existing instance.
   *
   * @param toCopy - An instance to copy.
   */
-  public copy (toCopy : BlockContext) : void {
-    this.location = toCopy.location
-    this.exiting = toCopy.exiting
-    this.classes = toCopy.classes
+  public copy (toCopy : UnidocBlockEvent) : void {
+    this.timestamp  = toCopy.timestamp
+    this.location   = toCopy.location
+    this._type      = toCopy.type
+    this.classes    = toCopy.classes
     this.identifier = toCopy.identifier
   }
 
   /**
-  * @see Context#clear
+  * @see UnidocEvent#reset
   */
-  public clear () : void {
-    super.clear()
+  public reset () : void {
+    super.reset()
 
     this.identifier = undefined
     this._classes.clear()
@@ -66,23 +92,24 @@ export class BlockContext extends  Context {
   public toString () : string {
     let result : string = ''
 
-    result += (this.exiting ? 'exiting' : 'entering')
-    result += ' unidoc:block '
+    result += this.timestamp
+    result += ' '
+    result += UnidocEventType.toString(this.type)
+    result += ' '
+    result += this.location.toString()
 
     if (this.identifier != null) {
-      result += '#'
+      result += ' #'
       result += this.identifier
     }
 
     if (this.classes.size > 0) {
+      result += ' '
       for (const clazz of this.classes) {
         result += '.'
         result += clazz
       }
     }
-
-    result += ' '
-    result += this.location.toString()
 
     return result
   }
@@ -93,7 +120,7 @@ export class BlockContext extends  Context {
   public equals (other : any) {
     if (!super.equals(other)) return false
 
-    if (other instanceof BlockContext) {
+    if (other instanceof UnidocBlockEvent) {
       if (other.classes.size != this._classes.size) return false
 
       for (const clazz of other.classes) {
@@ -109,7 +136,7 @@ export class BlockContext extends  Context {
   }
 }
 
-export namespace BlockContext {
+export namespace UnidocBlockEvent {
   /**
   * Return a deep copy of the given instance.
   *
@@ -117,8 +144,8 @@ export namespace BlockContext {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : BlockContext) : BlockContext {
-    const copy : BlockContext = new BlockContext()
+  export function copy (toCopy : UnidocBlockEvent) : UnidocBlockEvent {
+    const copy : UnidocBlockEvent = new UnidocBlockEvent()
 
     copy.copy(toCopy)
 

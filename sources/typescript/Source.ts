@@ -12,7 +12,7 @@ import { UnidocLexer } from '@grammar/UnidocLexer'
 import { UnidocParser } from '@grammar/UnidocParser'
 
 import { EmptyCharStream } from '@library/antlr/EmptyCharStream'
-import { Context } from '@library/context/Context'
+import { UnidocEvent } from '@library/event/UnidocEvent'
 import { UnidocStreamer } from '@library/antlr/UnidocStreamer'
 
 import { Alias } from '@library/alias'
@@ -63,9 +63,9 @@ export class Source {
     this._parser.reset()
   }
 
-  public parse () : Observable<Context> {
-    return new Observable<Context>(
-      (subscriber : Subscriber<Context>) => {
+  public parse () : Observable<UnidocEvent> {
+    return new Observable<UnidocEvent>(
+      (subscriber : Subscriber<UnidocEvent>) => {
         const streamer : UnidocStreamer = new UnidocStreamer(subscriber)
         Alias.Standard.get(streamer.tags)
 

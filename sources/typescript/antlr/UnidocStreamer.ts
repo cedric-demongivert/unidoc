@@ -2,57 +2,54 @@ import { Subscriber } from 'rxjs'
 
 import { ParserRuleContext } from 'antlr4ts/ParserRuleContext'
 
-import { UnidocListener as ANTLRUnidocListener } from '@grammar/UnidocListener'
-import { UnidocContext as ANTLRUnidocContext } from "@grammar/UnidocParser"
-import { ContentContext as ANTLRContentContext } from "@grammar/UnidocParser"
-import { BlockContext as ANTLRBlockContext } from "@grammar/UnidocParser"
-import { WordContext as ANTLRWordContext } from "@grammar/UnidocParser"
-import { WhitespaceContext as ANTLRWhitespaceContext } from "@grammar/UnidocParser"
-import { LinebreakContext as ANTLRLinebreakContext } from "@grammar/UnidocParser"
-import { SpaceContext as ANTLRSpaceContext } from "@grammar/UnidocParser"
-import { TagContext as ANTLRTagContext } from "@grammar/UnidocParser"
+import { UnidocListener } from '@grammar/UnidocListener'
+import { UnidocContext } from "@grammar/UnidocParser"
+import { ContentContext } from "@grammar/UnidocParser"
+import { BlockContext } from "@grammar/UnidocParser"
+import { WordContext } from "@grammar/UnidocParser"
+import { WhitespaceContext } from "@grammar/UnidocParser"
+import { LinebreakContext } from "@grammar/UnidocParser"
+import { SpaceContext } from "@grammar/UnidocParser"
+import { TagContext } from "@grammar/UnidocParser"
 
-import { Context } from '@library/context/Context'
-import { DocumentContext } from '@library/context/DocumentContext'
-import { UnknownTagContext } from '@library/context/UnknownTagContext'
-import { KnownTagContext } from '@library/context/KnownTagContext'
-import { BlockContext } from '@library/context/BlockContext'
-import { WordContext } from '@library/context/WordContext'
-import { WhitespaceContext } from '@library/context/WhitespaceContext'
+import { UnidocEvent } from '@library/event/UnidocEvent'
+import { UnidocBlockEvent } from '@library/event/UnidocBlockEvent'
+import { UnidocDocumentEvent } from '@library/event/UnidocDocumentEvent'
+import { UnidocTagEvent } from '@library/event/UnidocTagEvent'
+import { UnidocWhitespaceEvent } from '@library/event/UnidocWhitespaceEvent'
+import { UnidocWordEvent } from '@library/event/UnidocWordEvent'
 
 import { Tag } from '@library/tag/Tag'
 import { Alias } from '@library/alias'
 import { Location } from '@library/Location'
 
-const STATE_BLOCK : number = 0
-const STATE_TAG : number = 1
+const STATE_BLOCK      : number = 0
+const STATE_TAG        : number = 1
 const STATE_WHITESPACE : number = 2
-const STATE_WORD : number = 3
-const STATE_ROOT : number = 4
+const STATE_WORD       : number = 3
+const STATE_ROOT       : number = 4
 
-export class UnidocStreamer implements ANTLRUnidocListener {
-  private _subscriber : Subscriber<Context>
+export class UnidocStreamer implements UnidocListener {
+  private _subscriber      : Subscriber<UnidocEvent>
 
-  private _unknownTagContext : UnknownTagContext
-  private _knownTagContext : KnownTagContext
-  private _documentContext : DocumentContext
-  private _wordContext : WordContext
-  private _whitespaceContext : WhitespaceContext
-  private _blockContext : BlockContext
+  private _blockEvent      : UnidocBlockEvent
+  private _documentEvent   : UnidocDocumentEvent
+  private _tagEvent        : UnidocTagEvent
+  private _whitespaceEvent : UnidocWhitespaceEvent
+  private _wordEvent       : UnidocWordEvent
 
   private _location : Location
   private _state : number[]
   private _tags : Alias.Mapping<Tag>
 
-  public constructor (subscriber : Subscriber<Context>) {
-    this._subscriber = subscriber
+  public constructor (subscriber : Subscriber<UnidocEvent>) {
+    this._subscriber      = subscriber
 
-    this._documentContext = new DocumentContext()
-    this._unknownTagContext = new UnknownTagContext()
-    this._knownTagContext = new KnownTagContext()
-    this._blockContext = new BlockContext()
-    this._wordContext = new WordContext()
-    this._whitespaceContext = new WhitespaceContext()
+    this._blockEvent      = new UnidocBlockEvent()
+    this._documentEvent   = new UnidocDocumentEvent()
+    this._tagEvent        = new UnidocTagEvent()
+    this._whitespaceEvent = new UnidocWhitespaceEvent()
+    this._wordEvent       = new UnidocWordEvent()
 
     this._location = new Location()
     this._state = []
@@ -63,232 +60,308 @@ export class UnidocStreamer implements ANTLRUnidocListener {
     return this._tags
   }
 
-	public enterUnidoc (context: ANTLRUnidocContext) : void {
+  /**
+  * Called when the listener enter into the document to parse.
+  *
+  * The unidoc rule is the root rule of the parser.
+  *
+  * @param context - Parsing information.
+  */
+	public enterUnidoc (context: UnidocContext) : void {
     this.updateLocationOnEntering(context)
+    this.extractDocumentEvent(context)
 
-    this._documentContext.clear()
-    this._documentContext.entering = true
-    this._documentContext.location = this._location
-    this._subscriber.next(this._documentContext)
+    this._documentEvent.start()
+    this._subscriber.next(this._documentEvent)
 
     this._state.push(STATE_ROOT)
   }
 
-	public exitUnidoc (context: ANTLRUnidocContext) : void {
+  /**
+  * Called when the listener exit the document to parse.
+  *
+  * The unidoc rule is the root rule of the parser.
+  *
+  * @param context - Parsing information.
+  */
+	public exitUnidoc (context: UnidocContext) : void {
     this.updateLocationOnExiting(context)
+    this.extractDocumentEvent(context)
 
-    this._documentContext.clear()
-    this._documentContext.exiting = true
-    this._documentContext.location = this._location
-    this._subscriber.next(this._documentContext)
+    this._documentEvent.end()
+    this._subscriber.next(this._documentEvent)
     this._subscriber.complete()
 
     this._state.pop()
   }
 
-	public enterContent (context : ANTLRContentContext) : void {
+  /**
+  * Extract a document event from the given context.
+  *
+  * @param context - A context from wich extracting a document event.
+  */
+  private extractDocumentEvent (context : UnidocContext) : void {
+    this._documentEvent.reset()
+    this._documentEvent.location = this._location
+  }
+
+  /**
+  * Called when the parser enter a tag, a block, a whitespace or a word.
+  *
+  * @param context - Parsing information.
+  */
+	public enterContent (context : ContentContext) : void {
     this.updateLocationOnEntering(context)
   }
 
-	public exitContent (context : ANTLRContentContext) : void {
+  /**
+  * Called when the parser exit a tag, a block, a whitespace or a word.
+  *
+  * @param context - Parsing information.
+  */
+	public exitContent (context : ContentContext) : void {
     this.updateLocationOnExiting(context)
   }
 
-	public enterBlock (context : ANTLRBlockContext) : void {
+  /**
+  * Called when the parser enter a block.
+  *
+  * The block can belong to a tag, or be anonymous.
+  *
+  * @param context - Parsing information.
+  */
+	public enterBlock (context : BlockContext) : void {
     this.updateLocationOnEntering(context)
 
     if (this._state[this._state.length - 1] !== STATE_TAG) {
-      this.extractBlockContext(context)
-      this._blockContext.entering = true
-      this._subscriber.next(this._blockContext)
+      this.extractBlockEvent(context)
+      this._blockEvent.start()
+      this._subscriber.next(this._blockEvent)
     }
 
     this._state.push(STATE_BLOCK)
   }
 
-	public exitBlock (context : ANTLRBlockContext) : void {
+  /**
+  * Called when the parser exit a block.
+  *
+  * The block can belong to a tag, or be anonymous.
+  *
+  * @param context - Parsing information.
+  */
+	public exitBlock (context : BlockContext) : void {
     this.updateLocationOnExiting(context)
 
     if (this._state[this._state.length - 2] !== STATE_TAG) {
-      this.extractBlockContext(context)
-      this._blockContext.exiting = true
-      this._subscriber.next(this._blockContext)
+      this.extractBlockEvent(context)
+      this._blockEvent.end()
+      this._subscriber.next(this._blockEvent)
     }
 
     this._state.pop()
   }
 
-  private extractBlockContext (context : ANTLRBlockContext) : void {
-    this._blockContext.clear()
+  /**
+  * Extract a block event from the given context.
+  *
+  * @param context - A context from wich extracting the block event.
+  */
+  private extractBlockEvent (context : BlockContext) : void {
+    this._blockEvent.reset()
 
     if (context._identifier) {
-      this._blockContext.identifier = context._identifier.text
+      this._blockEvent.identifier = context._identifier.text
     }
 
     if (context._classes) {
       for (const clazz of context._classes) {
-        this._blockContext.classes.add(clazz.text)
+        this._blockEvent.classes.add(clazz.text)
       }
     }
 
-    this._blockContext.location = this._location
+    this._blockEvent.location = this._location
   }
 
-	public enterWord (context : ANTLRWordContext) : void {
+  /**
+  * Called when the parser enter a non-whitespace content.
+  *
+  * @param context - Parsing information.
+  */
+	public enterWord (context : WordContext) : void {
     this.updateLocationOnEntering(context)
+    this.extractWordEvent(context)
 
-    this.extractWordContext(context)
-    this._wordContext.entering = true
-    this._subscriber.next(this._wordContext)
+    this._wordEvent.start()
+    this._subscriber.next(this._wordEvent)
 
     this._state.push(STATE_WORD)
   }
 
-	public exitWord (context : ANTLRWordContext) : void {
+  /**
+  * Called when the parser exit a non-whitespace content.
+  *
+  * @param context - Parsing information.
+  */
+	public exitWord (context : WordContext) : void {
     this.updateLocationOnExiting(context)
+    this.extractWordEvent(context)
 
-    this.extractWordContext(context)
-    this._wordContext.entering = false
-    this._subscriber.next(this._wordContext)
+    this._wordEvent.end()
+    this._subscriber.next(this._wordEvent)
 
     this._state.pop()
   }
 
-  private extractWordContext (context : ANTLRWordContext) : void {
-    this._wordContext.clear()
-    this._wordContext.location = this._location
-    this._wordContext.value = context.text
+  /**
+  * Extract a word event from the given context.
+  *
+  * @param context - A context from wich extracting the word event.
+  */
+  private extractWordEvent (context : WordContext) : void {
+    this._wordEvent.reset()
+    this._wordEvent.location = this._location
+    this._wordEvent.value = context.text
   }
 
-	public enterWhitespace (context : ANTLRWhitespaceContext) : void {
+  /**
+  * Called when the parser enter a combination of whitespace and line-breaks.
+  *
+  * @param context - Parsing information.
+  */
+	public enterWhitespace (context : WhitespaceContext) : void {
     this.updateLocationOnEntering(context)
+    this.extractWhitespaceEvent(context)
 
-    this.extractWhitespaceContext(context)
-    this._whitespaceContext.entering = true
-    this._subscriber.next(this._whitespaceContext)
+    this._whitespaceEvent.start()
+    this._subscriber.next(this._whitespaceEvent)
 
     this._state.push(STATE_WHITESPACE)
   }
 
-	public exitWhitespace (context : ANTLRWhitespaceContext) : void {
+  /**
+  * Called when the parser exit a combination of whitespace and line-breaks.
+  *
+  * @param context - Parsing information.
+  */
+	public exitWhitespace (context : WhitespaceContext) : void {
     this.updateLocationOnExiting(context)
+    this.extractWhitespaceEvent(context)
 
-    this.extractWhitespaceContext(context)
-    this._whitespaceContext.entering = false
-    this._subscriber.next(this._whitespaceContext)
+    this._whitespaceEvent.end()
+    this._subscriber.next(this._whitespaceEvent)
 
     this._state.pop()
   }
 
-  private extractWhitespaceContext (context : ANTLRWhitespaceContext) : void {
-    this._whitespaceContext.clear()
-    this._whitespaceContext.location = this._location
-    this._whitespaceContext.value = context.text
+  /**
+  * Extract a whitespace event from the given context.
+  *
+  * @param context - A context from which extracting a whitespace event.
+  */
+  private extractWhitespaceEvent (context : WhitespaceContext) : void {
+    this._whitespaceEvent.reset()
+    this._whitespaceEvent.location = this._location
+    this._whitespaceEvent.value = context.text
   }
 
-  public enterLinebreak (context : ANTLRLinebreakContext) : void {
+  /**
+  * Called when the parser enter a line-break symbol.
+  *
+  * @param context - Parsing information.
+  */
+  public enterLinebreak (context : LinebreakContext) : void {
     this.updateLocationOnEntering(context)
   }
 
-  public exitLinebreak (context : ANTLRLinebreakContext) : void {
+  /**
+  * Called when the parser exit a line-break symbol.
+  *
+  * @param context - Parsing information.
+  */
+  public exitLinebreak (context : LinebreakContext) : void {
     this._location.line += 1
     this._location.column = 0
     this._location.index = context.sourceInterval.b
   }
 
-  public enterSpace (context : ANTLRSpaceContext) : void {
+  /**
+  * Called when the parser enter a space symbol.
+  *
+  * @param context - Parsing information.
+  */
+  public enterSpace (context : SpaceContext) : void {
     this.updateLocationOnEntering(context)
-
   }
 
-  public exitSpace (context : ANTLRSpaceContext) : void {
+  /**
+  * Called when the parser exit a space symbol.
+  *
+  * @param context - Parsing information.
+  */
+  public exitSpace (context : SpaceContext) : void {
     this.updateLocationOnExiting(context)
-
   }
 
-	public enterTag (context : ANTLRTagContext) : void {
+  /**
+  * Called when the parser enter a tag.
+  *
+  * @param context - Parsing information.
+  */
+	public enterTag (context : TagContext) : void {
     this.updateLocationOnEntering(context)
+    this.extractTagEvent(context)
 
-    const name : string = context._type.text
-    const type : Tag = this._tags.get(name)
-
-    if (type == null) {
-      this.extractUnknownTagContext(context)
-      this._unknownTagContext.entering = true
-      this._subscriber.next(this._unknownTagContext)
-    } else {
-      this.extractKnownTagContext(context)
-      this._knownTagContext.entering = true
-      this._knownTagContext.type = type
-      this._subscriber.next(this._knownTagContext)
-    }
+    this._tagEvent.start()
+    this._subscriber.next(this._tagEvent)
 
     this._state.push(STATE_TAG)
   }
 
-	public exitTag (context : ANTLRTagContext) : void {
+  /**
+  * Called when the parser exit a tag.
+  *
+  * @param context - Parsing information.
+  */
+	public exitTag (context : TagContext) : void {
     this.updateLocationOnExiting(context)
+    this.extractTagEvent(context)
 
-    const name : string = context._type.text
-    const type : Tag = this._tags.get(name)
-
-    if (type == null) {
-      this.extractUnknownTagContext(context)
-      this._unknownTagContext.exiting = true
-      this._subscriber.next(this._unknownTagContext)
-    } else {
-      this.extractKnownTagContext(context)
-      this._knownTagContext.exiting = true
-      this._knownTagContext.type = type
-      this._subscriber.next(this._knownTagContext)
-    }
+    this._tagEvent.end()
+    this._subscriber.next(this._tagEvent)
 
     this._state.pop()
   }
 
-  private extractKnownTagContext (context : ANTLRTagContext) : void {
-    this._knownTagContext.clear()
-    this._knownTagContext.name = context._type.text
+  /**
+  * Extract a tag event from the given context.
+  *
+  * @param context - A context from wich extracting a tag event.
+  */
+  private extractTagEvent (context : TagContext) : void {
+    this._tagEvent.reset()
+    this._tagEvent.alias = context._type.text
+    this._tagEvent.tag = this._tags.get(this._tagEvent.alias)
 
-    const blockContext : ANTLRBlockContext = context.block()
+    const blockContext : BlockContext = context.block()
 
     if (blockContext._identifier) {
-      this._knownTagContext.identifier = blockContext._identifier.text
+      this._tagEvent.identifier = blockContext._identifier.text
     }
 
     if (blockContext._classes) {
       for (const clazz of blockContext._classes) {
-        this._knownTagContext.classes.add(clazz.text)
+        this._tagEvent.classes.add(clazz.text)
       }
     }
 
-    this._knownTagContext.location = this._location
-  }
-
-  private extractUnknownTagContext (context : ANTLRTagContext) : void {
-    this._unknownTagContext.clear()
-    this._unknownTagContext.name = context._type.text
-
-    const blockContext : ANTLRBlockContext = context.block()
-
-    if (blockContext._identifier) {
-      this._unknownTagContext.identifier = blockContext._identifier.text
-    }
-
-    if (blockContext._classes) {
-      for (const clazz of blockContext._classes) {
-        this._unknownTagContext.classes.add(clazz.text)
-      }
-    }
-
-    this._unknownTagContext.location = this._location
+    this._tagEvent.location = this._location
   }
 
   /**
   * Called in order to track the parsing location for the current context when
   * the parser enter a rule.
   *
-  * @param context - Context of the current rule.
+  * @param context - UnidocEvent of the current rule.
   */
   private updateLocationOnEntering (context : ParserRuleContext) : void {
     this._location.column += context.sourceInterval.a - this._location.index
@@ -299,7 +372,7 @@ export class UnidocStreamer implements ANTLRUnidocListener {
   * Called in order to track the parsing location for the current context when
   * the parser exit a rule.
   *
-  * @param context - Context of the current rule.
+  * @param context - UnidocEvent of the current rule.
   */
   private updateLocationOnExiting (context : ParserRuleContext) : void {
     this._location.column += context.sourceInterval.b - this._location.index
