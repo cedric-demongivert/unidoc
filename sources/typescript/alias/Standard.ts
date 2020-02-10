@@ -16,9 +16,9 @@ export namespace Standard {
   /**
   * @return A mapping of standard aliases to standard tags.
   */
-  export function get () : Mapping<Tag.Standard> {
-    const result : Mapping<Tag.Standard> = new Mapping<Tag.Standard>(256)
-
+  export function get (
+    result : Mapping<Tag.Standard> = new Mapping<Tag.Standard>(256)
+  ) : Mapping<Tag.Standard> {
     result.declare('paragraph', Tag.Standard.PARAGRAPH)
     result.declare('title', Tag.Standard.TITLE)
     result.declare('emphasize', Tag.Standard.EMPHASIZE)

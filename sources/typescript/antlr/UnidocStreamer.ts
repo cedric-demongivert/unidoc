@@ -2,7 +2,7 @@ import { Subscriber } from 'rxjs'
 
 import { ParserRuleContext } from 'antlr4ts/ParserRuleContext'
 
-import { UnidocListener } from '@grammar/UnidocListener'
+import { UnidocListener as ANTLRUnidocListener } from '@grammar/UnidocListener'
 import { UnidocContext as ANTLRUnidocContext } from "@grammar/UnidocParser"
 import { ContentContext as ANTLRContentContext } from "@grammar/UnidocParser"
 import { BlockContext as ANTLRBlockContext } from "@grammar/UnidocParser"
@@ -14,8 +14,14 @@ import { TagContext as ANTLRTagContext } from "@grammar/UnidocParser"
 
 import { Context } from '@library/context/Context'
 import { DocumentContext } from '@library/context/DocumentContext'
-import { TagContext } from '@library/context/TagContext'
+import { UnknownTagContext } from '@library/context/UnknownTagContext'
+import { KnownTagContext } from '@library/context/KnownTagContext'
 import { BlockContext } from '@library/context/BlockContext'
+import { WordContext } from '@library/context/WordContext'
+import { WhitespaceContext } from '@library/context/WhitespaceContext'
+
+import { Tag } from '@library/tag/Tag'
+import { Alias } from '@library/alias'
 import { Location } from '@library/Location'
 
 const STATE_BLOCK : number = 0
@@ -24,23 +30,37 @@ const STATE_WHITESPACE : number = 2
 const STATE_WORD : number = 3
 const STATE_ROOT : number = 4
 
-export class UnidocStreamer implements UnidocListener {
+export class UnidocStreamer implements ANTLRUnidocListener {
   private _subscriber : Subscriber<Context>
-  private _tagContext : TagContext
+
+  private _unknownTagContext : UnknownTagContext
+  private _knownTagContext : KnownTagContext
   private _documentContext : DocumentContext
+  private _wordContext : WordContext
+  private _whitespaceContext : WhitespaceContext
   private _blockContext : BlockContext
+
   private _location : Location
-  private _skipNextBlock : boolean
   private _state : number[]
+  private _tags : Alias.Mapping<Tag>
 
   public constructor (subscriber : Subscriber<Context>) {
     this._subscriber = subscriber
+
     this._documentContext = new DocumentContext()
-    this._tagContext = new TagContext()
+    this._unknownTagContext = new UnknownTagContext()
+    this._knownTagContext = new KnownTagContext()
     this._blockContext = new BlockContext()
+    this._wordContext = new WordContext()
+    this._whitespaceContext = new WhitespaceContext()
+
     this._location = new Location()
-    this._skipNextBlock = false
     this._state = []
+    this._tags = new Alias.Mapping<Tag>()
+  }
+
+  public get tags () : Alias.Mapping<Tag> {
+    return this._tags
   }
 
 	public enterUnidoc (context: ANTLRUnidocContext) : void {
@@ -68,12 +88,10 @@ export class UnidocStreamer implements UnidocListener {
 
 	public enterContent (context : ANTLRContentContext) : void {
     this.updateLocationOnEntering(context)
-
   }
 
 	public exitContent (context : ANTLRContentContext) : void {
     this.updateLocationOnExiting(context)
-
   }
 
 	public enterBlock (context : ANTLRBlockContext) : void {
@@ -119,21 +137,53 @@ export class UnidocStreamer implements UnidocListener {
 	public enterWord (context : ANTLRWordContext) : void {
     this.updateLocationOnEntering(context)
 
+    this.extractWordContext(context)
+    this._wordContext.entering = true
+    this._subscriber.next(this._wordContext)
+
+    this._state.push(STATE_WORD)
   }
 
 	public exitWord (context : ANTLRWordContext) : void {
     this.updateLocationOnExiting(context)
 
+    this.extractWordContext(context)
+    this._wordContext.entering = false
+    this._subscriber.next(this._wordContext)
+
+    this._state.pop()
+  }
+
+  private extractWordContext (context : ANTLRWordContext) : void {
+    this._wordContext.clear()
+    this._wordContext.location = this._location
+    this._wordContext.value = context.text
   }
 
 	public enterWhitespace (context : ANTLRWhitespaceContext) : void {
     this.updateLocationOnEntering(context)
 
+    this.extractWhitespaceContext(context)
+    this._whitespaceContext.entering = true
+    this._subscriber.next(this._whitespaceContext)
+
+    this._state.push(STATE_WHITESPACE)
   }
 
 	public exitWhitespace (context : ANTLRWhitespaceContext) : void {
     this.updateLocationOnExiting(context)
 
+    this.extractWhitespaceContext(context)
+    this._whitespaceContext.entering = false
+    this._subscriber.next(this._whitespaceContext)
+
+    this._state.pop()
+  }
+
+  private extractWhitespaceContext (context : ANTLRWhitespaceContext) : void {
+    this._whitespaceContext.clear()
+    this._whitespaceContext.location = this._location
+    this._whitespaceContext.value = context.text
   }
 
   public enterLinebreak (context : ANTLRLinebreakContext) : void {
@@ -159,9 +209,19 @@ export class UnidocStreamer implements UnidocListener {
 	public enterTag (context : ANTLRTagContext) : void {
     this.updateLocationOnEntering(context)
 
-    this.extractTagContext(context)
-    this._tagContext.entering = true
-    this._subscriber.next(this._tagContext)
+    const name : string = context._type.text
+    const type : Tag = this._tags.get(name)
+
+    if (type == null) {
+      this.extractUnknownTagContext(context)
+      this._unknownTagContext.entering = true
+      this._subscriber.next(this._unknownTagContext)
+    } else {
+      this.extractKnownTagContext(context)
+      this._knownTagContext.entering = true
+      this._knownTagContext.type = type
+      this._subscriber.next(this._knownTagContext)
+    }
 
     this._state.push(STATE_TAG)
   }
@@ -169,30 +229,59 @@ export class UnidocStreamer implements UnidocListener {
 	public exitTag (context : ANTLRTagContext) : void {
     this.updateLocationOnExiting(context)
 
-    this.extractTagContext(context)
-    this._tagContext.exiting = true
-    this._subscriber.next(this._tagContext)
+    const name : string = context._type.text
+    const type : Tag = this._tags.get(name)
+
+    if (type == null) {
+      this.extractUnknownTagContext(context)
+      this._unknownTagContext.exiting = true
+      this._subscriber.next(this._unknownTagContext)
+    } else {
+      this.extractKnownTagContext(context)
+      this._knownTagContext.exiting = true
+      this._knownTagContext.type = type
+      this._subscriber.next(this._knownTagContext)
+    }
 
     this._state.pop()
   }
 
-  private extractTagContext (context : ANTLRTagContext) : void {
-    this._tagContext.clear()
-    this._tagContext.name = context._type.text
+  private extractKnownTagContext (context : ANTLRTagContext) : void {
+    this._knownTagContext.clear()
+    this._knownTagContext.name = context._type.text
 
     const blockContext : ANTLRBlockContext = context.block()
 
     if (blockContext._identifier) {
-      this._tagContext.identifier = blockContext._identifier.text
+      this._knownTagContext.identifier = blockContext._identifier.text
     }
 
     if (blockContext._classes) {
       for (const clazz of blockContext._classes) {
-        this._tagContext.classes.add(clazz.text)
+        this._knownTagContext.classes.add(clazz.text)
       }
     }
 
-    this._tagContext.location = this._location
+    this._knownTagContext.location = this._location
+  }
+
+  private extractUnknownTagContext (context : ANTLRTagContext) : void {
+    this._unknownTagContext.clear()
+    this._unknownTagContext.name = context._type.text
+
+    const blockContext : ANTLRBlockContext = context.block()
+
+    if (blockContext._identifier) {
+      this._unknownTagContext.identifier = blockContext._identifier.text
+    }
+
+    if (blockContext._classes) {
+      for (const clazz of blockContext._classes) {
+        this._unknownTagContext.classes.add(clazz.text)
+      }
+    }
+
+    this._unknownTagContext.location = this._location
   }
 
   /**

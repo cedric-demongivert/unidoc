@@ -15,6 +15,8 @@ import { EmptyCharStream } from '@library/antlr/EmptyCharStream'
 import { Context } from '@library/context/Context'
 import { UnidocStreamer } from '@library/antlr/UnidocStreamer'
 
+import { Alias } from '@library/alias'
+
 /**
 * A complete unidoc parsing pipeline.
 */
@@ -64,8 +66,11 @@ export class Source {
   public parse () : Observable<Context> {
     return new Observable<Context>(
       (subscriber : Subscriber<Context>) => {
+        const streamer : UnidocStreamer = new UnidocStreamer(subscriber)
+        Alias.Standard.get(streamer.tags)
+
         ParseTreeWalker.DEFAULT.walk(
-          new UnidocStreamer(subscriber) as ParseTreeListener,
+          streamer as ParseTreeListener,
           this._parser.unidoc()
         )
       }

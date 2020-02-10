@@ -5,12 +5,14 @@ export type Standard = Tag
 
 export namespace Standard {
   export const DOCUMENT : Standard = 0
-  export const PARAGRAPH : Standard = 1
-  export const EMPHASIZE : Standard = 2
-  export const TITLE : Standard = 3
+  export const SECTION : Standard = 1
+  export const PARAGRAPH : Standard = 2
+  export const EMPHASIZE : Standard = 3
+  export const TITLE : Standard = 4
 
   export const ALL : Standard[] = [
     DOCUMENT,
+    SECTION,
     PARAGRAPH,
     EMPHASIZE,
     TITLE
@@ -34,6 +36,7 @@ export namespace Standard {
   export function toString (tag : Standard) : string {
     switch (tag) {
       case DOCUMENT: return 'DOCUMENT'
+      case SECTION: return 'SECTION'
       case PARAGRAPH: return 'PARAGRAPH'
       case EMPHASIZE: return 'EMPHASIZE'
       case TITLE: return 'TITLE'
@@ -51,6 +54,7 @@ export namespace Standard {
   export function isStandardUnidocElement (tag : Tag) : boolean {
     switch (tag) {
       case DOCUMENT:
+      case SECTION:
       case PARAGRAPH:
       case EMPHASIZE:
       case TITLE:

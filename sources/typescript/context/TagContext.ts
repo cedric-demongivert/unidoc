@@ -35,6 +35,9 @@ export class TagContext extends Context {
     }
   }
 
+  /**
+  * @see Context#clear
+  */
   public clear () : void {
     super.clear()
 
