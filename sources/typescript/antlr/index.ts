@@ -1,1 +1,0 @@
-export { EmptyCharStream } from './EmptyCharStream'

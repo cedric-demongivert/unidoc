@@ -1,7 +1,7 @@
 import { Observable } from 'rxjs'
 import { Subscriber } from 'rxjs'
 
-import { IntStream } from 'antlr4ts'
+import { CodePoint } from './CodePoint'
 
 class StaticStringStreamer {
   /**
@@ -23,15 +23,14 @@ class StaticStringStreamer {
   *
   * @param output - Output subscriber to feed with this string symbols.
   */
-  public stream (output : Subscriber<number>) : void {
+  public stream (output : Subscriber<CodePoint>) : void {
     const value : string = this._value
     const length : number = value.length
 
     for (let index = 0; index < length; ++index) {
-      output.next(value.charCodeAt(index))
+      output.next(value.codePointAt(index))
     }
 
-    output.next(IntStream.EOF)
     output.complete()
   }
 }
@@ -43,7 +42,7 @@ class StaticStringStreamer {
 *
 * @return A stream of unidoc symbol extracted from the given string.
 */
-export function fromString (value : string) : Observable<number> {
+export function fromString (value : string) : Observable<CodePoint> {
   const streamer : StaticStringStreamer = new StaticStringStreamer(value)
-  return new Observable<number>(streamer.stream.bind(streamer))
+  return new Observable<CodePoint>(streamer.stream.bind(streamer))
 }

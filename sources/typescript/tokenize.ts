@@ -2,64 +2,40 @@ import { Observable } from 'rxjs'
 import { Subscriber } from 'rxjs'
 import { Subscription } from 'rxjs'
 
-import { Lexer } from 'antlr4ts/Lexer'
-import { Token } from 'antlr4ts/Token'
+import { CodePoint } from '@library/CodePoint'
 
-import { BufferedCharStream } from '@library/antlr/BufferedCharStream'
+import { UnidocLexer } from '@library/lexer/UnidocLexer'
+import { UnidocToken } from '@library/token/UnidocToken'
 
-const STATE_START : number = 0
-const STATE_SPACE : number = 1
-const STATE_VALUE: number = 2
-
-const SPACE : number = ' '.charCodeAt(0)
-const TABULATION : number = '\t'.charCodeAt(0)
-
-class ANTLRTokenizer {
+class Tokenizer {
   /**
-  * A symbol buffer.
+  * The lexer to use for tokenization.
   */
-  private _buffer : BufferedCharStream
-
-  /**
-  * The ANTLR lexer to use for tokenization.
-  */
-  private _lexer : Lexer
-
-  /**
-  * A set of listeners.
-  */
-  private _subscribers : Set<Subscriber<Token>>
+  private _lexer : UnidocLexer
 
   /**
   * The source of symbol of this tokenizer.
   */
-  private _input : Observable<number>
+  private _input : Observable<CodePoint>
 
   /**
   * The subscription to the source of symbol of this tokenizer.
   */
   private _subscription : Subscription
 
-  private _state : number
-
   /**
   * Instantiate a new tokenizer.
   *
   * @param lexer - The lexer to use for tokenization.
   */
-  public constructor (lexer : Lexer) {
-    this._buffer           = new BufferedCharStream()
-    this._lexer            = lexer
-    this._subscribers      = new Set<Subscriber<Token>>()
+  public constructor () {
+    this._lexer            = new UnidocLexer()
     this._input            = null
-    this._state            = STATE_START
+    this._subscription     = null
 
     this.consumeNextSymbol = this.consumeNextSymbol.bind(this)
     this.consumeNextError  = this.consumeNextError.bind(this)
     this.consumeCompletion = this.consumeCompletion.bind(this)
-
-    this._lexer.inputStream = this._buffer
-    this._lexer.reset()
   }
 
   /**
@@ -67,8 +43,8 @@ class ANTLRTokenizer {
   *
   * @param output - An output to fill with recognized tokens.
   */
-  public stream (output : Subscriber<Token>) : void {
-    this._subscribers.add(output)
+  public stream (output : Subscriber<UnidocToken>) : void {
+    this._lexer.addEventListener(output)
   }
 
   /**
@@ -76,8 +52,8 @@ class ANTLRTokenizer {
   *
   * @param output - An output to stop to fill with recognized tokens.
   */
-  public unstream (output : Subscriber<Token>) : void {
-    this._subscribers.delete(output)
+  public unstream (output : Subscriber<UnidocToken>) : void {
+    this._lexer.deleteEventListener(output)
   }
 
   /**
@@ -85,7 +61,7 @@ class ANTLRTokenizer {
   *
   * @param input - A source of symbols.
   */
-  public subscribe (input : Observable<number>) : void {
+  public subscribe (input : Observable<CodePoint>) : void {
     if (this._input !== input) {
       if (this._subscription) {
         this._subscription.unsubscribe()
@@ -106,52 +82,12 @@ class ANTLRTokenizer {
   }
 
   /**
-  * Try to recognize a token from the current symbol buffer.
-  */
-  public recognizeNextToken () : void {
-    while (!this._buffer.atLast()) {
-      this.emit(this._lexer.nextToken())
-    }
-
-    this._buffer.truncate()
-  }
-
-  public emit (token : Token) : void {
-    for (const subscriber of this._subscribers) {
-      subscriber.next(token)
-    }
-  }
-
-  /**
-  * Try to recognize all remaining tokens.
-  */
-  public recognizeRemainingTokens () : void {
-    while (this._buffer.hasNext()) {
-      this.emit(this._lexer.nextToken())
-    }
-  }
-
-  /**
   * Consume the next available symbol.
   *
   * @param symbol - The symbol to consume.
   */
   public consumeNextSymbol (symbol : number) : void {
-    this._buffer.push(symbol)
-
-    switch (symbol) {
-      case SPACE:
-      case TABULATION:
-        this._state = STATE_SPACE
-        break
-      default:
-        if (this._state === STATE_SPACE) {
-          this.recognizeNextToken()
-        }
-
-        this._state = STATE_VALUE
-        break
-    }
+    this._lexer.next(symbol)
   }
 
   /**
@@ -168,11 +104,6 @@ class ANTLRTokenizer {
   */
   public consumeCompletion () : void {
     console.log('completion')
-    this.recognizeRemainingTokens()
-
-    for (const subscriber of this._subscribers) {
-      subscriber.complete()
-    }
   }
 }
 
@@ -181,17 +112,17 @@ type Operator<In, Out> = (source : Observable<In>) => Observable<Out>
 /**
 * Transform a stream of symbols to a stream of tokens.
 *
-* @param lexer - A lexer to use in order to build the tokens.
-*
 * @return An operator that transform a stream of symbols to a stream of tokens.
 */
-export function tokenize (lexer : Lexer) : Operator<number, Token> {
-  const tokenizer : ANTLRTokenizer = new ANTLRTokenizer(lexer)
+export function tokenize () : Operator<CodePoint, UnidocToken> {
+  const tokenizer : Tokenizer = new Tokenizer()
 
-  return function (input : Observable<number>) : Observable<Token> {
-    return new Observable<Token>(function (subscriber : Subscriber<Token>) {
-      tokenizer.stream(subscriber)
-      tokenizer.subscribe(input)
-    })
+  return function (input : Observable<CodePoint>) : Observable<UnidocToken> {
+    return new Observable<UnidocToken>(
+      function (subscriber : Subscriber<UnidocToken>) {
+        tokenizer.stream(subscriber)
+        tokenizer.subscribe(input)
+      }
+    )
   }
 }

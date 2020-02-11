@@ -64,6 +64,15 @@ export class Location {
   }
 
   /**
+  * Reset this instance in order to reuse-it.
+  */
+  public reset () : void {
+    this.column = 0
+    this.line = 0
+    this.index = 0
+  }
+
+  /**
   * @see Object#toString
   */
   public toString () : string {
