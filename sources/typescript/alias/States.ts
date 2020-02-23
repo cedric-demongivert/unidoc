@@ -1,6 +1,5 @@
 import { View } from '@cedric-demongivert/gl-tool-collection'
 import { IdentifierSet } from '@cedric-demongivert/gl-tool-collection'
-import { Sets } from '@cedric-demongivert/gl-tool-collection'
 
 /**
 * A collection of states.
@@ -22,7 +21,7 @@ export class States {
   * @param capacity - Number of states to allocate.
   */
   public constructor (capacity : number) {
-    this._states = Sets.identifier(capacity)
+    this._states = IdentifierSet.allocate(capacity)
     this._view = View.wrap(this._states)
   }
 

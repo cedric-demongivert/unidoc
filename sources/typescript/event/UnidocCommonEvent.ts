@@ -1,46 +1,40 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { Location } from '@library/Location'
-import { CodePoint } from '@library/CodePoint'
+import { CodePoint } from '../CodePoint'
+import { Location } from '../Location'
 
-import { UnidocTokenType } from './UnidocTokenType'
+import { UnidocEvent } from './UnidocEvent'
+import { UnidocEventType } from './UnidocEventType'
 
-/**
-* A unidoc token.
-*/
-export class UnidocToken {
+export class UnidocCommonEvent implements UnidocEvent {
   /**
-  * Type of this unidoc token.
+  * @see UnidocEvent.timestamp
   */
-  public type : UnidocTokenType
+  public timestamp : number
 
   /**
-  * The location of the starting symbol (included) of this token in its parent
-  * document.
+  * @see UnidocEvent.type
   */
-  public readonly from : Location
+  public type : UnidocEventType
 
   /**
-  * The location of the ending symbol (excluded) of this token in its parent
-  * document.
+  * @see UnidocEvent.location
   */
-  public readonly to : Location
+  public readonly location : Location
 
   /**
-  * Symbols that compose this unidoc token.
+  * Content associated to this event.
   */
   public readonly symbols : Pack<CodePoint>
 
   /**
-  * Instantiate a new unidoc token.
-  *
-  * @param [capacity = 16] - Initial capacity of the symbol buffer of this token.
+  * Instantiate a new common unidoc event.
   */
-  public constructor (capacity : number = 16) {
-    this.type = UnidocTokenType.DEFAULT_TYPE
-    this.symbols = Pack.uint32(capacity)
-    this.from = new Location()
-    this.to = new Location()
+  public constructor () {
+    this.location  = new Location()
+    this.timestamp = Date.now()
+    this.type      = UnidocEventType.DEFAULT_TYPE
+    this.symbols   = Pack.uint32(128)
   }
 
   /**
@@ -108,43 +102,52 @@ export class UnidocToken {
   }
 
   /**
-  * Deep-copy another token instance.
-  *
-  * @param toCopy - Another token instance to copy.
+  * @see UnidocEvent.clone
   */
-  public copy (toCopy : UnidocToken) : void {
-    this.type = toCopy.type
-    this.from.copy(toCopy.from)
-    this.to.copy(toCopy.to)
-    this.symbols.copy(toCopy.symbols)
-  }
-
-  /**
-  * @return A deep-copy of this token.
-  */
-  public clone () : UnidocToken {
-    const result : UnidocToken = new UnidocToken(this.symbols.capacity)
+  public clone () : UnidocCommonEvent {
+    const result : UnidocCommonEvent = new UnidocCommonEvent()
     result.copy(this)
     return result
   }
 
   /**
-  * Reset this token instance in order to reuse it.
+  * Deep copy an existing instance.
+  *
+  * @param toCopy - An instance to copy.
+  */
+  public copy (toCopy : UnidocCommonEvent) : void {
+    this.timestamp = toCopy.timestamp
+    this.type      = toCopy.type
+    this.location.copy(toCopy.location)
+    this.symbols.copy(toCopy.symbols)
+  }
+
+  /**
+  * @see UnidocEvent.clear
   */
   public clear () : void {
-    this.type = UnidocTokenType.DEFAULT_TYPE
+    this.timestamp = Date.now()
+    this.type      = UnidocEventType.DEFAULT_TYPE
+    this.location.clear()
     this.symbols.clear()
-    this.from.clear()
-    this.to.clear()
   }
 
   /**
   * @see Object#toString
   */
   public toString () : string {
-    return UnidocTokenType.toString(this.type).padEnd(15) + ' ' +
-           this.from.toString().padEnd(15, ' ') + ' - ' +
-           this.to.toString().padEnd(15, ' ') + ' "' + this.debugText + '" '
+    let result : string = ''
+
+    result += this.timestamp
+    result += ' '
+    result += UnidocEventType.toString(this.type)
+    result += ' '
+    result += this.location.toString()
+    result += ' \"'
+    result += this.debugText
+    result += '\"'
+
+    return result
   }
 
   /**
@@ -154,26 +157,25 @@ export class UnidocToken {
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof UnidocToken) {
-      return other.type === this.type &&
-             other.from.equals(this.from) &&
-             other.to.equals(this.to) &&
-             other.symbols.equals(this.symbols)
+    if (other instanceof UnidocCommonEvent) {
+      return other.timestamp === this.timestamp &&
+             other.type === this.type &&
+             other.location.equals(this.location)
     }
 
     return false
   }
 }
 
-export namespace UnidocToken {
+export namespace UnidocCommonEvent {
   /**
-  * Instantiate a deep copy of the given instance.
+  * Return a deep copy of the given instance.
   *
   * @param toCopy - An instance to copy.
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : UnidocToken) : UnidocToken {
+  export function copy (toCopy : UnidocCommonEvent) : UnidocCommonEvent {
     return toCopy == null ? null : toCopy.clone()
   }
 }

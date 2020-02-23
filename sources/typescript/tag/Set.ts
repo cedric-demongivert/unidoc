@@ -1,7 +1,5 @@
 import { IdentifierSet } from '@cedric-demongivert/gl-tool-collection'
-import { Sets } from '@cedric-demongivert/gl-tool-collection'
-import { Collection } from '@cedric-demongivert/gl-tool-collection'
-import { RandomAccessIterator } from '@cedric-demongivert/gl-tool-collection'
+import { BidirectionalIterator } from '@cedric-demongivert/gl-tool-collection'
 
 import { Tag } from './Tag'
 
@@ -36,7 +34,7 @@ export class Set {
   * @param [capacity = 32] - Initial capacity of the new Unidoc tag set.
   */
   public constructor (capacity : number = 32) {
-    this._identifiers = Sets.identifier(capacity)
+    this._identifiers = IdentifierSet.allocate(capacity)
   }
 
   /**
@@ -103,7 +101,7 @@ export class Set {
   /**
   * @return An iterator over this set of Unidoc tag.
   */
-  public iterator () : RandomAccessIterator<Tag> {
+  public iterator () : BidirectionalIterator<Tag> {
     return this._identifiers.iterator()
   }
 

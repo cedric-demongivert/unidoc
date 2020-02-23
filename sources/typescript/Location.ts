@@ -66,7 +66,7 @@ export class Location {
   /**
   * Reset this instance in order to reuse-it.
   */
-  public reset () : void {
+  public clear () : void {
     this.column = 0
     this.line = 0
     this.index = 0

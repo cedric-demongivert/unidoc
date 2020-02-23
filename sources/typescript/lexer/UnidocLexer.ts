@@ -1,14 +1,10 @@
 import { Subscriber } from 'rxjs'
-
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
-import { Packs } from '@cedric-demongivert/gl-tool-collection'
 
-import { copy } from '@library/utils/copy'
-
-import { Location } from '@library/Location'
-import { CodePoint } from '@library/CodePoint'
-import { UnidocToken } from '@library/token/UnidocToken'
-import { UnidocTokenType } from '@library/token/UnidocTokenType'
+import { Location } from '../Location'
+import { CodePoint } from '../CodePoint'
+import { UnidocToken } from '../token/UnidocToken'
+import { UnidocTokenType } from '../token/UnidocTokenType'
 
 import { UnidocLexerState } from './UnidocLexerState'
 
@@ -48,7 +44,7 @@ export class UnidocLexer {
   */
   public constructor (capacity : number = 64) {
     this._state       = UnidocLexerState.START
-    this._symbols     = Packs.uint32(capacity)
+    this._symbols     = Pack.uint32(capacity)
     this._token       = new UnidocToken(capacity)
     this._subscribers = new Set<Subscriber<UnidocToken>>()
     this._location    = new Location()
@@ -213,8 +209,8 @@ export class UnidocLexer {
   */
   private handleAfterDot (codePoint : CodePoint) : void {
     if (
-      (codePoint >= CodePoint.a && codePoint <= CodePoint.z) ||
-      (codePoint >= CodePoint.A && codePoint <= CodePoint.Z)
+      codePoint >= CodePoint.a && codePoint <= CodePoint.z ||
+      codePoint >= CodePoint.A && codePoint <= CodePoint.Z
     ) {
       this._symbols.push(codePoint)
       this._state = UnidocLexerState.CLASS
@@ -244,10 +240,10 @@ export class UnidocLexer {
   */
   private handleAfterClass (codePoint : CodePoint) : void {
     if (
-      (codePoint >= CodePoint.a && codePoint <= CodePoint.z) ||
-      (codePoint >= CodePoint.A && codePoint <= CodePoint.Z) ||
-      (codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE) ||
-      (codePoint === CodePoint.MINUS)
+      codePoint >= CodePoint.a    && codePoint <= CodePoint.z    ||
+      codePoint >= CodePoint.A    && codePoint <= CodePoint.Z    ||
+      codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
+      codePoint === CodePoint.MINUS
     ) {
       this._symbols.push(codePoint)
     } else {
@@ -279,8 +275,8 @@ export class UnidocLexer {
   */
   private handleAfterSharp (codePoint : CodePoint) : void {
     if (
-      (codePoint >= CodePoint.a && codePoint <= CodePoint.z) ||
-      (codePoint >= CodePoint.A && codePoint <= CodePoint.Z)
+      codePoint >= CodePoint.a && codePoint <= CodePoint.z ||
+      codePoint >= CodePoint.A && codePoint <= CodePoint.Z
     ) {
       this._symbols.push(codePoint)
       this._state = UnidocLexerState.IDENTIFIER
@@ -297,10 +293,10 @@ export class UnidocLexer {
   */
   private handleAfterIdentifier (codePoint : CodePoint) : void {
     if (
-      (codePoint >= CodePoint.a && codePoint <= CodePoint.z) ||
-      (codePoint >= CodePoint.A && codePoint <= CodePoint.Z) ||
-      (codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE) ||
-      (codePoint === CodePoint.MINUS)
+      codePoint >= CodePoint.a    && codePoint <= CodePoint.z    ||
+      codePoint >= CodePoint.A    && codePoint <= CodePoint.Z    ||
+      codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
+      codePoint === CodePoint.MINUS
     ) {
       this._symbols.push(codePoint)
     } else {
@@ -374,12 +370,12 @@ export class UnidocLexer {
   * Configure a WORD token instance and emit it.
   */
   private emitWord () : void {
-    this._token.reset()
-    this._token.from = this._location
+    this._token.clear()
+    this._token.from.copy(this._location)
     this._location.column += this._symbols.size
     this._location.index += this._symbols.size
-    this._token.to = this._location
-    copy(this._symbols, this._token.symbols)
+    this._token.to.copy(this._location)
+    this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.WORD
 
@@ -390,12 +386,12 @@ export class UnidocLexer {
   * Configure a TAG token instance and emit it.
   */
   private emitTag () : void {
-    this._token.reset()
-    this._token.from = this._location
+    this._token.clear()
+    this._token.from.copy(this._location)
     this._location.column += this._symbols.size
     this._location.index += this._symbols.size
-    this._token.to = this._location
-    copy(this._symbols, this._token.symbols)
+    this._token.to.copy(this._location)
+    this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.TAG
 
@@ -406,12 +402,12 @@ export class UnidocLexer {
   * Configure a CLASS token instance and emit it.
   */
   private emitClass () : void {
-    this._token.reset()
-    this._token.from = this._location
+    this._token.clear()
+    this._token.from.copy(this._location)
     this._location.column += this._symbols.size
     this._location.index += this._symbols.size
-    this._token.to = this._location
-    copy(this._symbols, this._token.symbols)
+    this._token.to.copy(this._location)
+    this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.CLASS
 
@@ -422,12 +418,12 @@ export class UnidocLexer {
   * Configure a IDENTIFIER token instance and emit it.
   */
   private emitIdentifier () : void {
-    this._token.reset()
-    this._token.from = this._location
+    this._token.clear()
+    this._token.from.copy(this._location)
     this._location.column += this._symbols.size
     this._location.index += this._symbols.size
-    this._token.to = this._location
-    copy(this._symbols, this._token.symbols)
+    this._token.to.copy(this._location)
+    this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.IDENTIFIER
 
@@ -438,12 +434,12 @@ export class UnidocLexer {
   * Configure a SPACE token instance and emit it.
   */
   private emitSpace () : void {
-    this._token.reset()
-    this._token.from = this._location
+    this._token.clear()
+    this._token.from.copy(this._location)
     this._location.column += this._symbols.size
     this._location.index += this._symbols.size
-    this._token.to = this._location
-    copy(this._symbols, this._token.symbols)
+    this._token.to.copy(this._location)
+    this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.SPACE
 
@@ -454,13 +450,13 @@ export class UnidocLexer {
   * Configure a NEW_LINE token instance and emit it.
   */
   private emitNewLine () : void {
-    this._token.reset()
-    this._token.from = this._location
+    this._token.clear()
+    this._token.from.copy(this._location)
     this._location.column = 0
     this._location.line += 1
     this._location.index += this._symbols.size
-    this._token.to = this._location
-    copy(this._symbols, this._token.symbols)
+    this._token.to.copy(this._location)
+    this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.NEW_LINE
 
@@ -471,11 +467,11 @@ export class UnidocLexer {
   * Configure a BLOCK_START token instance and emit it.
   */
   private emitBlockStart () : void {
-    this._token.reset()
-    this._token.from = this._location
+    this._token.clear()
+    this._token.from.copy(this._location)
     this._location.column += 1
     this._location.index += 1
-    this._token.to = this._location
+    this._token.to.copy(this._location)
     this._token.symbols.push(CodePoint.OPENING_BRACE)
     this._token.type = UnidocTokenType.BLOCK_START
 
@@ -486,11 +482,11 @@ export class UnidocLexer {
   * Configure a BLOCK_END token instance and emit it.
   */
   private emitBlockEnd () : void {
-    this._token.reset()
-    this._token.from = this._location
+    this._token.clear()
+    this._token.from.copy(this._location)
     this._location.column += 1
     this._location.index += 1
-    this._token.to = this._location
+    this._token.to.copy(this._location)
     this._token.symbols.push(CodePoint.CLOSING_BRACE)
     this._token.type = UnidocTokenType.BLOCK_END
 
@@ -529,10 +525,10 @@ export class UnidocLexer {
   /**
   * Reset this lexer in order to reuse-it.
   */
-  public reset () : void {
-    this._token.reset()
+  public clear () : void {
+    this._token.clear()
     this._state = UnidocLexerState.START
-    this._location.reset()
+    this._location.clear()
     this._subscribers.clear()
     this._symbols.clear()
   }

@@ -1,4 +1,4 @@
-import { Pack, Packs } from '@cedric-demongivert/gl-tool-collection'
+import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { States } from './States'
 
 const SYMBOLS : number = 27 // 26 english letters + minus symbol
@@ -68,8 +68,8 @@ export class Mapping<T> {
   */
   public constructor (capacity : number = 512) {
     this._states = new States(capacity)
-    this._relationships = Packs.upTo(capacity, capacity * RELATIONSHIPS)
-    this._terminations = Packs.any(capacity)
+    this._relationships = Pack.unsignedUpTo(capacity, capacity * RELATIONSHIPS)
+    this._terminations = Pack.any(capacity)
 
     this._start = this._states.create()
     this._error = this._states.create()
@@ -305,5 +305,5 @@ export class Mapping<T> {
 }
 
 export namespace Mapping {
-  
+
 }

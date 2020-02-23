@@ -1,98 +1,45 @@
-import { Location } from '@library/Location'
+import { Location } from '../Location'
 
 import { UnidocEventType } from './UnidocEventType'
 
 /**
 * A unidoc event.
 */
-export class UnidocEvent {
+export interface UnidocEvent {
   /**
-  * Emission timestamp.
+  * This event creation timestamp.
   */
-  public timestamp : number
+  timestamp : number
 
   /**
-  * Type of event.
+  * Type of this event.
   */
-  protected _type : UnidocEventType
+  type : UnidocEventType
 
   /**
-  * Location into the document stream.
+  * Location of this event into the document stream.
   */
-  private _location : Location
-
-  /**
-  * Instantiate a new unidoc event.
-  *
-  * @param type - Type of event to instantiate.
-  */
-  public constructor (type : UnidocEventType) {
-    this._location = new Location()
-    this.timestamp = Date.now()
-    this._type     = type
-  }
-
-  /**
-  * @return The location of this event into the document stream.
-  */
-  public get location () : Location {
-    return this._location
-  }
-
-  /**
-  * Update the location of this event into the document stream.
-  *
-  * @param location - The new location into the document stream.
-  */
-  public set location (location : Location) {
-    this._location.copy(location)
-  }
-
-  /**
-  * @return The type identifier of this event.
-  */
-  public get type () : UnidocEventType {
-    return this._type
-  }
+  location : Location
 
   /**
   * @return A deep copy of this event.
   */
-  public clone () : UnidocEvent {
-    return UnidocEvent.copy(this)
-  }
+  clone () : UnidocEvent
 
   /**
-  * Reset this event structure in order to reuse it.
+  * Reset this event instance in order to reuse it.
   */
-  public reset () : void {
-    this._location.set(0, 0, 0)
-    this.timestamp = Date.now()
-  }
+  clear () : void
 
   /**
   * @see Object#toString
   */
-  public toString () : string {
-    return this.timestamp + ' ' + UnidocEventType.toString(this._type) + ' ' +
-           this._location.toString()
-  }
+  toString () : string
 
   /**
   * @see Object#equals
   */
-  public equals (other : any) {
-    if (other == null) return false
-    if (other === this) return true
-
-    if (other instanceof UnidocEvent) {
-      return other.timestamp === this.timestamp &&
-             other.type === this._type &&
-             other.location.equals(this._location)
-    }
-
-    return false
-  }
+  equals (other : any) : boolean
 }
 
 export namespace UnidocEvent {
@@ -104,6 +51,6 @@ export namespace UnidocEvent {
   * @return A deep copy of the given instance.
   */
   export function copy (toCopy : UnidocEvent) : UnidocEvent {
-    return Object.getPrototypeOf(toCopy).constructor.copy(toCopy)
+    return toCopy == null ? null : toCopy.clone()
   }
 }

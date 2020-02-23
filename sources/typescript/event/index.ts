@@ -1,7 +1,5 @@
 export { UnidocEventType } from './UnidocEventType'
 export { UnidocEvent } from './UnidocEvent'
+export { UnidocCommonEvent } from './UnidocCommonEvent'
 export { UnidocBlockEvent } from './UnidocBlockEvent'
-export { UnidocDocumentEvent } from './UnidocDocumentEvent'
 export { UnidocTagEvent } from './UnidocTagEvent'
-export { UnidocWhitespaceEvent } from './UnidocWhitespaceEvent'
-export { UnidocWordEvent } from './UnidocWordEvent'

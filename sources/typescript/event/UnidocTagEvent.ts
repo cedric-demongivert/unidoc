@@ -1,3 +1,5 @@
+import { Location } from '../Location'
+
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
 
@@ -6,7 +8,22 @@ const EMPTY_ALIAS : string = ''
 /**
 * An event emitted when the parser enter or exit a tag structure.
 */
-export class UnidocTagEvent extends UnidocEvent {
+export class UnidocTagEvent implements UnidocEvent {
+  /**
+  * @see UnidocEvent.timestamp
+  */
+  public timestamp : number
+
+  /**
+  * @see UnidocEvent.type
+  */
+  public type : UnidocEventType
+
+  /**
+  * @see UnidocEvent.location
+  */
+  public readonly location : Location
+
   /**
   * The alias of the discovered tag.
   */
@@ -18,59 +35,26 @@ export class UnidocTagEvent extends UnidocEvent {
   public tag : number
 
   /**
-  * Classes of this tag.
-  */
-  private _classes : Set<string>
-
-  /**
   * Identifier of this tag, may be undefined
   */
   public identifier : string
 
   /**
+  * Classes of this tag.
+  */
+  public readonly classes : Set<string>
+
+  /**
   * Instantiate a new tag event.
   */
   public constructor () {
-    super(UnidocEventType.START_TAG)
-
+    this.timestamp  = Date.now()
+    this.type       = UnidocEventType.START_TAG
+    this.location   = new Location()
     this.alias      = EMPTY_ALIAS
     this.tag        = undefined
     this.identifier = undefined
-    this._classes   = new Set<string>()
-  }
-
-  /**
-  * @return The classes associated to this tag.
-  */
-  public get classes () : Set<string> {
-    return this._classes
-  }
-
-  /**
-  * Update the classes associated to this tag.
-  *
-  * @param classes - The new set of classes of this tag.
-  */
-  public set classes (classes : Set<string>) {
-    this._classes.clear()
-
-    for (const clazz of classes) {
-      this._classes.add(clazz)
-    }
-  }
-
-  /**
-  * Mark as a tag start.
-  */
-  public start () : void {
-    this._type = UnidocEventType.START_TAG
-  }
-
-  /**
-  * Mark as a tag end.
-  */
-  public end () : void {
-    this._type = UnidocEventType.END_TAG
+    this.classes    = new Set<string>()
   }
 
   /**
@@ -80,32 +64,39 @@ export class UnidocTagEvent extends UnidocEvent {
   */
   public copy (toCopy : UnidocTagEvent) : void {
     this.timestamp  = toCopy.timestamp
-    this._type      = toCopy.type
-    this.location   = toCopy.location
+    this.type       = toCopy.type
     this.alias      = toCopy.alias
     this.tag        = toCopy.tag
     this.identifier = toCopy.identifier
-    this.classes    = toCopy.classes
+
+    this.location.copy(toCopy.location)
+
+    this.classes.clear()
+    for (const clazz of toCopy.classes) {
+      this.classes.add(clazz)
+    }
   }
 
   /**
   * @see UnidocEvent#clone
   */
   public clone () : UnidocTagEvent {
-    return UnidocTagEvent.copy(this)
+    const result : UnidocTagEvent = new UnidocTagEvent()
+    result.copy(this)
+    return result
   }
 
   /**
   * @see UnidocEvent#clear
   */
-  public reset () : void {
-    super.reset()
-
+  public clear () : void {
+    this.timestamp  = Date.now()
     this.alias      = EMPTY_ALIAS
     this.tag        = undefined
     this.identifier = undefined
 
-    this._classes.clear()
+    this.location.clear()
+    this.classes.clear()
   }
 
   /**
@@ -119,10 +110,13 @@ export class UnidocTagEvent extends UnidocEvent {
     result += UnidocEventType.toString(this.type)
     result += ' '
     result += this.location.toString()
-    result += ' "'
+    result += ' \\'
     result += this.alias
-    result += '" as '
-    result += (this.tag == null ? 'unknown' : this.tag)
+
+    if (this.tag != null) {
+      result += '@'
+      result += this.tag
+    }
 
     if (this.identifier != null) {
       result += ' #'
@@ -144,13 +138,15 @@ export class UnidocTagEvent extends UnidocEvent {
   * @see Object#equals
   */
   public equals (other : any) {
-    if (!super.equals(other)) return false
+    if (other == null) return false
+    if (other === this) return true
 
     if (other instanceof UnidocTagEvent) {
-      if (other.classes.size != this._classes.size) return false
+      if (other.timestamp !== this.timestamp) return false
+      if (other.classes.size != this.classes.size) return false
 
       for (const clazz of other.classes) {
-        if (!this._classes.has(clazz)) {
+        if (!this.classes.has(clazz)) {
           return false
         }
       }
@@ -173,10 +169,6 @@ export namespace UnidocTagEvent {
   * @return A deep copy of the given instance.
   */
   export function copy (toCopy : UnidocTagEvent) : UnidocTagEvent {
-    const copy : UnidocTagEvent = new UnidocTagEvent()
-
-    copy.copy(toCopy)
-
-    return copy
+    return toCopy == null ? null : toCopy.clone()
   }
 }

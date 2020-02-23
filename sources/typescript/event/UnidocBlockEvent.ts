@@ -1,66 +1,46 @@
+import { Location } from '../Location'
+
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
 
-export class UnidocBlockEvent extends UnidocEvent {
+/**
+* An event emitted when the parser enter or exit a block structure.
+*/
+export class UnidocBlockEvent implements UnidocEvent {
   /**
-  * Classes of the block.
+  * @see UnidocEvent.timestamp
   */
-  private _classes : Set<string>
+  public timestamp : number
 
   /**
-  * Identifier of the block, may be undefined.
+  * @see UnidocEvent.type
+  */
+  public type : UnidocEventType
+
+  /**
+  * @see UnidocEvent.location
+  */
+  public readonly location : Location
+
+  /**
+  * Identifier of this block, may be undefined
   */
   public identifier : string
 
   /**
-  * Instanciate a new block event.
+  * Classes of this block.
+  */
+  public readonly classes : Set<string>
+
+  /**
+  * Instantiate a new block event.
   */
   public constructor () {
-    super(UnidocEventType.START_BLOCK)
-
+    this.timestamp  = Date.now()
+    this.type       = UnidocEventType.START_BLOCK
+    this.location   = new Location()
     this.identifier = undefined
-    this._classes   = new Set<string>()
-  }
-
-  /**
-  * @return The classes associated to this block.
-  */
-  public get classes () : Set<string> {
-    return this._classes
-  }
-
-  /**
-  * Update the classes associated to this block.
-  *
-  * @param classes - The new set of classes of this block.
-  */
-  public set classes (classes : Set<string>) {
-    this._classes.clear()
-
-    for (const clazz of classes) {
-      this._classes.add(clazz)
-    }
-  }
-
-  /**
-  * Mark as a block start.
-  */
-  public start () : void {
-    this._type = UnidocEventType.START_BLOCK
-  }
-
-  /**
-  * Mark as a block end.
-  */
-  public end () : void {
-    this._type = UnidocEventType.END_BLOCK
-  }
-
-  /**
-  * @see UnidocEvent#clone
-  */
-  public clone () : UnidocBlockEvent {
-    return UnidocBlockEvent.copy(this)
+    this.classes    = new Set<string>()
   }
 
   /**
@@ -70,20 +50,35 @@ export class UnidocBlockEvent extends UnidocEvent {
   */
   public copy (toCopy : UnidocBlockEvent) : void {
     this.timestamp  = toCopy.timestamp
-    this.location   = toCopy.location
-    this._type      = toCopy.type
-    this.classes    = toCopy.classes
+    this.type       = toCopy.type
     this.identifier = toCopy.identifier
+
+    this.location.copy(toCopy.location)
+
+    this.classes.clear()
+    for (const clazz of toCopy.classes) {
+      this.classes.add(clazz)
+    }
   }
 
   /**
-  * @see UnidocEvent#reset
+  * @see UnidocEvent#clone
   */
-  public reset () : void {
-    super.reset()
+  public clone () : UnidocBlockEvent {
+    const result : UnidocBlockEvent = new UnidocBlockEvent()
+    result.copy(this)
+    return result
+  }
 
+  /**
+  * @see UnidocEvent#clear
+  */
+  public clear () : void {
+    this.timestamp  = Date.now()
     this.identifier = undefined
-    this._classes.clear()
+
+    this.location.clear()
+    this.classes.clear()
   }
 
   /**
@@ -117,19 +112,24 @@ export class UnidocBlockEvent extends UnidocEvent {
   /**
   * @see Object#equals
   */
-  public equals (other : any) {
-    if (!super.equals(other)) return false
+  public equals (other : any) : boolean {
+    if (other == null) return false
+    if (other === this) return true
 
     if (other instanceof UnidocBlockEvent) {
-      if (other.classes.size != this._classes.size) return false
+      if (
+        other.timestamp !== this.timestamp      ||
+        other.identifier === this.identifier    ||
+        other.classes.size != this.classes.size
+      ) return false
 
       for (const clazz of other.classes) {
-        if (!this._classes.has(clazz)) {
+        if (!this.classes.has(clazz)) {
           return false
         }
       }
 
-      return other.identifier === this.identifier
+      return true
     }
 
     return false
@@ -145,10 +145,6 @@ export namespace UnidocBlockEvent {
   * @return A deep copy of the given instance.
   */
   export function copy (toCopy : UnidocBlockEvent) : UnidocBlockEvent {
-    const copy : UnidocBlockEvent = new UnidocBlockEvent()
-
-    copy.copy(toCopy)
-
-    return copy
+    return toCopy == null ? null : toCopy.clone()
   }
 }
