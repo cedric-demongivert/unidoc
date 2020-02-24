@@ -1,4 +1,4 @@
-import { Location } from '../Location'
+import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
@@ -20,7 +20,7 @@ export class UnidocBlockEvent implements UnidocEvent {
   /**
   * @see UnidocEvent.location
   */
-  public readonly location : Location
+  public readonly location : UnidocLocation
 
   /**
   * Identifier of this block, may be undefined
@@ -38,7 +38,7 @@ export class UnidocBlockEvent implements UnidocEvent {
   public constructor () {
     this.timestamp  = Date.now()
     this.type       = UnidocEventType.START_BLOCK
-    this.location   = new Location()
+    this.location   = new UnidocLocation()
     this.identifier = undefined
     this.classes    = new Set<string>()
   }

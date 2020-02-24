@@ -1,24 +1,24 @@
 /**
 * The location of a symbol in a unidoc document.
 */
-export class Location {
+export class UnidocLocation {
   /**
   * 0:0 location.
   */
-  public static ZERO : Location = new Location()
+  public static ZERO : UnidocLocation = new UnidocLocation()
 
   /**
-  * The symbol column.
+  * A document stream column.
   */
   public column : number
 
   /**
-  * The symbol line.
+  * A document stream line.
   */
   public line : number
 
   /**
-  * The symbol index.
+  * A document stream code point.
   */
   public index : number
 
@@ -40,10 +40,36 @@ export class Location {
   }
 
   /**
+  * Update this location by adding the given lines, columns and indices.
+  *
+  * @param line - Lines to add.
+  * @param column - Columns to add.
+  * @param index - Indices to add.
+  */
+  public add (line : number, column : number, index : number) : void {
+    this.column += column
+    this.line += line
+    this.index += index
+  }
+
+  /**
+  * Update this location by subtracting the given lines, columns and indices.
+  *
+  * @param line - Lines to add.
+  * @param column - Columns to add.
+  * @param index - Indices to add.
+  */
+  public subtract (line : number, column : number, index : number) : void {
+    this.column -= column
+    this.line -= line
+    this.index -= index
+  }
+
+  /**
   * Update this location.
   *
-  * @param column - Document column.
   * @param line - Document line.
+  * @param column - Document column.
   * @param index - Buffer index.
   */
   public set (line : number, column : number, index : number) : void {
@@ -57,7 +83,7 @@ export class Location {
   *
   * @param toCopy - Another instance to copy.
   */
-  public copy (toCopy : Location) : void  {
+  public copy (toCopy : UnidocLocation) : void  {
     this.column = toCopy.column
     this.line = toCopy.line
     this.index = toCopy.index
@@ -86,7 +112,7 @@ export class Location {
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof Location) {
+    if (other instanceof UnidocLocation) {
       return other.line === this.line &&
              other.column === this.column &&
              other.index === this.index
@@ -94,7 +120,7 @@ export class Location {
   }
 }
 
-export namespace Location {
+export namespace UnidocLocation {
   /**
   * Return a deep copy of the given instance.
   *
@@ -102,8 +128,8 @@ export namespace Location {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : Location) : Location {
-    const result : Location = new Location()
+  export function copy (toCopy : UnidocLocation) : UnidocLocation {
+    const result : UnidocLocation = new UnidocLocation()
     result.copy(toCopy)
 
     return result

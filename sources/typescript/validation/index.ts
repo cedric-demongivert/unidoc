@@ -1,1 +1,2 @@
-export { Validation } from './Validation'
+export { UnidocValidation } from './UnidocValidation'
+export { UnidocValidationType } from './UnidocValidationType'

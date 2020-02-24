@@ -1,4 +1,4 @@
-import { Location } from '../Location'
+import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocEventType } from './UnidocEventType'
 
@@ -17,9 +17,9 @@ export interface UnidocEvent {
   type : UnidocEventType
 
   /**
-  * Location of this event into the document stream.
+  * UnidocLocation of this event into the document stream.
   */
-  location : Location
+  location : UnidocLocation
 
   /**
   * @return A deep copy of this event.

@@ -1,4 +1,4 @@
-import { Location } from '@library/Location'
+import { UnidocLocation } from '@library/UnidocLocation'
 
 import { Element } from './Element'
 
@@ -6,9 +6,9 @@ export class Text extends Element {
   /**
   * Instantiate a new unidoc path text element.
   *
-  * @param [location = Location.ZERO] - Location of this element in the document.
+  * @param [location = UnidocLocation.ZERO] - UnidocLocation of this element in the document.
   */
-  public constructor (location : Location = Location.ZERO) {
+  public constructor (location : UnidocLocation = UnidocLocation.ZERO) {
     super(location)
   }
 

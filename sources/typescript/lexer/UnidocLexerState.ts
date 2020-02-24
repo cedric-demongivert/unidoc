@@ -11,10 +11,11 @@ export namespace UnidocLexerState {
   export const SPACE           : UnidocLexerState = 7
   export const CARRIAGE_RETURN : UnidocLexerState = 8
   export const WORD            : UnidocLexerState = 9
+  export const END             : UnidocLexerState = 10
 
   export const ALL             : UnidocLexerState[] = [
     START, ANTISLASH, SHARP, IDENTIFIER, DOT, CLASS,
-    TAG, SPACE, CARRIAGE_RETURN, WORD
+    TAG, SPACE, CARRIAGE_RETURN, WORD, END
   ]
 
   export function toString (state : UnidocLexerState) : string {
@@ -29,6 +30,7 @@ export namespace UnidocLexerState {
       case SPACE: return 'SPACE'
       case CARRIAGE_RETURN: return 'CARRIAGE_RETURN'
       case WORD: return 'WORD'
+      case END: return 'END'
       default: return undefined
     }
   }

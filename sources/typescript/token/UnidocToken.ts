@@ -1,6 +1,6 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { Location } from '@library/Location'
+import { UnidocLocation } from '@library/UnidocLocation'
 import { CodePoint } from '@library/CodePoint'
 
 import { UnidocTokenType } from './UnidocTokenType'
@@ -18,13 +18,13 @@ export class UnidocToken {
   * The location of the starting symbol (included) of this token in its parent
   * document.
   */
-  public readonly from : Location
+  public readonly from : UnidocLocation
 
   /**
   * The location of the ending symbol (excluded) of this token in its parent
   * document.
   */
-  public readonly to : Location
+  public readonly to : UnidocLocation
 
   /**
   * Symbols that compose this unidoc token.
@@ -39,8 +39,8 @@ export class UnidocToken {
   public constructor (capacity : number = 16) {
     this.type = UnidocTokenType.DEFAULT_TYPE
     this.symbols = Pack.uint32(capacity)
-    this.from = new Location()
-    this.to = new Location()
+    this.from = new UnidocLocation()
+    this.to = new UnidocLocation()
   }
 
   /**
@@ -48,6 +48,19 @@ export class UnidocToken {
   */
   public get text () : string {
     return String.fromCodePoint(...this.symbols)
+  }
+
+  /**
+  * Update the symbol buffer of this token.
+  *
+  * @param value - A string to bufferize.
+  */
+  public set text (value : string) {
+    this.symbols.clear()
+
+    for (let index = 0; index < value.length; ++index) {
+      this.symbols.push(value.codePointAt(index))
+    }
   }
 
   /**
@@ -176,4 +189,27 @@ export namespace UnidocToken {
   export function copy (toCopy : UnidocToken) : UnidocToken {
     return toCopy == null ? null : toCopy.clone()
   }
+
+  /**
+  * Return a space token that start at the given location and contains the given
+  * code points.
+  *
+  * @param from - Starting location of the token to instantiate.
+  * @param value - Code points of the token to instantiate.
+  *
+  * @return A space token that start at the given location and contains the
+  *         given code points.
+  */
+  export function space (from : UnidocLocation, value : string) : void {
+    const result : UnidocToken = new UnidocToken()
+
+    result.type = UnidocTokenType.SPACE
+    result.text = value
+    result.from.copy(from)
+    result.to.copy(from)
+    result.to.add(0, value.length, value.length)
+
+    return result
+  }
+
 }

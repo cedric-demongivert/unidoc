@@ -1,7 +1,7 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../CodePoint'
-import { Location } from '../Location'
+import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
@@ -20,7 +20,7 @@ export class UnidocCommonEvent implements UnidocEvent {
   /**
   * @see UnidocEvent.location
   */
-  public readonly location : Location
+  public readonly location : UnidocLocation
 
   /**
   * Content associated to this event.
@@ -31,7 +31,7 @@ export class UnidocCommonEvent implements UnidocEvent {
   * Instantiate a new common unidoc event.
   */
   public constructor () {
-    this.location  = new Location()
+    this.location  = new UnidocLocation()
     this.timestamp = Date.now()
     this.type      = UnidocEventType.DEFAULT_TYPE
     this.symbols   = Pack.uint32(128)

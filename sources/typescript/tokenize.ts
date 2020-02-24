@@ -2,10 +2,11 @@ import { Observable } from 'rxjs'
 import { Subscriber } from 'rxjs'
 import { Subscription } from 'rxjs'
 
-import { CodePoint } from '@library/CodePoint'
+import { CodePoint } from './CodePoint'
 
-import { UnidocLexer } from '@library/lexer/UnidocLexer'
-import { UnidocToken } from '@library/token/UnidocToken'
+import { UnidocLexer } from './lexer/UnidocLexer'
+import { UnidocToken } from './token/UnidocToken'
+import { UnidocValidation } from './validation/UnidocValidation'
 
 class Tokenizer {
   /**
@@ -19,9 +20,14 @@ class Tokenizer {
   private _input : Observable<CodePoint>
 
   /**
-  * The subscription to the source of symbol of this tokenizer.
+  * The subscription to the ource of symbol of this tokenizer.
   */
   private _subscription : Subscription
+
+  /**
+  * The subscription to the source of symbol of this tokenizer.
+  */
+  private _outputs : Set<Subscriber<UnidocToken>>
 
   /**
   * Instantiate a new tokenizer.
@@ -32,10 +38,21 @@ class Tokenizer {
     this._lexer            = new UnidocLexer()
     this._input            = null
     this._subscription     = null
+    this._outputs          = new Set<Subscriber<UnidocToken>>()
 
     this.consumeNextSymbol = this.consumeNextSymbol.bind(this)
     this.consumeNextError  = this.consumeNextError.bind(this)
     this.consumeCompletion = this.consumeCompletion.bind(this)
+
+    this.handleNextToken = this.handleNextToken.bind(this)
+    this.handleNextValidation  = this.handleNextValidation.bind(this)
+    this.handleNextError = this.handleNextError.bind(this)
+    this.handleCompletion = this.handleCompletion.bind(this)
+
+    this._lexer.addEventListener('token', this.handleNextToken)
+    this._lexer.addEventListener('error', this.handleNextError)
+    this._lexer.addEventListener('completion', this.handleCompletion)
+    this._lexer.addEventListener('validation', this.handleNextValidation)
   }
 
   /**
@@ -43,8 +60,8 @@ class Tokenizer {
   *
   * @param output - An output to fill with recognized tokens.
   */
-  public stream (output : Subscriber<UnidocToken>) : void {
-    this._lexer.addEventListener(output)
+  public addEventListener (output : Subscriber<UnidocToken>) : void {
+    this._outputs.add(output)
   }
 
   /**
@@ -52,8 +69,8 @@ class Tokenizer {
   *
   * @param output - An output to stop to fill with recognized tokens.
   */
-  public unstream (output : Subscriber<UnidocToken>) : void {
-    this._lexer.deleteEventListener(output)
+  public removeEventListener (output : Subscriber<UnidocToken>) : void {
+    this._outputs.delete(output)
   }
 
   /**
@@ -86,8 +103,8 @@ class Tokenizer {
   *
   * @param symbol - The symbol to consume.
   */
-  public consumeNextSymbol (symbol : number) : void {
-    this._lexer.next(symbol)
+  public consumeNextSymbol (codePoint : CodePoint) : void {
+    this._lexer.nextCodePoint(codePoint)
   }
 
   /**
@@ -105,6 +122,39 @@ class Tokenizer {
   public consumeCompletion () : void {
     console.log('completion')
   }
+
+  /**
+  * Handle a parser token event.
+  */
+  public handleNextToken (token : UnidocToken) : void {
+    for (const output of this._outputs) {
+      output.next(token)
+    }
+  }
+
+  /**
+  * Handle a parser validation event.
+  */
+  public handleNextValidation (validation : UnidocValidation) : void {
+  }
+
+  /**
+  * Handle a parser error event.
+  */
+  public handleNextError (error : Error) : void {
+    for (const output of this._outputs) {
+      output.error(error)
+    }
+  }
+
+  /**
+  * Handle a parser completion event.
+  */
+  public handleCompletion () : void {
+    for (const output of this._outputs) {
+      output.complete()
+    }
+  }
 }
 
 type Operator<In, Out> = (source : Observable<In>) => Observable<Out>
@@ -120,7 +170,7 @@ export function tokenize () : Operator<CodePoint, UnidocToken> {
   return function (input : Observable<CodePoint>) : Observable<UnidocToken> {
     return new Observable<UnidocToken>(
       function (subscriber : Subscriber<UnidocToken>) {
-        tokenizer.stream(subscriber)
+        tokenizer.addEventListener(subscriber)
         tokenizer.subscribe(input)
       }
     )

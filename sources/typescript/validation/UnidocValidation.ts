@@ -1,21 +1,21 @@
 import { Path } from '@library/path'
 
-import { Type } from './Type'
+import { UnidocValidationType } from './UnidocValidationType'
 
-export class Validation {
-  public type : Type
+const EMPTY_MESSAGE : string = ''
+
+export class UnidocValidation {
+  public type : UnidocValidationType
   public path : Path
   public message : string
 
   /**
-  * Instantiate a new validation element.
-  *
-  * @param configuration - Validation instance configuration.
+  * Instantiate a new validation instance.
   */
-  public constructor (configuration : Validation.Configuration) {
-    this.type = configuration.type
-    this.path = Path.copy(configuration.path)
-    this.message = configuration.message
+  public constructor () {
+    this.type = UnidocValidationType.DEFAULT
+    this.path = new Path()
+    this.message = EMPTY_MESSAGE
   }
 
   /**
@@ -23,7 +23,7 @@ export class Validation {
   *
   * @param toCopy - An instance to copy.
   */
-  public copy (toCopy : Validation) : void {
+  public copy (toCopy : UnidocValidation) : void {
     this.type = toCopy.type
     this.path.copy(toCopy.path)
     this.message = toCopy.message
@@ -34,7 +34,7 @@ export class Validation {
   */
   public toString () : string {
     return (
-      `[${Type.toString(this.type)}] ${this.path.toString()} : ${this.message}`
+      `[${UnidocValidationType.toString(this.type)}] ${this.path.toString()} : ${this.message}`
     )
   }
 
@@ -45,7 +45,7 @@ export class Validation {
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof Validation) {
+    if (other instanceof UnidocValidation) {
       return other.type === this.type &&
              other.path.equals(this.path) &&
              other.message === this.message
@@ -55,12 +55,12 @@ export class Validation {
   }
 }
 
-export namespace Validation {
+export namespace UnidocValidation {
   /**
   * Validation building configuration.
   */
   export type Configuration = {
-    type : Type,
+    type : UnidocValidationType,
     path : Path,
     message : string
   }
@@ -72,7 +72,7 @@ export namespace Validation {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : Validation) : Validation {
-    return new Validation(toCopy)
+  export function copy (toCopy : UnidocValidation) : UnidocValidation {
+    return new UnidocValidation()
   }
 }

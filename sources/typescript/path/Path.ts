@@ -1,4 +1,4 @@
-import { Location } from '@library/Location'
+import { UnidocLocation } from '@library/UnidocLocation'
 
 import { Element } from './element'
 
@@ -112,9 +112,9 @@ export class Path {
   /**
   * Append a text element to this path.
   *
-  * @param location - Location of the text element to append.
+  * @param location - UnidocLocation of the text element to append.
   */
-  public text (location : Location) : void {
+  public text (location : UnidocLocation) : void {
     this._steps.push(new Element.Text(location))
   }
 

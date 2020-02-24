@@ -1,9 +1,9 @@
-import { Location } from '@library/Location'
+import { UnidocLocation } from '@library/UnidocLocation'
 
 import { Element } from './Element'
 
 const CONFIGURATION : Tag.Configuration = {
-  location: Location.ZERO,
+  location: UnidocLocation.ZERO,
   type: 0,
   label: null,
   identifier: null,
@@ -109,7 +109,7 @@ export class Tag extends Element {
 
 export namespace Tag {
   export type Configuration = {
-    location? : Location,
+    location? : UnidocLocation,
     type? : number,
     label? : string,
     identifier? : string,

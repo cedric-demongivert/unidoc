@@ -1,9 +1,9 @@
-import { Location } from '@library/Location'
+import { UnidocLocation } from '@library/UnidocLocation'
 
 import { Element } from './Element'
 
 const CONFIGURATION : Block.Configuration = {
-  location: Location.ZERO,
+  location: UnidocLocation.ZERO,
   identifier: null,
   classes: []
 }
@@ -94,7 +94,7 @@ export namespace Block {
   * Block building configuration.
   */
   export type Configuration = {
-    location? : Location,
+    location? : UnidocLocation,
     identifier? : string,
     classes? : string[]
   }

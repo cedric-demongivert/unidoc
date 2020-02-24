@@ -1,4 +1,4 @@
-import { Location } from '../Location'
+import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
@@ -22,7 +22,7 @@ export class UnidocTagEvent implements UnidocEvent {
   /**
   * @see UnidocEvent.location
   */
-  public readonly location : Location
+  public readonly location : UnidocLocation
 
   /**
   * The alias of the discovered tag.
@@ -50,7 +50,7 @@ export class UnidocTagEvent implements UnidocEvent {
   public constructor () {
     this.timestamp  = Date.now()
     this.type       = UnidocEventType.START_TAG
-    this.location   = new Location()
+    this.location   = new UnidocLocation()
     this.alias      = EMPTY_ALIAS
     this.tag        = undefined
     this.identifier = undefined

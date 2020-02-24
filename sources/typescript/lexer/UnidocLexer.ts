@@ -1,11 +1,12 @@
-import { Subscriber } from 'rxjs'
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { Location } from '../Location'
 import { CodePoint } from '../CodePoint'
+import { UnidocLocation } from '../UnidocLocation'
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
+import { UnidocValidation } from '../validation/UnidocValidation'
 
+import { UnidocLexerEventType } from './UnidocLexerEventType'
 import { UnidocLexerState } from './UnidocLexerState'
 
 /**
@@ -13,14 +14,14 @@ import { UnidocLexerState } from './UnidocLexerState'
 */
 export class UnidocLexer {
   /**
-  * A set of subscriber to this lexer output.
+  * UnidocLocation of the first symbol of this buffer.
   */
-  private _subscribers : Set<Subscriber<UnidocToken>>
+  public readonly location : UnidocLocation
 
   /**
   * Current state of this lexer.
   */
-  private _state    : UnidocLexerState
+  private _state : UnidocLexerState
 
   /**
   * Buffer of symbols of this lexer.
@@ -33,9 +34,24 @@ export class UnidocLexer {
   private _token    : UnidocToken
 
   /**
-  * Location of the first symbol of this buffer.
+  * A set of listeners of the 'token' event.
   */
-  private _location : Location
+  private _tokenListeners : Set<UnidocLexer.TokenListener>
+
+  /**
+  * A set of listeners of the 'validation' event.
+  */
+  private _validationListeners : Set<UnidocLexer.ValidationListener>
+
+  /**
+  * A set of listeners of the 'completion' event.
+  */
+  private _completionListeners : Set<UnidocLexer.CompletionListener>
+
+  /**
+  * A set of listeners of the 'error' event.
+  */
+  private _errorListeners : Set<UnidocLexer.ErrorListener>
 
   /**
   * Instantiate a new unidoc lexer.
@@ -43,19 +59,42 @@ export class UnidocLexer {
   * @param [capacity = 64] - Unidoc lexer internal symbol buffer capacity.
   */
   public constructor (capacity : number = 64) {
+    this.location     = new UnidocLocation()
+
     this._state       = UnidocLexerState.START
     this._symbols     = Pack.uint32(capacity)
     this._token       = new UnidocToken(capacity)
-    this._subscribers = new Set<Subscriber<UnidocToken>>()
-    this._location    = new Location()
+
+    this._tokenListeners = new Set<UnidocLexer.TokenListener>()
+    this._validationListeners = new Set<UnidocLexer.ValidationListener>()
+    this._completionListeners = new Set<UnidocLexer.CompletionListener>()
+    this._errorListeners = new Set<UnidocLexer.ErrorListener>()
   }
 
   /**
-  * Feed this lexer with the given symbol.
-  *
-  * @param codePoint - The next symbol to give to this lexer.
+  * @return The current state of this lexer.
   */
-  public next (codePoint : CodePoint) : void {
+  public get state () : UnidocLexerState {
+    return this._state
+  }
+
+  /**
+  * Feed this lexer with the given string.
+  *
+  * @param content - A string to explode into code point to give to this lexer.
+  */
+  public nextString (content : String) : void {
+    for (let index = 0, size = content.length; index < size; ++index) {
+      this.nextCodePoint(content.codePointAt(index))
+    }
+  }
+
+  /**
+  * Feed this lexer with the given code point.
+  *
+  * @param codePoint - A code point to give to this lexer.
+  */
+  public nextCodePoint (codePoint : CodePoint) : void {
     switch (this._state) {
       case UnidocLexerState.SPACE:
         this.handleAfterSpace(codePoint)
@@ -88,6 +127,42 @@ export class UnidocLexer {
   }
 
   /**
+  * Notify to this lexer that the stream of symbol has terminated.
+  */
+  public complete () : void {
+    switch (this._state) {
+      case UnidocLexerState.END:
+        //this.error()
+        break
+      case UnidocLexerState.SHARP:
+      case UnidocLexerState.DOT:
+      case UnidocLexerState.ANTISLASH:
+        this.emitWord()
+        break
+      case UnidocLexerState.SPACE:
+        this.emitSpace()
+        break
+      case UnidocLexerState.CARRIAGE_RETURN:
+        this.emitNewLine()
+        break
+      case UnidocLexerState.TAG:
+        this.emitTag()
+        break
+      case UnidocLexerState.WORD:
+        this.emitWord()
+        break
+      case UnidocLexerState.IDENTIFIER:
+        this.emitIdentifier()
+        break
+      case UnidocLexerState.START:
+        break
+    }
+
+    this._state = UnidocLexerState.END
+    this.emitCompletion()
+  }
+
+  /**
   * Handle the given symbol after an antislash.
   *
   * @param codePoint - The symbol to handle.
@@ -114,6 +189,7 @@ export class UnidocLexer {
     switch (codePoint) {
       case CodePoint.TABULATION:
       case CodePoint.SPACE:
+      case CodePoint.FORM_FEED:
       case CodePoint.NEW_LINE:
       case CodePoint.CARRIAGE_RETURN:
       case CodePoint.OPENING_BRACE:
@@ -145,6 +221,7 @@ export class UnidocLexer {
       switch (codePoint) {
         case CodePoint.TABULATION:
         case CodePoint.SPACE:
+        case CodePoint.FORM_FEED:
         case CodePoint.NEW_LINE:
         case CodePoint.CARRIAGE_RETURN:
         case CodePoint.DOT:
@@ -192,7 +269,9 @@ export class UnidocLexer {
     switch (codePoint) {
       case CodePoint.SPACE:
       case CodePoint.TABULATION:
+      case CodePoint.FORM_FEED:
         this._symbols.push(codePoint)
+        this.location.add(0, 1, 1)
         break
       default:
         this.emitSpace()
@@ -218,46 +297,12 @@ export class UnidocLexer {
       switch (codePoint) {
         case CodePoint.SPACE:
         case CodePoint.TABULATION:
+        case CodePoint.FORM_FEED:
         case CodePoint.NEW_LINE:
         case CodePoint.CARRIAGE_RETURN:
         case CodePoint.OPENING_BRACE:
         case CodePoint.CLOSING_BRACE:
           this.emitWord()
-          this.handleAfterStart(codePoint)
-          break
-        default:
-          this._symbols.push(codePoint)
-          this._state = UnidocLexerState.WORD
-          break
-      }
-    }
-  }
-
-  /**
-  * Handle the given symbol after a class.
-  *
-  * @param codePoint - The symbol to handle.
-  */
-  private handleAfterClass (codePoint : CodePoint) : void {
-    if (
-      codePoint >= CodePoint.a    && codePoint <= CodePoint.z    ||
-      codePoint >= CodePoint.A    && codePoint <= CodePoint.Z    ||
-      codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
-      codePoint === CodePoint.MINUS
-    ) {
-      this._symbols.push(codePoint)
-    } else {
-      switch (codePoint) {
-        case CodePoint.TABULATION:
-        case CodePoint.SPACE:
-        case CodePoint.NEW_LINE:
-        case CodePoint.CARRIAGE_RETURN:
-        case CodePoint.DOT:
-        case CodePoint.SHARP:
-        case CodePoint.OPENING_BRACE:
-        case CodePoint.CLOSING_BRACE:
-          this.emitClass()
-          this._state = UnidocLexerState.START
           this.handleAfterStart(codePoint)
           break
         default:
@@ -340,8 +385,9 @@ export class UnidocLexer {
         break
       case CodePoint.SPACE:
       case CodePoint.TABULATION:
-        this._symbols.push(codePoint)
+      case CodePoint.FORM_FEED:
         this._state = UnidocLexerState.SPACE
+        this.nextCodePoint(codePoint)
         break
       case CodePoint.NEW_LINE:
         this._symbols.push(codePoint)
@@ -354,15 +400,15 @@ export class UnidocLexer {
       case CodePoint.SHARP:
         this._symbols.push(codePoint)
         this._state = UnidocLexerState.SHARP
-        return undefined
+        break
       case CodePoint.DOT:
         this._symbols.push(codePoint)
         this._state = UnidocLexerState.DOT
-        return undefined
+        break
       default:
         this._symbols.push(codePoint)
         this._state = UnidocLexerState.WORD
-        return undefined
+        break
     }
   }
 
@@ -371,15 +417,15 @@ export class UnidocLexer {
   */
   private emitWord () : void {
     this._token.clear()
-    this._token.from.copy(this._location)
-    this._location.column += this._symbols.size
-    this._location.index += this._symbols.size
-    this._token.to.copy(this._location)
+    this._token.from.copy(this.location)
+    this.location.column += this._symbols.size
+    this.location.index += this._symbols.size
+    this._token.to.copy(this.location)
     this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.WORD
 
-    this.emit(this._token)
+    this.emitToken(this._token)
   }
 
   /**
@@ -387,15 +433,15 @@ export class UnidocLexer {
   */
   private emitTag () : void {
     this._token.clear()
-    this._token.from.copy(this._location)
-    this._location.column += this._symbols.size
-    this._location.index += this._symbols.size
-    this._token.to.copy(this._location)
+    this._token.from.copy(this.location)
+    this.location.column += this._symbols.size
+    this.location.index += this._symbols.size
+    this._token.to.copy(this.location)
     this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.TAG
 
-    this.emit(this._token)
+    this.emitToken(this._token)
   }
 
   /**
@@ -403,15 +449,15 @@ export class UnidocLexer {
   */
   private emitClass () : void {
     this._token.clear()
-    this._token.from.copy(this._location)
-    this._location.column += this._symbols.size
-    this._location.index += this._symbols.size
-    this._token.to.copy(this._location)
+    this._token.from.copy(this.location)
+    this.location.column += this._symbols.size
+    this.location.index += this._symbols.size
+    this._token.to.copy(this.location)
     this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.CLASS
 
-    this.emit(this._token)
+    this.emitToken(this._token)
   }
 
   /**
@@ -419,15 +465,15 @@ export class UnidocLexer {
   */
   private emitIdentifier () : void {
     this._token.clear()
-    this._token.from.copy(this._location)
-    this._location.column += this._symbols.size
-    this._location.index += this._symbols.size
-    this._token.to.copy(this._location)
+    this._token.from.copy(this.location)
+    this.location.column += this._symbols.size
+    this.location.index += this._symbols.size
+    this._token.to.copy(this.location)
     this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.IDENTIFIER
 
-    this.emit(this._token)
+    this.emitToken(this._token)
   }
 
   /**
@@ -435,15 +481,14 @@ export class UnidocLexer {
   */
   private emitSpace () : void {
     this._token.clear()
-    this._token.from.copy(this._location)
-    this._location.column += this._symbols.size
-    this._location.index += this._symbols.size
-    this._token.to.copy(this._location)
+    this._token.from.copy(this.location)
+    this._token.from.subtract(0, this._symbols.size, this._symbols.size)
+    this._token.to.copy(this.location)
     this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.SPACE
 
-    this.emit(this._token)
+    this.emitToken(this._token)
   }
 
   /**
@@ -451,16 +496,16 @@ export class UnidocLexer {
   */
   private emitNewLine () : void {
     this._token.clear()
-    this._token.from.copy(this._location)
-    this._location.column = 0
-    this._location.line += 1
-    this._location.index += this._symbols.size
-    this._token.to.copy(this._location)
+    this._token.from.copy(this.location)
+    this.location.column = 0
+    this.location.line += 1
+    this.location.index += this._symbols.size
+    this._token.to.copy(this.location)
     this._token.symbols.copy(this._symbols)
     this._symbols.clear()
     this._token.type = UnidocTokenType.NEW_LINE
 
-    this.emit(this._token)
+    this.emitToken(this._token)
   }
 
   /**
@@ -468,14 +513,14 @@ export class UnidocLexer {
   */
   private emitBlockStart () : void {
     this._token.clear()
-    this._token.from.copy(this._location)
-    this._location.column += 1
-    this._location.index += 1
-    this._token.to.copy(this._location)
+    this._token.from.copy(this.location)
+    this.location.column += 1
+    this.location.index += 1
+    this._token.to.copy(this.location)
     this._token.symbols.push(CodePoint.OPENING_BRACE)
     this._token.type = UnidocTokenType.BLOCK_START
 
-    this.emit(this._token)
+    this.emitToken(this._token)
   }
 
   /**
@@ -483,14 +528,14 @@ export class UnidocLexer {
   */
   private emitBlockEnd () : void {
     this._token.clear()
-    this._token.from.copy(this._location)
-    this._location.column += 1
-    this._location.index += 1
-    this._token.to.copy(this._location)
+    this._token.from.copy(this.location)
+    this.location.column += 1
+    this.location.index += 1
+    this._token.to.copy(this.location)
     this._token.symbols.push(CodePoint.CLOSING_BRACE)
     this._token.type = UnidocTokenType.BLOCK_END
 
-    this.emit(this._token)
+    this.emitToken(this._token)
   }
 
   /**
@@ -498,28 +543,77 @@ export class UnidocLexer {
   *
   * @param token - A discovered token to publish.
   */
-  private emit (token : UnidocToken) : void {
-    for (const subscriber of this._subscribers) {
-      subscriber.next(token)
+  private emitToken (token : UnidocToken) : void {
+    for (const listener of this._tokenListeners) {
+      listener(token)
     }
   }
 
   /**
-  * Add the given listener.
-  *
-  * @param listener - A subscriber to add to the list of listeners.
+  * Notify this lexer's listeners that this lexer finished is work.
   */
-  public addEventListener (listener : Subscriber<UnidocToken>) : void {
-    this._subscribers.add(listener)
+  private emitCompletion () : void {
+    for (const listener of this._completionListeners) {
+      listener()
+    }
   }
 
   /**
-  * Delete a registered listener.
+  * Add the given listener to this lexer set of listeners.
   *
-  * @param listener - A subscriber to delete from the list of listeners.
+  * @param type - Type of event to listen to.
+  * @param listener - A listener to call then the given type of event happens.
   */
-  public deleteEventListener (listener : Subscriber<UnidocToken>) : void {
-    this._subscribers.delete(listener)
+  public addEventListener (type : 'token', listener : UnidocLexer.TokenListener) : void
+  public addEventListener (type : 'validation', listener : UnidocLexer.ValidationListener) : void
+  public addEventListener (type : 'completion', listener : UnidocLexer.CompletionListener) : void
+  public addEventListener (type : 'error', listener : UnidocLexer.ErrorListener) : void
+  public addEventListener (type : UnidocLexerEventType, listener : any) : void {
+    if (type === UnidocLexerEventType.TOKEN) {
+      this._tokenListeners.add(listener)
+    } else if (type === UnidocLexerEventType.VALIDATION) {
+      this._validationListeners.add(listener)
+    } else if (type === UnidocLexerEventType.COMPLETION) {
+      this._completionListeners.add(listener)
+    } else if (type === UnidocLexerEventType.ERROR) {
+      this._errorListeners.add(listener)
+    } else {
+      throw new Error(
+        'Unable to add the given listener for the "' + type +
+        '" type of event because "' + type + '" is not a valid unidoc lexer ' +
+        'event type, valid event types are : ' +
+        UnidocLexerEventType.ALL.join(', ') + '.'
+      )
+    }
+  }
+
+  /**
+  * Remove a registered event listener.
+  *
+  * @param type - Type of event to stop to listen to.
+  * @param listener - A listener to remove.
+  */
+  public removeEventListener (type : 'token', listener : UnidocLexer.TokenListener) : void
+  public removeEventListener (type : 'validation', listener : UnidocLexer.ValidationListener) : void
+  public removeEventListener (type : 'completion', listener : UnidocLexer.CompletionListener) : void
+  public removeEventListener (type : 'error', listener : UnidocLexer.ErrorListener) : void
+  public removeEventListener (type : UnidocLexerEventType, listener : any) : void {
+    if (type === UnidocLexerEventType.TOKEN) {
+      this._tokenListeners.delete(listener)
+    } else if (type === UnidocLexerEventType.VALIDATION) {
+      this._validationListeners.delete(listener)
+    } else if (type === UnidocLexerEventType.COMPLETION) {
+      this._completionListeners.delete(listener)
+    } else if (type === UnidocLexerEventType.ERROR) {
+      this._errorListeners.delete(listener)
+    } else {
+      throw new Error(
+        'Unable to remove the given listener for the "' + type +
+        '" type of event because "' + type + '" is not a valid unidoc lexer ' +
+        'event type, valid event types are : ' +
+        UnidocLexerEventType.ALL.join(', ') + '.'
+      )
+    }
   }
 
   /**
@@ -528,8 +622,19 @@ export class UnidocLexer {
   public clear () : void {
     this._token.clear()
     this._state = UnidocLexerState.START
-    this._location.clear()
-    this._subscribers.clear()
+    this.location.clear()
     this._symbols.clear()
+
+    this._tokenListeners.clear()
+    this._validationListeners.clear()
+    this._completionListeners.clear()
+    this._errorListeners.clear()
   }
+}
+
+export namespace UnidocLexer {
+  export type TokenListener      = (token : UnidocToken) => void
+  export type ValidationListener = (validation : UnidocValidation) => void
+  export type CompletionListener = () => void
+  export type ErrorListener      = (error : Error) => void
 }

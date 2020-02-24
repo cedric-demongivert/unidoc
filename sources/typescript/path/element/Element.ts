@@ -1,21 +1,21 @@
-import { Location } from '@library/Location'
+import { UnidocLocation } from '@library/UnidocLocation'
 
 /**
 * Element of a unidoc path.
 */
 export class Element {
   /**
-  * Location of this element in the document.
+  * UnidocLocation of this element in the document.
   */
-  public location : Location
+  public location : UnidocLocation
 
   /**
   * Instantiate a new unidoc path element.
   *
-  * @param [location = Location.ZERO] - Location of this element in the document.
+  * @param [location = UnidocLocation.ZERO] - UnidocLocation of this element in the document.
   */
-  public constructor (location : Location = Location.ZERO) {
-    this.location = Location.copy(location)
+  public constructor (location : UnidocLocation = UnidocLocation.ZERO) {
+    this.location = UnidocLocation.copy(location)
   }
 
   /**
