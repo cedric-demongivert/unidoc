@@ -191,6 +191,97 @@ export namespace UnidocToken {
   }
 
   /**
+  * Instantiate a token of the given type, at the given location and with the
+  * given code points.
+  *
+  * @param type - Type of token to instantiate.
+  * @param from - Starting location of the token to instantiate.
+  * @param value - Code points of the token to instantiate.
+  *
+  * @return A token of the given type, at the given location and with the given
+  *         code points.
+  */
+  export function create (
+    type : UnidocTokenType,
+    from : UnidocLocation,
+    value : string
+  ) : UnidocToken {
+    const result : UnidocToken = new UnidocToken()
+
+    result.type = type
+    result.text = value
+    result.from.copy(from)
+    result.to.copy(from)
+    result.to.add(0, value.length, value.length)
+
+    return result
+  }
+
+  /**
+  * Return an identifier token that start at the given location and contains the given
+  * code points.
+  *
+  * @param from - Starting location of the token to instantiate.
+  * @param value - Code points of the token to instantiate.
+  *
+  * @return An identifier token that start at the given location and contains
+  *         the given code points.
+  */
+  export function identifier (from : UnidocLocation, value : string) : UnidocToken {
+    return create(UnidocTokenType.IDENTIFIER, from, value)
+  }
+
+  /**
+  * Return a class token that start at the given location and contains the given
+  * code points.
+  *
+  * @param from - Starting location of the token to instantiate.
+  * @param value - Code points of the token to instantiate.
+  *
+  * @return A class token that start at the given location and contains the
+  *         given code points.
+  */
+  export function clazz (from : UnidocLocation, value : string) : UnidocToken {
+    return create(UnidocTokenType.CLASS, from, value)
+  }
+
+  /**
+  * Return a tag token that start at the given location and contains the given
+  * code points.
+  *
+  * @param from - Starting location of the token to instantiate.
+  * @param value - Code points of the token to instantiate.
+  *
+  * @return A tag token that start at the given location and contains the given
+  *         code points.
+  */
+  export function tag (from : UnidocLocation, value : string) : UnidocToken {
+    return create(UnidocTokenType.TAG, from, value)
+  }
+
+  /**
+  * Return a block start token that start at the given location.
+  *
+  * @param from - Starting location of the token to instantiate.
+  *
+  * @return A block start token that start at the given location.
+  */
+  export function blockStart (from : UnidocLocation) : UnidocToken {
+    return create(UnidocTokenType.BLOCK_START, from, '{')
+  }
+
+  /**
+  * Return a block start token that start at the given location.
+  *
+  * @param from - Starting location of the token to instantiate.
+  *
+  * @return A block start token that start at the given location.
+  */
+  export function blockEnd (from : UnidocLocation) : UnidocToken {
+    return create(UnidocTokenType.BLOCK_END, from, '}')
+  }
+
+  /**
   * Return a space token that start at the given location and contains the given
   * code points.
   *
@@ -200,16 +291,46 @@ export namespace UnidocToken {
   * @return A space token that start at the given location and contains the
   *         given code points.
   */
-  export function space (from : UnidocLocation, value : string) : void {
+  export function space (from : UnidocLocation, value : string) : UnidocToken {
+    return create(UnidocTokenType.SPACE, from, value)
+  }
+
+  /**
+  * Return a space token that start at the given location and contains the given
+  * code points.
+  *
+  * @param from - Starting location of the token to instantiate.
+  * @param [type = '\r\n'] - Type of new line to instantiate.
+  *
+  * @return A space token that start at the given location and contains the
+  *         given code points.
+  */
+  export function newline (
+    from : UnidocLocation,
+    type : '\r\n' | '\r' | '\n' = '\r\n'
+  ) : UnidocToken {
     const result : UnidocToken = new UnidocToken()
 
-    result.type = UnidocTokenType.SPACE
-    result.text = value
+    result.type = UnidocTokenType.NEW_LINE
+    result.text = type
     result.from.copy(from)
     result.to.copy(from)
-    result.to.add(0, value.length, value.length)
+    result.to.add(1, 0, type.length)
 
     return result
   }
 
+  /**
+  * Return a word token that start at the given location and contains the given
+  * code points.
+  *
+  * @param from - Starting location of the token to instantiate.
+  * @param value - Code points of the token to instantiate.
+  *
+  * @return A word token that start at the given location and contains the
+  *         given code points.
+  */
+  export function word (from : UnidocLocation, value : string) : UnidocToken {
+    return create(UnidocTokenType.WORD, from, value)
+  }
 }
