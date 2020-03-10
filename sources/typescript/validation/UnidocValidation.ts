@@ -5,8 +5,8 @@ import { UnidocValidationType } from './UnidocValidationType'
 const EMPTY_MESSAGE : string = ''
 
 export class UnidocValidation {
-  public type : UnidocValidationType
-  public path : Path
+  public type    : UnidocValidationType
+  public path    : Path
   public message : string
 
   /**

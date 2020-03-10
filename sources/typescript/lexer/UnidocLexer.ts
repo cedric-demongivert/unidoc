@@ -59,16 +59,16 @@ export class UnidocLexer {
   * @param [capacity = 64] - Unidoc lexer internal symbol buffer capacity.
   */
   public constructor (capacity : number = 64) {
-    this.location     = new UnidocLocation()
+    this.location             = new UnidocLocation()
 
-    this._state       = UnidocLexerState.START
-    this._symbols     = Pack.uint32(capacity)
-    this._token       = new UnidocToken(capacity)
+    this._state               = UnidocLexerState.START
+    this._symbols             = Pack.uint32(capacity)
+    this._token               = new UnidocToken(capacity)
 
-    this._tokenListeners = new Set<UnidocLexer.TokenListener>()
+    this._tokenListeners      = new Set<UnidocLexer.TokenListener>()
     this._validationListeners = new Set<UnidocLexer.ValidationListener>()
     this._completionListeners = new Set<UnidocLexer.CompletionListener>()
-    this._errorListeners = new Set<UnidocLexer.ErrorListener>()
+    this._errorListeners      = new Set<UnidocLexer.ErrorListener>()
   }
 
   /**

@@ -21,11 +21,11 @@ export namespace UnidocValidationType {
   */
   export function toString (type : UnidocValidationType) : string {
     switch (type) {
-      case ERROR: return 'ERROR'
-      case WARNING: return 'WARNING'
-      case INFORMATION: return 'INFORMATION'
-      case VERBOSE: return 'VERBOSE'
-      default: return undefined
+      case ERROR       : return 'ERROR'
+      case WARNING     : return 'WARNING'
+      case INFORMATION : return 'INFORMATION'
+      case VERBOSE     : return 'VERBOSE'
+      default          : return undefined
     }
   }
 }

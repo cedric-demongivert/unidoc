@@ -45,6 +45,20 @@ export class UnidocCommonEvent implements UnidocEvent {
   }
 
   /**
+  * Update the content associated to this event.
+  *
+  * @param content - The new content associated to this event.
+  */
+  public set text (content : string) {
+    this.symbols.clear()
+    this.symbols.size = content.length
+
+    for (let index = 0; index < content.length; ++index) {
+      this.symbols.push(content.codePointAt(index))
+    }
+  }
+
+  /**
   * A part of this token as a javascript string.
   *
   * @param start - Number of symbols of this token to skip.

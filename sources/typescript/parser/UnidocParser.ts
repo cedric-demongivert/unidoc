@@ -1,5 +1,6 @@
-import { Subscriber } from 'rxjs'
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
+
+import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
@@ -10,17 +11,15 @@ import { UnidocCommonEvent } from '../event/UnidocCommonEvent'
 import { UnidocTagEvent } from '../event/UnidocTagEvent'
 import { UnidocBlockEvent } from '../event/UnidocBlockEvent'
 
+import { UnidocValidation } from '../validation/UnidocValidation'
+
 import { UnidocParserState } from './UnidocParserState'
+import { UnidocParserEventType } from './UnidocParserEventType'
 
 /**
 * A unidoc token stream parser.
 */
 export class UnidocParser {
-  /**
-  * A set of subscriber to this lexer output.
-  */
-  private _subscribers : Set<Subscriber<UnidocEvent>>
-
   /**
   * Inner state of the parser.
   */
@@ -52,6 +51,31 @@ export class UnidocParser {
   private _blockEvent : UnidocBlockEvent
 
   /**
+  * A set of listeners of the 'event' event.
+  */
+  private _eventListeneners : Set<UnidocParser.EventListener>
+
+  /**
+  * A set of listeners of the 'validation' event.
+  */
+  private _validationListeners : Set<UnidocParser.ValidationListener>
+
+  /**
+  * A set of listeners of the 'completion' event.
+  */
+  private _completionListeners : Set<UnidocParser.CompletionListener>
+
+  /**
+  * A set of listeners of the 'error' event.
+  */
+  private _errorListeners : Set<UnidocParser.ErrorListener>
+
+  /**
+  * Current location of this parser in its parent document.
+  */
+  public readonly location : UnidocLocation
+
+  /**
   * Instantiate a new unidoc parser with a given token buffer capacity.
   *
   * @param [capacity = 32] - Initial token buffer capacity of the parser.
@@ -60,17 +84,23 @@ export class UnidocParser {
     this._state       = Pack.any(capacity)
     this._pool        = Pack.any(capacity)
     this._tokens      = Pack.any(capacity)
-    this._subscribers = new Set<Subscriber<UnidocEvent>>()
 
     this._commonEvent = new UnidocCommonEvent()
     this._tagEvent    = new UnidocTagEvent()
     this._blockEvent  = new UnidocBlockEvent()
+
+    this.location = new UnidocLocation()
 
     this._state.push(UnidocParserState.START)
 
     while (this._pool.size < this._pool.capacity) {
       this._pool.push(new UnidocToken())
     }
+
+    this._eventListeneners = new Set<UnidocParser.EventListener>()
+    this._validationListeners = new Set<UnidocParser.ValidationListener>()
+    this._completionListeners = new Set<UnidocParser.CompletionListener>()
+    this._errorListeners = new Set<UnidocParser.ErrorListener>()
   }
 
   /**
@@ -79,7 +109,6 @@ export class UnidocParser {
   * @param token - The token to give to the parser.
   */
   public next (token : UnidocToken) : void {
-    //console.log('------ ' + UnidocParserState.toString(this._state.last) + ' ' + token.toString())
     switch (this._state.last) {
       case UnidocParserState.ERROR:
         this.handleAfterError(token)
@@ -111,6 +140,20 @@ export class UnidocParser {
         break
       default:
         this.emitError(token)
+    }
+  }
+
+  /**
+  * Call when the stream of tokens reach it's end.
+  */
+  public complete () : void {
+    switch (this._state.last) {
+      case UnidocParserState.DOCUMENT_CONTENT:
+      case UnidocParserState.START:
+        this._state.set(0, UnidocParserState.END)
+        this.emitDocumentEnd()
+      default:
+        throw new Error('')
     }
   }
 
@@ -435,8 +478,8 @@ export class UnidocParser {
   * @param event - An event to publish.
   */
   private emit (event : UnidocEvent) : void {
-    for (const subscriber of this._subscribers) {
-      subscriber.next(event)
+    for (const callback of this._eventListeneners) {
+      callback(event)
     }
   }
 
@@ -481,20 +524,85 @@ export class UnidocParser {
   }
 
   /**
-  * Add the given listener.
+  * Add the given listener to this lexer set of listeners.
   *
-  * @param listener - A subscriber to add to the list of listeners.
+  * @param type - Type of event to listen to.
+  * @param listener - A listener to call then the given type of event happens.
   */
-  public addEventListener (listener : Subscriber<UnidocEvent>) : void {
-    this._subscribers.add(listener)
+  public addEventListener (type : 'event', listener : UnidocParser.EventListener) : void
+  public addEventListener (type : 'validation', listener : UnidocParser.ValidationListener) : void
+  public addEventListener (type : 'completion', listener : UnidocParser.CompletionListener) : void
+  public addEventListener (type : 'error', listener : UnidocParser.ErrorListener) : void
+  public addEventListener (type : UnidocParserEventType, listener : any) : void {
+    if (type === UnidocParserEventType.EVENT) {
+      this._eventListeneners.add(listener)
+    } else if (type === UnidocParserEventType.VALIDATION) {
+      this._validationListeners.add(listener)
+    } else if (type === UnidocParserEventType.COMPLETION) {
+      this._completionListeners.add(listener)
+    } else if (type === UnidocParserEventType.ERROR) {
+      this._errorListeners.add(listener)
+    } else {
+      throw new Error(
+        'Unable to add the given listener for the "' + type +
+        '" type of event because "' + type + '" is not a valid unidoc parser ' +
+        'event type, valid event types are : ' +
+        UnidocParserEventType.ALL.join(', ') + '.'
+      )
+    }
   }
 
   /**
-  * Delete a registered listener.
+  * Remove a registered event listener.
   *
-  * @param listener - A subscriber to delete from the list of listeners.
+  * @param type - Type of event to stop to listen to.
+  * @param listener - A listener to remove.
   */
-  public deleteEventListener (listener : Subscriber<UnidocEvent>) : void {
-    this._subscribers.delete(listener)
+  public removeEventListener (type : 'event', listener : UnidocParser.EventListener) : void
+  public removeEventListener (type : 'validation', listener : UnidocParser.ValidationListener) : void
+  public removeEventListener (type : 'completion', listener : UnidocParser.CompletionListener) : void
+  public removeEventListener (type : 'error', listener : UnidocParser.ErrorListener) : void
+  public removeEventListener (type : UnidocParserEventType, listener : any) : void {
+    if (type === UnidocParserEventType.EVENT) {
+      this._eventListeneners.delete(listener)
+    } else if (type === UnidocParserEventType.VALIDATION) {
+      this._validationListeners.delete(listener)
+    } else if (type === UnidocParserEventType.COMPLETION) {
+      this._completionListeners.delete(listener)
+    } else if (type === UnidocParserEventType.ERROR) {
+      this._errorListeners.delete(listener)
+    } else {
+      throw new Error(
+        'Unable to remove the given listener for the "' + type +
+        '" type of event because "' + type + '" is not a valid unidoc parser ' +
+        'event type, valid event types are : ' +
+        UnidocParserEventType.ALL.join(', ') + '.'
+      )
+    }
   }
+
+  /**
+  * Reset this parser in order to reuse-it.
+  */
+  public clear () : void {
+    while (this._tokens.size > 0) {
+      this._pool.push(this._tokens.pop())
+    }
+
+    this._state.clear()
+    this._state.push(UnidocParserState.START)
+    this.location.clear()
+
+    this._eventListeneners.clear()
+    this._validationListeners.clear()
+    this._completionListeners.clear()
+    this._errorListeners.clear()
+  }
+}
+
+export namespace UnidocParser {
+  export type EventListener      = (token : UnidocEvent) => void
+  export type ValidationListener = (validation : UnidocValidation) => void
+  export type CompletionListener = () => void
+  export type ErrorListener      = (error : Error) => void
 }

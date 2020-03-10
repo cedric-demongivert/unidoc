@@ -121,6 +121,114 @@ export class UnidocToken {
   }
 
   /**
+  * Configure this token to be of the given type, at the given location and with
+  * the given code points.
+  *
+  * @param type - New type of this token.
+  * @param from - New starting location of this token.
+  * @param value - New code points of this token.
+  */
+  public configure (type : UnidocTokenType, from : UnidocLocation, value : string) : void {
+    this.clear()
+    this.type = type
+    this.text = value
+    this.from.copy(from)
+    this.to.copy(from)
+    this.to.add(0, value.length, value.length)
+  }
+
+  /**
+  * Configure this token as an identifier token that start at the given location
+  * and contains the given code points.
+  *
+  * @param from - New starting location of this token.
+  * @param value - New code points of this token.
+  */
+  public asIdentifier (from : UnidocLocation, value : string) : void {
+    this.configure(UnidocTokenType.IDENTIFIER, from, value)
+  }
+
+  /**
+  * Configure this token as a class token that start at the given location and
+  * that contains the given code points.
+  *
+  * @param from - New starting location of this token.
+  * @param value - New code points of this token.
+  */
+  public asClass (from : UnidocLocation, value : string) : void {
+    this.configure(UnidocTokenType.CLASS, from, value)
+  }
+
+  /**
+  * Configure this token as a tag token that start at the given location and
+  * contains the given code points.
+  *
+  * @param from - New starting location of this token.
+  * @param value - New code points of this token.
+  */
+  public asTag (from : UnidocLocation, value : string) : void {
+    this.configure(UnidocTokenType.TAG, from, value)
+  }
+
+  /**
+  * Configure this token as a block start token that start at the given
+  * location.
+  *
+  * @param from - New starting location of this token.
+  */
+  public asBlockStart (from : UnidocLocation) : void {
+    this.configure(UnidocTokenType.BLOCK_START, from, '{')
+  }
+
+  /**
+  * Configure this token as a block start token that start at the given
+  * location.
+  *
+  * @param from - New starting location of this token.
+  */
+  public asBlockEnd (from : UnidocLocation) : void {
+    this.configure(UnidocTokenType.BLOCK_END, from, '}')
+  }
+
+  /**
+  * Configure this token as a space token that start at the given location and
+  * that contains the given code points.
+  *
+  * @param from - New starting location of this token.
+  * @param value - New code points of this token.
+  */
+  public asSpace (from : UnidocLocation, value : string) : void {
+    this.configure(UnidocTokenType.SPACE, from, value)
+  }
+
+  /**
+  * Configure this token as a space token that start at the given location and
+  * that contains the given code points.
+  *
+  * @param from - New starting location of this token.
+  * @param [type = '\r\n'] - Type of new line to configure.
+  */
+  public asNewline (from : UnidocLocation, type : '\r\n' | '\r' | '\n' = '\r\n') : void {
+    this.clear()
+    this.type = UnidocTokenType.NEW_LINE
+    this.text = type
+    this.from.copy(from)
+    this.to.copy(from)
+    this.to.add(1, 0, type.length)
+  }
+
+  /**
+  * Configure this token as a word token that start at the given location and
+  * that contains the given code points.
+  *
+  * @param from - New starting location of this token.
+  * @param value - New code points of this token.
+  */
+  public asWord (from : UnidocLocation, value : string) : void {
+    this.configure(UnidocTokenType.WORD, from, value)
+  }
+
+  /**
   * Deep-copy another token instance.
   *
   * @param toCopy - Another token instance to copy.
@@ -227,7 +335,7 @@ export namespace UnidocToken {
   * @return An identifier token that start at the given location and contains
   *         the given code points.
   */
-  export function identifier (from : UnidocLocation, value : string) : UnidocToken {
+  export function createIdentifier (from : UnidocLocation, value : string) : UnidocToken {
     return create(UnidocTokenType.IDENTIFIER, from, value)
   }
 
@@ -241,7 +349,7 @@ export namespace UnidocToken {
   * @return A class token that start at the given location and contains the
   *         given code points.
   */
-  export function clazz (from : UnidocLocation, value : string) : UnidocToken {
+  export function createClass (from : UnidocLocation, value : string) : UnidocToken {
     return create(UnidocTokenType.CLASS, from, value)
   }
 
@@ -255,7 +363,7 @@ export namespace UnidocToken {
   * @return A tag token that start at the given location and contains the given
   *         code points.
   */
-  export function tag (from : UnidocLocation, value : string) : UnidocToken {
+  export function createTag (from : UnidocLocation, value : string) : UnidocToken {
     return create(UnidocTokenType.TAG, from, value)
   }
 
@@ -266,7 +374,7 @@ export namespace UnidocToken {
   *
   * @return A block start token that start at the given location.
   */
-  export function blockStart (from : UnidocLocation) : UnidocToken {
+  export function createBlockStart (from : UnidocLocation) : UnidocToken {
     return create(UnidocTokenType.BLOCK_START, from, '{')
   }
 
@@ -277,7 +385,7 @@ export namespace UnidocToken {
   *
   * @return A block start token that start at the given location.
   */
-  export function blockEnd (from : UnidocLocation) : UnidocToken {
+  export function createBlockEnd (from : UnidocLocation) : UnidocToken {
     return create(UnidocTokenType.BLOCK_END, from, '}')
   }
 
@@ -291,7 +399,7 @@ export namespace UnidocToken {
   * @return A space token that start at the given location and contains the
   *         given code points.
   */
-  export function space (from : UnidocLocation, value : string) : UnidocToken {
+  export function createSpace (from : UnidocLocation, value : string) : UnidocToken {
     return create(UnidocTokenType.SPACE, from, value)
   }
 
@@ -305,7 +413,7 @@ export namespace UnidocToken {
   * @return A space token that start at the given location and contains the
   *         given code points.
   */
-  export function newline (
+  export function createNewline (
     from : UnidocLocation,
     type : '\r\n' | '\r' | '\n' = '\r\n'
   ) : UnidocToken {
@@ -330,7 +438,7 @@ export namespace UnidocToken {
   * @return A word token that start at the given location and contains the
   *         given code points.
   */
-  export function word (from : UnidocLocation, value : string) : UnidocToken {
+  export function createWord (from : UnidocLocation, value : string) : UnidocToken {
     return create(UnidocTokenType.WORD, from, value)
   }
 }

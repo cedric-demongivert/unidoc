@@ -1,12 +1,11 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocLocation } from '../UnidocLocation'
-import { UnidocLexer } from '../lexer/UnidocLexer'
 import { UnidocToken } from './UnidocToken'
 
 export class UnidocTokenBuffer {
-  public readonly tokens : Pack<UnidocToken>
-  public completed : boolean
+  private readonly pool   : Pack<UnidocToken>
+  public  readonly tokens : Pack<UnidocToken>
 
   /**
   * Instantiate a new empty token buffer with the given capacity.
@@ -14,18 +13,48 @@ export class UnidocTokenBuffer {
   * @param [capacity = 32] - Capacity of the buffer to instantiate.
   */
   public constructor (capacity : number = 32) {
-    this.tokens    = Pack.any(capacity)
-    this.completed = false
+    this.tokens = Pack.any(capacity)
+    this.pool   = Pack.any(capacity)
 
-    this.handleNextToken = this.handleNextToken.bind(this)
-    this.handleCompletion  = this.handleCompletion.bind(this)
+    for (let index = 0; index < capacity; ++index) {
+      this.pool.push(new UnidocToken())
+    }
+  }
+
+  public get capacity () : number {
+    return this.pool.capacity
+  }
+
+  /**
+  * @see MutableSequence.size
+  */
+  public get size () : number {
+    return this.tokens.size
+  }
+
+  /**
+  * @see MutableSequence.size
+  */
+  public set size (newSize : number) {
+    if (newSize > this.pool.capacity) {
+      this.reallocate(newSize)
+    }
+
+    while (this.tokens.size < newSize) {
+      this.pool.last.clear()
+      this.tokens.push(this.pool.pop())
+    }
+
+    while (this.tokens.size > newSize) {
+      this.pool.push(this.tokens.pop())
+    }
   }
 
   /**
   * @return The starting location of this buffer.
   */
   public get from () : UnidocLocation {
-    return this.tokens.size === 0 ? UnidocLocation.ZERO : this.tokens.last.from
+    return this.tokens.size === 0 ? UnidocLocation.ZERO : this.tokens.first.from
   }
 
   /**
@@ -35,13 +64,36 @@ export class UnidocTokenBuffer {
     return this.tokens.size === 0 ? UnidocLocation.ZERO : this.tokens.last.to
   }
 
+  public reallocate (capacity : number) : void {
+    const oldCapacity : number = this.pool.capacity
+
+    this.pool.reallocate(capacity)
+    this.tokens.reallocate(capacity)
+
+    for (let index = oldCapacity; index < capacity; ++index) {
+      this.pool.push(new UnidocToken())
+    }
+  }
+
+  /**
+  * @see MutableSequence.get
+  */
+  public get (index : number) : UnidocToken {
+    return this.tokens.get(index)
+  }
+
   /**
   * Append an identifier token at the end of this buffer.
   *
   * @param value - Code points of the token to append.
   */
-  public identifier (value : string) : void {
-    this.tokens.push(UnidocToken.identifier(this.to, value))
+  public pushIdentifier (value : string) : void {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.pool.last.asIdentifier(this.to, value)
+    this.tokens.push(this.pool.pop())
   }
 
   /**
@@ -49,8 +101,13 @@ export class UnidocTokenBuffer {
   *
   * @param value - Code points of the token to append.
   */
-  public clazz (value : string) : void {
-    this.tokens.push(UnidocToken.clazz(this.to, value))
+  public pushClass (value : string) : void {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.pool.last.asClass(this.to, value)
+    this.tokens.push(this.pool.pop())
   }
 
   /**
@@ -58,22 +115,37 @@ export class UnidocTokenBuffer {
   *
   * @param value - Code points of the token to append.
   */
-  public tag (value : string) : void {
-    this.tokens.push(UnidocToken.tag(this.to, value))
+  public pushTag (value : string) : void {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.pool.last.asTag(this.to, value)
+    this.tokens.push(this.pool.pop())
   }
 
   /**
   * Append a block start token at the end of this buffer.
   */
-  public blockStart () : void {
-    this.tokens.push(UnidocToken.blockStart(this.to))
+  public pushBlockStart () : void {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.pool.last.asBlockStart(this.to)
+    this.tokens.push(this.pool.pop())
   }
 
   /**
   * Append a block end token at the end of this buffer.
   */
-  public blockEnd () : void  {
-    this.tokens.push(UnidocToken.blockEnd(this.to))
+  public pushBlockEnd () : void  {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.pool.last.asBlockEnd(this.to)
+    this.tokens.push(this.pool.pop())
   }
 
   /**
@@ -81,8 +153,13 @@ export class UnidocTokenBuffer {
   *
   * @param value - Code points of the token to append.
   */
-  public space (value : string) : void {
-    this.tokens.push(UnidocToken.space(this.to, value))
+  public pushSpace (value : string) : void {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.pool.last.asSpace(this.to, value)
+    this.tokens.push(this.pool.pop())
   }
 
   /**
@@ -90,8 +167,13 @@ export class UnidocTokenBuffer {
   *
   * @param type - Type of newline token to add.
   */
-  public newline (type : '\r\n' | '\r' | '\n' = '\r\n') : void {
-    this.tokens.push(UnidocToken.newline(this.to, type))
+  public pushNewline (type : '\r\n' | '\r' | '\n' = '\r\n') : void {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.pool.last.asNewline(this.to, type)
+    this.tokens.push(this.pool.pop())
   }
 
   /**
@@ -99,69 +181,35 @@ export class UnidocTokenBuffer {
   *
   * @param value - Code points of the token to append.
   */
-  public word (value : string) : void {
-    this.tokens.push(UnidocToken.word(this.to, value))
+  public pushWord (value : string) : void {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.pool.last.asWord(this.to, value)
+    this.tokens.push(this.pool.pop())
   }
 
-  /**
-  * Handle the emission of the given token.
-  *
-  * @param token - The token that was emitted.
-  */
-  public handleNextToken (token : UnidocToken) : void {
-    this.tokens.push(token.clone())
+  public push (token : UnidocToken) : void {
+    if (this.tokens.size === this.pool.capacity) {
+      this.reallocate(this.pool.capacity * 2)
+    }
+
+    this.tokens.push(this.pool.pop())
+    this.tokens.last.copy(token)
   }
 
-  /**
-  * Handle the emission of the a completion event.
-  */
-  public handleCompletion () : void {
-    this.completed = true
-  }
-
-  /**
-  * Listen to the given lexer.
-  *
-  * @param lexer - A lexer to listen to.
-  */
-  public listen (lexer : UnidocLexer) : void {
-    lexer.addEventListener('token', this.handleNextToken)
-    lexer.addEventListener('completion', this.handleCompletion)
+  public delete (index : number) : void {
+    this.pool.push(this.tokens.get(index))
+    this.tokens.delete(index)
   }
 
   /**
   * Reset this token buffer.
   */
   public clear () : void {
-    this.tokens.clear()
-    this.completed = false
-  }
-
-  public assert (other : UnidocTokenBuffer) : void {
-    if (other.completed !== this.completed) {
-      throw new Error(
-        'Buffers ' + this.toString() + ' and ' + other.toString() + ' are ' +
-        'not equals because one is marked as completed and the other not.'
-      )
-    }
-
-    if (other.tokens.size !== this.tokens.size) {
-      throw new Error(
-        'Buffers ' + this.toString() + ' and ' + other.toString() + ' are ' +
-        'not equals because thay contains a different amount of tokens ' +
-        this.tokens.size + ' !== ' + other.tokens.size + '.'
-      )
-    }
-
-    for (let index = 0, size = this.tokens.size; index < size; ++index) {
-      if (!other.tokens.get(index).equals(this.tokens.get(index))) {
-        throw new Error(
-          'Buffers ' + this.toString() + ' and ' + other.toString() + ' are ' +
-          'not equals because their #' + index + ' token are not equal ' +
-          this.tokens.get(index).toString() + ' !== ' +
-          other.tokens.get(index).toString() + '.'
-        )
-      }
+    while (this.tokens.size > 0) {
+      this.pool.push(this.tokens.pop())
     }
   }
 
@@ -173,7 +221,6 @@ export class UnidocTokenBuffer {
     if (other === this) return true
 
     if (other instanceof UnidocTokenBuffer) {
-      if (other.completed !== this.completed) return false
       if (other.tokens.size !== this.tokens.size) return false
 
       for (let index = 0, size = this.tokens.size; index < size; ++index) {
@@ -190,4 +237,30 @@ export class UnidocTokenBuffer {
 }
 
 export namespace UnidocTokenBuffer {
+  /**
+  * Assert that both buffers are equals.
+  *
+  * @param left - Buffer to use as a left operand.
+  * @param right - Buffer to use as a right operand.
+  */
+  export function assert (left : UnidocTokenBuffer, right : UnidocTokenBuffer) : void {
+    if (left.tokens.size !== right.tokens.size) {
+      throw new Error(
+        'Buffers ' + right.toString() + ' and ' + left.toString() + ' are ' +
+        'not equals because thay contains a different amount of tokens ' +
+        right.tokens.size + ' !== ' + left.tokens.size + '.'
+      )
+    }
+
+    for (let index = 0, size = right.tokens.size; index < size; ++index) {
+      if (!left.tokens.get(index).equals(right.tokens.get(index))) {
+        throw new Error(
+          'Buffers ' + right.toString() + ' and ' + left.toString() + ' are ' +
+          'not equals because their #' + index + ' token are not equal ' +
+          right.tokens.get(index).toString() + ' !== ' +
+          left.tokens.get(index).toString() + '.'
+        )
+      }
+    }
+  }
 }

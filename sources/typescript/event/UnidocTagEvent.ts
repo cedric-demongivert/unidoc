@@ -3,7 +3,7 @@ import { UnidocLocation } from '../UnidocLocation'
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
 
-const EMPTY_ALIAS : string = ''
+const EMPTY_TAG : string = ''
 
 /**
 * An event emitted when the parser enter or exit a tag structure.
@@ -25,14 +25,9 @@ export class UnidocTagEvent implements UnidocEvent {
   public readonly location : UnidocLocation
 
   /**
-  * The alias of the discovered tag.
+  * The discovered tag.
   */
-  public alias : string
-
-  /**
-  * The tag type, may be undefined if the tag was not recognized.
-  */
-  public tag : number
+  public tag : string
 
   /**
   * Identifier of this tag, may be undefined
@@ -51,8 +46,7 @@ export class UnidocTagEvent implements UnidocEvent {
     this.timestamp  = Date.now()
     this.type       = UnidocEventType.START_TAG
     this.location   = new UnidocLocation()
-    this.alias      = EMPTY_ALIAS
-    this.tag        = undefined
+    this.tag        = EMPTY_TAG
     this.identifier = undefined
     this.classes    = new Set<string>()
   }
@@ -65,7 +59,6 @@ export class UnidocTagEvent implements UnidocEvent {
   public copy (toCopy : UnidocTagEvent) : void {
     this.timestamp  = toCopy.timestamp
     this.type       = toCopy.type
-    this.alias      = toCopy.alias
     this.tag        = toCopy.tag
     this.identifier = toCopy.identifier
 
@@ -91,8 +84,7 @@ export class UnidocTagEvent implements UnidocEvent {
   */
   public clear () : void {
     this.timestamp  = Date.now()
-    this.alias      = EMPTY_ALIAS
-    this.tag        = undefined
+    this.tag        = EMPTY_TAG
     this.identifier = undefined
 
     this.location.clear()
@@ -111,12 +103,7 @@ export class UnidocTagEvent implements UnidocEvent {
     result += ' '
     result += this.location.toString()
     result += ' \\'
-    result += this.alias
-
-    if (this.tag != null) {
-      result += '@'
-      result += this.tag
-    }
+    result += this.tag
 
     if (this.identifier != null) {
       result += ' #'
@@ -152,7 +139,6 @@ export class UnidocTagEvent implements UnidocEvent {
       }
 
       return other.identifier === this.identifier &&
-             other.alias === this.alias &&
              other.tag === this.tag
     }
 

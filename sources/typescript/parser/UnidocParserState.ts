@@ -13,22 +13,24 @@ export namespace UnidocParserState {
   export const TAG_IDENTIFIER         : UnidocParserState = 9
   export const TAG_CLASSES            : UnidocParserState = 10
   export const TAG_CONTENT            : UnidocParserState = 11
+  export const END                    : UnidocParserState = 12
 
   export function toString (state : UnidocParserState) : string {
     switch (state) {
-      case START: return 'START'
-      case ERROR: return 'ERROR'
-      case WHITESPACE: return 'WHITESPACE'
-      case WORD: return 'WORD'
-      case DOCUMENT_CONTENT: return 'DOCUMENT_CONTENT'
-      case BLOCK_IDENTIFIER: return 'BLOCK_IDENTIFIER'
-      case BLOCK_CLASSES: return 'BLOCK_CLASSES'
-      case BLOCK_CONTENT: return 'BLOCK_CONTENT'
-      case TAG_TYPE: return 'TAG_TYPE'
-      case TAG_IDENTIFIER: return 'TAG_IDENTIFIER'
-      case TAG_CLASSES: return 'TAG_CLASSES'
-      case TAG_CONTENT: return 'TAG_CONTENT'
-      default: return 'undefined'
+      case START            : return 'START'
+      case ERROR            : return 'ERROR'
+      case WHITESPACE       : return 'WHITESPACE'
+      case WORD             : return 'WORD'
+      case DOCUMENT_CONTENT : return 'DOCUMENT_CONTENT'
+      case BLOCK_IDENTIFIER : return 'BLOCK_IDENTIFIER'
+      case BLOCK_CLASSES    : return 'BLOCK_CLASSES'
+      case BLOCK_CONTENT    : return 'BLOCK_CONTENT'
+      case TAG_TYPE         : return 'TAG_TYPE'
+      case TAG_IDENTIFIER   : return 'TAG_IDENTIFIER'
+      case TAG_CLASSES      : return 'TAG_CLASSES'
+      case TAG_CONTENT      : return 'TAG_CONTENT'
+      case END              : return 'END'
+      default               : return undefined
     }
   }
 }
