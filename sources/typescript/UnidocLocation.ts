@@ -5,7 +5,12 @@ export class UnidocLocation {
   /**
   * 0:0 location.
   */
-  public static ZERO : UnidocLocation = new UnidocLocation()
+  public static ZERO : UnidocLocation = new UnidocLocation(0, 0, 0)
+
+  /**
+  * Unknown location.
+  */
+  public static UNKNOWN : UnidocLocation = new UnidocLocation(-1, -1, -1)
 
   /**
   * A document stream column.
@@ -29,24 +34,40 @@ export class UnidocLocation {
   * @param [column = 0] - Document column.
   * @param [index = 0] - Buffer index.
   */
-  public constructor (
-    line : number = 0,
-    column : number = 0,
-    index : number = 0
-  ) {
+  public constructor (line : number = 0, column : number = 0, index : number = 0) {
     this.column = column
     this.line = line
     this.index = index
   }
 
   /**
+  * Set this location to unknown.
+  */
+  public asUnknown () : void {
+    this.column = -1
+    this.line   = -1
+    this.index  = -1
+  }
+
+  /**
+  * @return True if this location is unknown.
+  */
+  public isUnknown () : boolean {
+    return this.index === -1
+  }
+
+  /**
   * Update this location by adding the given lines, columns and indices.
+  *
+  * Adding values to a unknown location let the location unknown.
   *
   * @param line - Lines to add.
   * @param column - Columns to add.
   * @param index - Indices to add.
   */
   public add (line : number, column : number, index : number) : void {
+    if (this.index < 0) return
+
     this.column += column
     this.line += line
     this.index += index
@@ -55,14 +76,18 @@ export class UnidocLocation {
   /**
   * Update this location by subtracting the given lines, columns and indices.
   *
-  * @param line - Lines to add.
-  * @param column - Columns to add.
-  * @param index - Indices to add.
+  * Subtracting values to a unknown location let the location unknown.
+  *
+  * @param line - Lines to subtract.
+  * @param column - Columns to subtract.
+  * @param index - Indices to subtract.
   */
   public subtract (line : number, column : number, index : number) : void {
-    this.column -= column
-    this.line -= line
-    this.index -= index
+    if (this.index < 0) return
+
+    this.column = Math.max(this.column - column, 0)
+    this.line = Math.max(this.line - line, 0)
+    this.index = Math.max(this.index - index, 0)
   }
 
   /**
@@ -102,7 +127,8 @@ export class UnidocLocation {
   * @see Object#toString
   */
   public toString () : string {
-    return `${this.line}:${this.column}/${this.index}`
+    return this.index < 0 ? 'unknown'
+                          : `${this.line}:${this.column}/${this.index}`
   }
 
   /**
@@ -113,7 +139,8 @@ export class UnidocLocation {
     if (other === this) return true
 
     if (other instanceof UnidocLocation) {
-      return other.line === this.line &&
+      return other.index === -1 && this.index === - 1 ||
+             other.line === this.line &&
              other.column === this.column &&
              other.index === this.index
     }

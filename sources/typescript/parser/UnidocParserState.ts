@@ -1,36 +1,76 @@
-export type UnidocParserState = number
+import { UnidocParserStateType } from './UnidocParserStateType'
 
-export namespace UnidocParserState {
-  export const START                  : UnidocParserState = 0
-  export const ERROR                  : UnidocParserState = 1
-  export const WHITESPACE             : UnidocParserState = 2
-  export const WORD                   : UnidocParserState = 3
-  export const DOCUMENT_CONTENT       : UnidocParserState = 4
-  export const BLOCK_IDENTIFIER       : UnidocParserState = 5
-  export const BLOCK_CLASSES          : UnidocParserState = 6
-  export const BLOCK_CONTENT          : UnidocParserState = 7
-  export const TAG_TYPE               : UnidocParserState = 8
-  export const TAG_IDENTIFIER         : UnidocParserState = 9
-  export const TAG_CLASSES            : UnidocParserState = 10
-  export const TAG_CONTENT            : UnidocParserState = 11
-  export const END                    : UnidocParserState = 12
+import { UnidocLocation } from '../UnidocLocation'
 
-  export function toString (state : UnidocParserState) : string {
-    switch (state) {
-      case START            : return 'START'
-      case ERROR            : return 'ERROR'
-      case WHITESPACE       : return 'WHITESPACE'
-      case WORD             : return 'WORD'
-      case DOCUMENT_CONTENT : return 'DOCUMENT_CONTENT'
-      case BLOCK_IDENTIFIER : return 'BLOCK_IDENTIFIER'
-      case BLOCK_CLASSES    : return 'BLOCK_CLASSES'
-      case BLOCK_CONTENT    : return 'BLOCK_CONTENT'
-      case TAG_TYPE         : return 'TAG_TYPE'
-      case TAG_IDENTIFIER   : return 'TAG_IDENTIFIER'
-      case TAG_CLASSES      : return 'TAG_CLASSES'
-      case TAG_CONTENT      : return 'TAG_CONTENT'
-      case END              : return 'END'
-      default               : return undefined
+export class UnidocParserState {
+  public type                : UnidocParserStateType
+  public tag                 : string
+  public identifier          : string
+  public readonly from       : UnidocLocation
+  public readonly classes    : Set<string>
+
+  /**
+  * Instantiate a new empty state.
+  */
+  public constructor () {
+    this.type       = UnidocParserStateType.START
+    this.tag        = undefined
+    this.identifier = undefined
+    this.classes    = new Set()
+    this.from       = new UnidocLocation()
+  }
+
+  /**
+  * Reset this instance in order to reuse it.
+  */
+  public clear () : void {
+    this.type       = UnidocParserStateType.START
+    this.tag        = undefined
+    this.identifier = undefined
+    this.classes.clear()
+    this.from.clear()
+  }
+
+  /**
+  * Copy an existing parser state instance.
+  *
+  * @param toCopy - A parser state to copy.
+  */
+  public copy (toCopy : UnidocParserState) : void {
+    this.type = toCopy.type
+    this.tag = toCopy.tag
+    this.identifier = toCopy.identifier
+    this.from.copy(toCopy.from)
+    this.classes.clear()
+
+    for (const element of toCopy.classes) {
+      this.classes.add(element)
+    }
+  }
+
+  /**
+  * @see Object.equals
+  */
+  public equals (other : any) : boolean {
+    if (other == null)  return false
+    if (other === this) return true
+
+    if (other instanceof UnidocParserState) {
+      if (
+        other.type         !== this.type         ||
+        other.tag          !== this.tag          ||
+        other.identifier   !== this.identifier   ||
+        !other.from.equals(this.from)            ||
+        other.classes.size !== this.classes.size
+      ) { return false }
+
+      for (const element of other.classes) {
+        if (!this.classes.has(element)) {
+          return false
+        }
+      }
+
+      return true
     }
   }
 }

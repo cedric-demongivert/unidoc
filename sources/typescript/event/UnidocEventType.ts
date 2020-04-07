@@ -34,15 +34,15 @@ export namespace UnidocEventType {
   */
   export function toString (value : UnidocEventType) : string {
     switch (value) {
-      case START_BLOCK: return 'START_BLOCK'
-      case END_BLOCK: return 'END_BLOCK'
-      case START_TAG: return 'START_TAG'
-      case END_TAG: return 'END_TAG'
-      case START_DOCUMENT: return 'START_DOCUMENT'
-      case END_DOCUMENT: return 'END_DOCUMENT'
-      case WHITESPACE: return 'WHITESPACE'
-      case WORD: return 'WORD'
-      default: return undefined
+      case START_BLOCK    : return 'START_BLOCK'
+      case END_BLOCK      : return 'END_BLOCK'
+      case START_TAG      : return 'START_TAG'
+      case END_TAG        : return 'END_TAG'
+      case START_DOCUMENT : return 'START_DOCUMENT'
+      case END_DOCUMENT   : return 'END_DOCUMENT'
+      case WHITESPACE     : return 'WHITESPACE'
+      case WORD           : return 'WORD'
+      default             : return undefined
     }
   }
 }

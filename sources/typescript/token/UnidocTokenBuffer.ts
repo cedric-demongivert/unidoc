@@ -1,11 +1,12 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
+import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocLocation } from '../UnidocLocation'
 import { UnidocToken } from './UnidocToken'
 
 export class UnidocTokenBuffer {
-  private readonly pool   : Pack<UnidocToken>
-  public  readonly tokens : Pack<UnidocToken>
+  private readonly _tokens : Pack<UnidocToken>
+  public  readonly tokens  : Sequence<UnidocToken>
 
   /**
   * Instantiate a new empty token buffer with the given capacity.
@@ -13,73 +14,51 @@ export class UnidocTokenBuffer {
   * @param [capacity = 32] - Capacity of the buffer to instantiate.
   */
   public constructor (capacity : number = 32) {
-    this.tokens = Pack.any(capacity)
-    this.pool   = Pack.any(capacity)
-
-    for (let index = 0; index < capacity; ++index) {
-      this.pool.push(new UnidocToken())
-    }
+    this._tokens = Pack.instance(UnidocToken.ALLOCATOR, capacity)
+    this.tokens = this._tokens.view()
   }
 
   public get capacity () : number {
-    return this.pool.capacity
+    return this._tokens.capacity
   }
 
   /**
   * @see MutableSequence.size
   */
   public get size () : number {
-    return this.tokens.size
+    return this._tokens.size
   }
 
   /**
   * @see MutableSequence.size
   */
   public set size (newSize : number) {
-    if (newSize > this.pool.capacity) {
-      this.reallocate(newSize)
-    }
-
-    while (this.tokens.size < newSize) {
-      this.pool.last.clear()
-      this.tokens.push(this.pool.pop())
-    }
-
-    while (this.tokens.size > newSize) {
-      this.pool.push(this.tokens.pop())
-    }
+    this._tokens.size = newSize
   }
 
   /**
   * @return The starting location of this buffer.
   */
   public get from () : UnidocLocation {
-    return this.tokens.size === 0 ? UnidocLocation.ZERO : this.tokens.first.from
+    return this._tokens.size === 0 ? UnidocLocation.ZERO : this._tokens.first.from
   }
 
   /**
   * @return The ending location of this buffer.
   */
   public get to () : UnidocLocation {
-    return this.tokens.size === 0 ? UnidocLocation.ZERO : this.tokens.last.to
+    return this._tokens.size === 0 ? UnidocLocation.ZERO : this._tokens.last.to
   }
 
   public reallocate (capacity : number) : void {
-    const oldCapacity : number = this.pool.capacity
-
-    this.pool.reallocate(capacity)
-    this.tokens.reallocate(capacity)
-
-    for (let index = oldCapacity; index < capacity; ++index) {
-      this.pool.push(new UnidocToken())
-    }
+    this._tokens.reallocate(capacity)
   }
 
   /**
   * @see MutableSequence.get
   */
   public get (index : number) : UnidocToken {
-    return this.tokens.get(index)
+    return this._tokens.get(index)
   }
 
   /**
@@ -88,12 +67,8 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushIdentifier (value : string) : void {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.pool.last.asIdentifier(this.to, value)
-    this.tokens.push(this.pool.pop())
+    this._tokens.size += 1
+    this._tokens.last.asIdentifier(this.to, value)
   }
 
   /**
@@ -102,12 +77,8 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushClass (value : string) : void {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.pool.last.asClass(this.to, value)
-    this.tokens.push(this.pool.pop())
+    this._tokens.size += 1
+    this._tokens.last.asClass(this.to, value)
   }
 
   /**
@@ -116,36 +87,24 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushTag (value : string) : void {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.pool.last.asTag(this.to, value)
-    this.tokens.push(this.pool.pop())
+    this._tokens.size += 1
+    this._tokens.last.asTag(this.to, value)
   }
 
   /**
   * Append a block start token at the end of this buffer.
   */
   public pushBlockStart () : void {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.pool.last.asBlockStart(this.to)
-    this.tokens.push(this.pool.pop())
+    this._tokens.size += 1
+    this._tokens.last.asBlockStart(this.to)
   }
 
   /**
   * Append a block end token at the end of this buffer.
   */
   public pushBlockEnd () : void  {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.pool.last.asBlockEnd(this.to)
-    this.tokens.push(this.pool.pop())
+    this._tokens.size += 1
+    this._tokens.last.asBlockEnd(this.to)
   }
 
   /**
@@ -154,12 +113,8 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushSpace (value : string) : void {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.pool.last.asSpace(this.to, value)
-    this.tokens.push(this.pool.pop())
+    this._tokens.size += 1
+    this._tokens.last.asSpace(this.to, value)
   }
 
   /**
@@ -168,12 +123,8 @@ export class UnidocTokenBuffer {
   * @param type - Type of newline token to add.
   */
   public pushNewline (type : '\r\n' | '\r' | '\n' = '\r\n') : void {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.pool.last.asNewline(this.to, type)
-    this.tokens.push(this.pool.pop())
+    this._tokens.size += 1
+    this._tokens.last.asNewline(this.to, type)
   }
 
   /**
@@ -182,35 +133,62 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushWord (value : string) : void {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.pool.last.asWord(this.to, value)
-    this.tokens.push(this.pool.pop())
+    this._tokens.size += 1
+    this._tokens.last.asWord(this.to, value)
   }
 
+  /**
+  * Append a copy of the given token at the end of this buffer.
+  *
+  * @param token - A token to append.
+  */
   public push (token : UnidocToken) : void {
-    if (this.tokens.size === this.pool.capacity) {
-      this.reallocate(this.pool.capacity * 2)
-    }
-
-    this.tokens.push(this.pool.pop())
-    this.tokens.last.copy(token)
+    this._tokens.push(token)
   }
 
+  /**
+  * Remove a token from this buffer.
+  *
+  * @param index - Index of the token to remove.
+  */
   public delete (index : number) : void {
-    this.pool.push(this.tokens.get(index))
-    this.tokens.delete(index)
+    this._tokens.delete(index)
+  }
+
+  /**
+  * @see Pack#deleteMany
+  */
+  public deleteMany (index : number, length : number) : void {
+    this._tokens.deleteMany(index, length)
+  }
+
+  /**
+  * Reset this token buffer.
+  */
+  public concat (tokens : Iterable<UnidocToken>) : void {
+    for (const token of tokens) {
+      this._tokens.push(token)
+    }
+  }
+
+  /**
+  * Deep copy the given buffer.
+  *
+  * @param toCopy - A buffer instance to copy.
+  */
+  public copy (toCopy : UnidocTokenBuffer) : void {
+    this._tokens.clear()
+
+    for (const token of toCopy.tokens) {
+      this._tokens.push(token)
+    }
   }
 
   /**
   * Reset this token buffer.
   */
   public clear () : void {
-    while (this.tokens.size > 0) {
-      this.pool.push(this.tokens.pop())
-    }
+    this._tokens.clear()
   }
 
   /**
@@ -221,10 +199,10 @@ export class UnidocTokenBuffer {
     if (other === this) return true
 
     if (other instanceof UnidocTokenBuffer) {
-      if (other.tokens.size !== this.tokens.size) return false
+      if (other.tokens.size !== this._tokens.size) return false
 
-      for (let index = 0, size = this.tokens.size; index < size; ++index) {
-        if (!other.tokens.get(index).equals(this.tokens.get(index))) {
+      for (let index = 0, size = this._tokens.size; index < size; ++index) {
+        if (!other.tokens.get(index).equals(this._tokens.get(index))) {
           return false
         }
       }

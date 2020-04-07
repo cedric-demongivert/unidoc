@@ -1,9 +1,10 @@
+import { Pack } from '@cedric-demongivert/gl-tool-collection'
+import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+
 import { UnidocLocation } from '../UnidocLocation'
+import { CodePoint } from '../CodePoint'
 
 import { UnidocEventType } from './UnidocEventType'
-import { UnidocBlockEvent } from './UnidocBlockEvent'
-import { UnidocTagEvent } from './UnidocTagEvent'
-import { UnidocCommonEvent } from './UnidocCommonEvent'
 
 const BLOCK_EVENT_CONFIGURATION : RegExp = /^(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
 const TAG_EVENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
@@ -11,41 +12,431 @@ const TAG_EVENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?(\.
 /**
 * A unidoc event.
 */
-export interface UnidocEvent {
+export class UnidocEvent {
   /**
-  * This event creation timestamp.
+  * Event emission timestamp.
   */
-  timestamp : number
+  public timestamp : number
 
   /**
   * Type of this event.
   */
-  type : UnidocEventType
+  public type : UnidocEventType
 
   /**
-  * UnidocLocation of this event into the document stream.
+  * Starting UnidocLocation of this event into the document stream.
   */
-  location : UnidocLocation
+  public from : UnidocLocation
+
+  /**
+  * Ending UnidocLocation of this event into the document stream.
+  */
+  public to : UnidocLocation
+
+  /**
+  * The discovered tag, if any.
+  */
+  public tag : string
+
+  /**
+  * Identifier associated to the block or the tag if any.
+  */
+  public identifier : string
+
+  /**
+  * Classes associated to the block or the tag if any.
+  */
+  public readonly classes : Set<string>
+
+  /**
+  * Content associated to this event.
+  */
+  public readonly symbols : Pack<CodePoint>
+
+
+  /**
+  * Instantiate a new tag event.
+  */
+  public constructor () {
+    this.timestamp  = Date.now()
+    this.type       = UnidocEventType.START_TAG
+    this.from       = new UnidocLocation()
+    this.to         = new UnidocLocation()
+    this.tag        = undefined
+    this.identifier = undefined
+    this.classes    = new Set<string>()
+    this.symbols    = Pack.uint32(128)
+  }
+
+  /**
+  * @return This token as a javascript string.
+  */
+  public get text () : string {
+    return String.fromCodePoint(...this.symbols)
+  }
+
+  /**
+  * Update the content associated to this event.
+  *
+  * @param content - The new content associated to this event.
+  */
+  public set text (content : string) {
+    this.symbols.clear()
+    this.symbols.size = content.length
+
+    for (let index = 0; index < content.length; ++index) {
+      this.symbols.push(content.codePointAt(index))
+    }
+  }
+
+
+  /**
+  * A part of this token as a javascript string.
+  *
+  * @param start - Number of symbols of this token to skip.
+  * @param [length = this.symbols.size - start] - Number of symbols of this token to keep.
+  *
+  * @return The requested part of this token as a string.
+  */
+  public substring (start : number, length : number = this.symbols.size - start) : string {
+    const buffer : CodePoint[] = []
+    const from : number = start
+    const to : number = start + length
+
+    for (let index = from; index < to; ++index) {
+      buffer.push(this.symbols.get(index))
+    }
+
+    return String.fromCodePoint(...buffer)
+  }
+
+  /**
+  * @return This token as a string without invisible symbols.
+  */
+  public get debugText () : string {
+    const buffer : CodePoint[] = []
+
+    for (const codePoint of this.symbols) {
+      switch (codePoint) {
+        case CodePoint.NEW_LINE:
+          buffer.push(CodePoint.COLON)
+          buffer.push(CodePoint.n)
+          break
+        case CodePoint.CARRIAGE_RETURN:
+          buffer.push(CodePoint.COLON)
+          buffer.push(CodePoint.r)
+          break
+        case CodePoint.TABULATION:
+          buffer.push(CodePoint.COLON)
+          buffer.push(CodePoint.t)
+          break
+        case CodePoint.SPACE:
+          buffer.push(CodePoint.COLON)
+          buffer.push(CodePoint.s)
+          break
+        case CodePoint.FORM_FEED:
+          buffer.push(CodePoint.COLON)
+          buffer.push(CodePoint.f)
+          break
+        default:
+          buffer.push(codePoint)
+          break
+      }
+    }
+
+    return String.fromCodePoint(...buffer)
+  }
+
+  /**
+  * Configure this event as a new starting block event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
+  * @param [configuration = ''] - Identifiers and classes of the block.
+  */
+  public asBlockStart (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
+    this.clear()
+
+    const tokens : RegExpExecArray = BLOCK_EVENT_CONFIGURATION.exec(configuration)
+
+    this.type = UnidocEventType.START_BLOCK
+    this.from.copy(from)
+    this.to.copy(to)
+
+    for (let index = 1; index < tokens.length; ++index) {
+      const token : string = tokens[index]
+
+      if (token.startsWith('#')) {
+        this.identifier = token.substring(1)
+      } else {
+        this.classes.add(token.substring(1))
+      }
+    }
+  }
+
+  /**
+  * Configure this event as a new ending block event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
+  * @param [configuration = ''] - Identifiers and classes of the block.
+  */
+  public asBlockEnd (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
+    this.clear()
+
+    const tokens : RegExpExecArray = BLOCK_EVENT_CONFIGURATION.exec(configuration)
+
+    this.type = UnidocEventType.END_BLOCK
+    this.from.copy(from)
+    this.to.copy(to)
+
+    for (let index = 1; index < tokens.length; ++index) {
+      const token : string = tokens[index]
+
+      if (token.startsWith('#')) {
+        this.identifier = token.substring(1)
+      } else {
+        this.classes.add(token.substring(1))
+      }
+    }
+  }
+
+  /**
+  * Configure this event as a new word event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param content - Content of the resulting event.
+  */
+  public asWord (from : UnidocLocation, content : string) : void {
+    this.clear()
+
+    this.type = UnidocEventType.WORD
+    this.from.copy(from)
+    this.to.copy(from)
+    this.to.add(0, content.length, content.length)
+    this.text = content
+  }
+
+  /**
+  * Configure this event as a new whitespace event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param content - Content of the resulting event.
+  */
+  public asWhitespace (from : UnidocLocation, content : string) : void {
+    this.clear()
+
+    this.type = UnidocEventType.WHITESPACE
+    this.from.copy(from)
+    this.to.copy(from)
+    this.to.add(0, content.length, content.length)
+    this.text = content
+  }
+
+  /**
+  * Instantiate a new document starting event.
+  *
+  * @param location - Location of the event into the parent document.
+  */
+  public asDocumentStart (location : UnidocLocation) : void {
+    this.clear()
+
+    this.type = UnidocEventType.START_DOCUMENT
+    this.from.copy(location)
+    this.to.copy(location)
+  }
+
+  /**
+  * Instantiate a new document ending event.
+  *
+  * @param location - Location of the event into the parent document.
+  */
+  public asDocumentEnd (location : UnidocLocation) : void {
+    this.clear()
+
+    this.type = UnidocEventType.END_DOCUMENT
+    this.from.copy(location)
+    this.to.copy(location)
+  }
+
+  /**
+  * Configure this event as a new starting tag event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
+  * @param configuration - Type, identifiers and classes of the resulting tag.
+  */
+  public asTagStart (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
+    this.clear()
+
+    const tokens : RegExpExecArray = TAG_EVENT_CONFIGURATION.exec(configuration)
+
+    this.type = UnidocEventType.START_TAG
+    this.from.copy(from)
+    this.to.copy(to)
+
+    for (let index = 1; index < tokens.length; ++index) {
+      const token : string = tokens[index]
+
+      if (token.startsWith('#')) {
+        this.identifier = token.substring(1)
+      } else if (token.startsWith('.')) {
+        this.classes.add(token.substring(1))
+      } else {
+        this.tag = token
+      }
+    }
+  }
+
+  /**
+  * Configure this event as a new ending tag event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
+  * @param configuration - Type, identifiers and classes of the resulting tag.
+  */
+  public asTagEnd (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
+    this.clear()
+
+    const tokens : RegExpExecArray = TAG_EVENT_CONFIGURATION.exec(configuration)
+
+    this.type = UnidocEventType.END_TAG
+    this.from.copy(from)
+    this.to.copy(to)
+
+    for (let index = 1; index < tokens.length; ++index) {
+      const token : string = tokens[index]
+
+      if (token.startsWith('#')) {
+        this.identifier = token.substring(1)
+      } else if (token.startsWith('.')) {
+        this.classes.add(token.substring(1))
+      } else {
+        this.tag = token
+      }
+    }
+  }
+
+  public addClasses (classes : Iterable<string>) : void {
+    for (const clazz of classes) {
+      this.classes.add(clazz)
+    }
+  }
+
+  /**
+  * Deep copy an existing instance.
+  *
+  * @param toCopy - An instance to copy.
+  */
+  public copy (toCopy : UnidocEvent) : void {
+    this.timestamp  = toCopy.timestamp
+    this.type       = toCopy.type
+    this.tag        = toCopy.tag
+    this.identifier = toCopy.identifier
+
+    this.from.copy(toCopy.from)
+    this.to.copy(toCopy.to)
+
+    this.symbols.copy(toCopy.symbols)
+
+    this.classes.clear()
+
+    for (const clazz of toCopy.classes) {
+      this.classes.add(clazz)
+    }
+  }
 
   /**
   * @return A deep copy of this event.
   */
-  clone () : UnidocEvent
+  public clone () : UnidocEvent {
+    const result : UnidocEvent = new UnidocEvent()
+    result.copy(this)
+    return result
+  }
 
   /**
   * Reset this event instance in order to reuse it.
   */
-  clear () : void
+  public clear () : void {
+    this.timestamp  = Date.now()
+    this.tag        = undefined
+    this.identifier = undefined
+
+    this.from.clear()
+    this.to.clear()
+    this.classes.clear()
+    this.symbols.clear()
+  }
 
   /**
   * @see Object#toString
   */
-  toString () : string
+  public toString () : string {
+    let result : string = ''
+
+    result += this.timestamp
+    result += ' '
+    result += UnidocEventType.toString(this.type)
+    result += ' '
+    result += this.from.toString().padEnd(15, ' ')
+    result += ' - '
+    result += this.to.toString().padEnd(15, ' ')
+
+    if (this.tag) {
+      result += ' \\'
+      result += this.tag
+    }
+
+    if (this.identifier != null) {
+      result += ' #'
+      result += this.identifier
+    }
+
+    if (this.classes.size > 0) {
+      result += ' '
+      for (const clazz of this.classes) {
+        result += '.'
+        result += clazz
+      }
+    }
+
+    if (this.symbols.size > 0) {
+      result += ' \"'
+      result += this.debugText
+      result += '\"'
+    }
+
+    return result
+  }
 
   /**
   * @see Object#equals
   */
-  equals (other : any) : boolean
+  public equals (other : any) {
+    if (other == null) return false
+    if (other === this) return true
+
+    if (other instanceof UnidocEvent) {
+      if (
+        other.timestamp    !== this.timestamp    ||
+        other.type         !== this.type         ||
+        other.classes.size !== this.classes.size ||
+        other.identifier   !== this.identifier   ||
+        other.tag          !== this.tag
+      ) { return false }
+
+      for (const clazz of other.classes) {
+        if (!this.classes.has(clazz)) {
+          return false
+        }
+      }
+
+      return this.symbols.equals(other.symbols)
+    }
+
+    return false
+  }
 }
 
 export namespace UnidocEvent {
@@ -60,153 +451,26 @@ export namespace UnidocEvent {
     return toCopy == null ? null : toCopy.clone()
   }
 
-  /**
-  * Instantiate a new starting block event.
-  *
-  * @param location - Location of the event into the parent document.
-  * @param [configuration = ''] - Identifiers and classes of the resulting block.
-  */
-  export function blockStart (location : UnidocLocation, configuration : string = '') : UnidocBlockEvent {
-    const tokens : RegExpExecArray = BLOCK_EVENT_CONFIGURATION.exec(configuration)
-    const result : UnidocBlockEvent = new UnidocBlockEvent()
+  export const ALLOCATOR : Allocator<UnidocEvent> = {
+    /**
+    * @see Allocator.copy
+    */
+    allocate () : UnidocEvent {
+      return new UnidocEvent()
+    },
 
-    result.type = UnidocEventType.START_BLOCK
-    result.location.copy(location)
-    result.timestamp = Date.now()
+    /**
+    * @see Allocator.copy
+    */
+    copy (source : UnidocEvent, destination : UnidocEvent) : void {
+      destination.copy(source)
+    },
 
-    for (let index = 1; index < tokens.length; ++index) {
-      const token : string = tokens[index]
-
-      if (token.startsWith('#')) {
-        result.identifier = token.substring(1)
-      } else {
-        result.classes.add(token.substring(1))
-      }
+    /**
+    * @see Allocator.clear
+    */
+    clear (instance : UnidocEvent) : void {
+      instance.clear()
     }
-
-    return result
-  }
-
-  /**
-  * Instantiate a new ending block event.
-  *
-  * @param location - Location of the event into the parent document.
-  */
-  export function blockEnd (location : UnidocLocation) : UnidocBlockEvent {
-    const result : UnidocBlockEvent = new UnidocBlockEvent()
-
-    result.type = UnidocEventType.END_BLOCK
-    result.location.copy(location)
-    result.timestamp = Date.now()
-
-    return result
-  }
-
-  /**
-  * Instantiate a new word event.
-  *
-  * @param location - Location of the event into the parent document.
-  * @param content - Content of the resulting event.
-  */
-  export function word (location : UnidocLocation, content : string) : UnidocCommonEvent {
-    const result : UnidocCommonEvent = new UnidocCommonEvent()
-
-    result.type = UnidocEventType.WORD
-    result.location.copy(location)
-    result.timestamp = Date.now()
-    result.text = content
-
-    return result
-  }
-
-  /**
-  * Instantiate a new whitespace event.
-  *
-  * @param location - Location of the event into the parent document.
-  * @param content - Content of the resulting event.
-  */
-  export function whitespace (location : UnidocLocation, content : string) : UnidocCommonEvent {
-    const result : UnidocCommonEvent = new UnidocCommonEvent()
-
-    result.type = UnidocEventType.WHITESPACE
-    result.location.copy(location)
-    result.timestamp = Date.now()
-    result.text = content
-
-    return result
-  }
-
-  /**
-  * Instantiate a new document starting event.
-  *
-  * @param location - Location of the event into the parent document.
-  */
-  export function documentStart (location : UnidocLocation) : UnidocCommonEvent {
-    const result : UnidocCommonEvent = new UnidocCommonEvent()
-
-    result.type = UnidocEventType.START_DOCUMENT
-    result.location.copy(location)
-    result.timestamp = Date.now()
-
-    return result
-  }
-
-  /**
-  * Instantiate a new document ending event.
-  *
-  * @param location - Location of the event into the parent document.
-  */
-  export function documentEnd (location : UnidocLocation) : UnidocCommonEvent {
-    const result : UnidocCommonEvent = new UnidocCommonEvent()
-
-    result.type = UnidocEventType.END_DOCUMENT
-    result.location.copy(location)
-    result.timestamp = Date.now()
-
-    return result
-  }
-
-  /**
-  * Instantiate a new starting tag event.
-  *
-  * @param location - Location of the event into the parent document.
-  * @param configuration - Type, identifiers and classes of the resulting tag.
-  */
-  export function tagStart (location : UnidocLocation, configuration : string) : UnidocTagEvent {
-    const tokens : RegExpExecArray = TAG_EVENT_CONFIGURATION.exec(configuration)
-    const result : UnidocTagEvent = new UnidocTagEvent()
-
-    result.type = UnidocEventType.START_TAG
-    result.location.copy(location)
-    result.timestamp = Date.now()
-
-    for (let index = 1; index < tokens.length; ++index) {
-      const token : string = tokens[index]
-
-      if (token.startsWith('#')) {
-        result.identifier = token.substring(1)
-      } else if (token.startsWith('.')) {
-        result.classes.add(token.substring(1))
-      } else {
-        result.alias = token
-      }
-    }
-
-    return result
-  }
-
-  /**
-  * Instantiate a new ending tag event.
-  *
-  * @param location - Location of the event into the parent document.
-  */
-  export function tagEnd (location : UnidocLocation) : UnidocTagEvent {
-    const result : UnidocTagEvent = new UnidocTagEvent()
-
-    result.type = UnidocEventType.END_TAG
-    result.location.copy(location)
-    result.timestamp = Date.now()
-
-    return result
   }
 }

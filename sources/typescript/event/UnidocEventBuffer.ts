@@ -1,170 +1,118 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
+import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocLocation } from '../UnidocLocation'
-import { UnidocParser } from '../parser/UnidocParser'
 import { UnidocEvent } from './UnidocEvent'
 
 export class UnidocEventBuffer {
-  public readonly events : Pack<UnidocEvent>
-  public completed : boolean
+  private readonly _events : Pack<UnidocEvent>
+  public readonly events   : Sequence<UnidocEvent>
 
   /**
-  * Instantiate a new empty token buffer with the given capacity.
+  * Instantiate a new empty event buffer with the given capacity.
   *
   * @param [capacity = 32] - Capacity of the buffer to instantiate.
   */
   public constructor (capacity : number = 32) {
-    this.events    = Pack.any(capacity)
-    this.completed = false
-
-    this.handleNextEvent = this.handleNextEvent.bind(this)
-    this.handleCompletion  = this.handleCompletion.bind(this)
+    this._events = Pack.instance(UnidocEvent.ALLOCATOR, capacity)
+    this.events = this._events.view()
   }
 
   /**
-  * Instantiate and append a new starting block event.
-  *
-  * @param location - Location of the event into the parent document.
-  * @param [configuration = ''] - Identifiers and classes of the resulting block.
+  * @see Pack.capacity
   */
-  public blockStart (location : UnidocLocation, configuration : string = '') : void {
-    this.events.push(UnidocEvent.blockStart(location, configuration))
+  public get capacity () : number {
+    return this._events.capacity
   }
 
   /**
-  * Instantiate and append a new ending block event.
-  *
-  * @param location - Location of the event into the parent document.
+  * @see Pack.size
   */
-  public blockEnd (location : UnidocLocation) : void {
-    this.events.push(UnidocEvent.blockEnd(location))
+  public get size () : number {
+    return this._events.size
   }
 
   /**
-  * Instantiate and append a new word event.
-  *
-  * @param location - Location of the event into the parent document.
-  * @param content - Content of the resulting event.
+  * @see Pack.size
   */
-  public word (location : UnidocLocation, content : string) : void {
-    this.events.push(UnidocEvent.word(location, content))
+  public set size (newSize : number) {
+    this._events.size = newSize
   }
 
   /**
-  * Instantiate and append a new whitespace event.
-  *
-  * @param location - Location of the event into the parent document.
-  * @param content - Content of the resulting event.
+  * @return The starting location of this buffer.
   */
-  public whitespace (location : UnidocLocation, content : string) : void {
-    this.events.push(UnidocEvent.whitespace(location, content))
+  public get from () : UnidocLocation {
+    return this._events.size === 0 ? UnidocLocation.ZERO : this._events.first.from
   }
 
   /**
-  * Instantiate and append a new document starting event.
-  *
-  * @param location - Location of the event into the parent document.
+  * @return The ending location of this buffer.
   */
-  public documentStart (location : UnidocLocation) : void {
-    this.events.push(UnidocEvent.documentStart(location))
+  public get to () : UnidocLocation {
+    return this._events.size === 0 ? UnidocLocation.ZERO : this._events.last.to
   }
 
   /**
-  * Instantiate and append a new document ending event.
-  *
-  * @param location - Location of the event into the parent document.
+  * @see Pack.reallocate
   */
-  public documentEnd (location : UnidocLocation) : void {
-    this.events.push(UnidocEvent.documentEnd(location))
+  public reallocate (capacity : number) : void {
+    this._events.reallocate(capacity)
   }
 
   /**
-  * Instantiate and append a new starting tag event.
-  *
-  * @param location - Location of the event into the parent document.
-  * @param configuration - Type, identifiers and classes of the resulting tag.
+  * @see Pack.get
   */
-  public tagStart (location : UnidocLocation, configuration : string) : void {
-    this.events.push(UnidocEvent.tagStart(location, configuration))
+  public get (index : number) : UnidocEvent {
+    return this._events.get(index)
   }
 
   /**
-  * Instantiate and append a new ending tag event.
-  *
-  * @param location - Location of the event into the parent document.
+  * @see Pack.push
   */
-  public tagEnd (location : UnidocLocation) : void {
-    this.events.push(UnidocEvent.tagEnd(location))
+  public push (event : UnidocEvent) : void {
+    this._events.push(event)
   }
 
-
   /**
-  * Handle the emission of the given token.
-  *
-  * @param event - The event that was emitted.
+  * @see Pack.delete
   */
-  public handleNextEvent (event : UnidocEvent) : void {
-    this.events.push(event.clone())
+  public delete (index : number) : void {
+    this._events.delete(index)
   }
 
   /**
-  * Handle the emission of the a completion event.
+  * @see Pack.deleteMany
   */
-  public handleCompletion () : void {
-    this.completed = true
+  public deleteMany (index : number, length : number) : void {
+    this._events.deleteMany(index, length)
   }
 
   /**
-  * Listen to the given parser.
-  *
-  * @param parser - A parser to listen to.
+  * Reset this token buffer.
   */
-  public listen (parser : UnidocParser) : void {
-    parser.addEventListener('event', this.handleNextEvent)
-    parser.addEventListener('completion', this.handleCompletion)
+  public concat (events : Iterable<UnidocEvent>) : void {
+    for (const event of events) {
+      this._events.push(event)
+    }
   }
 
   /**
-  * Reset this event buffer.
+  * Reset this token buffer.
+  */
+  public copy (events : Iterable<UnidocEvent>) : void {
+    this._events.clear()
+
+    for (const event of events) {
+      this._events.push(event)
+    }
+  }
+
+  /**
+  * Reset this token buffer.
   */
   public clear () : void {
-    this.events.clear()
-    this.completed = false
-  }
-
-  public assert (other : UnidocEventBuffer) : void {
-    if (other.completed !== this.completed) {
-      throw new Error(
-        'Buffers ' + this.toString() + ' and ' + other.toString() + ' are ' +
-        'not equals because one is marked as completed and the other not.'
-      )
-    }
-
-    if (other.events.size !== this.events.size) {
-      throw new Error(
-        'Buffers ' + this.toString() + ' and ' + other.toString() + ' are ' +
-        'not equals because thay contains a different amount of events ' +
-        this.events.size + ' !== ' + other.events.size + '.'
-      )
-    }
-
-    for (let index = 0, size = this.events.size; index < size; ++index) {
-      const oldTimestamp : number = this.events.get(index).timestamp
-      this.events.get(index).timestamp = other.events.get(index).timestamp
-
-      if (!other.events.get(index).equals(this.events.get(index))) {
-        this.events.get(index).timestamp = oldTimestamp
-
-        throw new Error(
-          'Buffers ' + this.toString() + ' and ' + other.toString() + ' are ' +
-          'not equals because their #' + index + ' event are not equal ' +
-          this.events.get(index).toString() + ' !== ' +
-          other.events.get(index).toString() + '.'
-        )
-      } else {
-        this.events.get(index).timestamp = oldTimestamp
-      }
-    }
+    this._events.clear()
   }
 
   /**
@@ -175,19 +123,11 @@ export class UnidocEventBuffer {
     if (other === this) return true
 
     if (other instanceof UnidocEventBuffer) {
-      if (other.completed !== this.completed) return false
-      if (other.events.size !== this.events.size) return false
+      if (other.events.size !== this._events.size) return false
 
-      for (let index = 0, size = this.events.size; index < size; ++index) {
-        const oldTimestamp : number = this.events.get(index).timestamp
-        this.events.get(index).timestamp = other.events.get(index).timestamp
-
-        if (!other.events.get(index).equals(this.events.get(index))) {
-          this.events.get(index).timestamp = oldTimestamp
-
+      for (let index = 0, size = this._events.size; index < size; ++index) {
+        if (!other.events.get(index).equals(this._events.get(index))) {
           return false
-        } else {
-          this.events.get(index).timestamp = oldTimestamp
         }
       }
 
@@ -199,4 +139,37 @@ export class UnidocEventBuffer {
 }
 
 export namespace UnidocEventBuffer {
+  /**
+  * Assert that both buffers are equals.
+  *
+  * @param left - Buffer to use as a left operand.
+  * @param right - Buffer to use as a right operand.
+  */
+  export function assert (left : UnidocEventBuffer, right : UnidocEventBuffer) : void {
+    if (left.events.size !== right.events.size) {
+      throw new Error(
+        'Buffers ' + right.toString() + ' and ' + left.toString() + ' are ' +
+        'not equals because thay contains a different amount of.events ' +
+        right.events.size + ' !== ' + left.events.size + '.'
+      )
+    }
+
+    for (let index = 0, size = right.events.size; index < size; ++index) {
+      const oldTimestamp : number = right.events.get(index).timestamp
+      right.events.get(index).timestamp = left.events.get(index).timestamp
+
+      if (!left.events.get(index).equals(right.events.get(index))) {
+        right.events.get(index).timestamp = oldTimestamp
+
+        throw new Error(
+          'Buffers ' + right.toString() + ' and ' + left.toString() + ' are ' +
+          'not equals because their #' + index + ' token are not equal ' +
+          right.events.get(index).toString() + ' !== ' +
+          left.events.get(index).toString() + '.'
+        )
+      } else {
+        right.events.get(index).timestamp = oldTimestamp
+      }
+    }
+  }
 }

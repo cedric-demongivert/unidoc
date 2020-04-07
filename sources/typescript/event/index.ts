@@ -1,5 +1,3 @@
 export { UnidocEventType } from './UnidocEventType'
 export { UnidocEvent } from './UnidocEvent'
-export { UnidocCommonEvent } from './UnidocCommonEvent'
-export { UnidocBlockEvent } from './UnidocBlockEvent'
-export { UnidocTagEvent } from './UnidocTagEvent'
+export { UnidocEventBuffer } from './UnidocEventBuffer'
