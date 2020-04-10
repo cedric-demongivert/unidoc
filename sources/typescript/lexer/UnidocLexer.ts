@@ -19,6 +19,11 @@ export class UnidocLexer {
   public readonly location : UnidocLocation
 
   /**
+  * UnidocLocation of the first symbol of this buffer.
+  */
+  private readonly _from : UnidocLocation
+
+  /**
   * Current state of this lexer.
   */
   private _state : UnidocLexerState
@@ -60,6 +65,7 @@ export class UnidocLexer {
   */
   public constructor (capacity : number = 64) {
     this.location             = new UnidocLocation()
+    this._from                = new UnidocLocation()
 
     this._state               = UnidocLexerState.START
     this._symbols             = Pack.uint32(capacity)
@@ -278,7 +284,6 @@ export class UnidocLexer {
       case CodePoint.NEW_LINE:
         this._symbols.push(codePoint)
         this.location.add(0, 0, 1)
-        this.location.column = 0
         this.emitNewLine()
         this._state = UnidocLexerState.START
         break
@@ -488,13 +493,17 @@ export class UnidocLexer {
         break
       case CodePoint.NEW_LINE:
         this._symbols.push(codePoint)
+        this._from.copy(this.location)
         this.location.add(1, 0, 1)
+        this.location.column = 0
         this.emitNewLine()
         break
       case CodePoint.CARRIAGE_RETURN:
         this._symbols.push(codePoint)
         this._state = UnidocLexerState.CARRIAGE_RETURN
+        this._from.copy(this.location)
         this.location.add(1, 0, 1)
+        this.location.column = 0
         break
       case CodePoint.SHARP:
         this._symbols.push(codePoint)
@@ -594,8 +603,7 @@ export class UnidocLexer {
   */
   private emitNewLine () : void {
     this._token.clear()
-    this._token.from.copy(this.location)
-    this._token.from.subtract(1, 0, this._symbols.size)
+    this._token.from.copy(this._from)
     this._token.to.copy(this.location)
     this._token.symbols.copy(this._symbols)
     this._symbols.clear()

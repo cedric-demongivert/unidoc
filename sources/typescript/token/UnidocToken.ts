@@ -216,6 +216,7 @@ export class UnidocToken {
     this.from.copy(from)
     this.to.copy(from)
     this.to.add(1, 0, type.length)
+    this.to.column = 0
   }
 
   /**

@@ -709,4 +709,33 @@ describe('UnidocLexer', function () {
       expect(_ => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
   })
+
+  describe('debug', function () {
+    it ('debug case 001', function () {
+      const lexer  : UnidocLexer = new UnidocLexer()
+      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      lexer.addEventListener('token', token => output.push(token))
+
+      lexer.nextString('\\document.ruleset\r\n\r\n\\title #characteristics { Caractéristiques }')
+      lexer.complete()
+
+      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(16)
+      expectation.pushTag('\\document')
+      expectation.pushClass('.ruleset')
+      expectation.pushNewline('\r\n')
+      expectation.pushNewline('\r\n')
+      expectation.pushTag('\\title')
+      expectation.pushSpace(' ')
+      expectation.pushIdentifier('#characteristics')
+      expectation.pushSpace(' ')
+      expectation.pushBlockStart()
+      expectation.pushSpace(' ')
+      expectation.pushWord('Caractéristiques')
+      expectation.pushSpace(' ')
+      expectation.pushBlockEnd()
+
+      expect(_ => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+  })
 })

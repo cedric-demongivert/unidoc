@@ -155,6 +155,47 @@ describe('UnidocParser', function () {
 
       expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
+
+    it('recognize the root document with a class and followed by a tag', function () {
+      const parser      : UnidocParser      = new UnidocParser()
+      const input       : UnidocTokenBuffer = new UnidocTokenBuffer(4)
+      const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
+      const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
+
+      parser.addEventListener('event', event => output.push(event))
+
+      input.pushTag('\\document')
+      input.pushClass('.ruleset')
+      input.pushNewline('\r\n')
+      input.pushNewline('\r\n')
+      input.pushTag('\\title')
+      input.pushSpace('  ')
+      input.pushIdentifier('#characteristics')
+      input.pushSpace('  ')
+      input.pushBlockStart()
+      input.pushSpace('  ')
+      input.pushWord('green')
+      input.pushSpace('  ')
+      input.pushBlockEnd()
+      input.pushNewline('\r\n')
+
+      for (const token of input) {
+        parser.next(token)
+      }
+      parser.complete()
+
+      expectation.pushTagStart(input.from, input.slice(0, 2).to, 'document.ruleset')
+      expectation.pushWhitespace(input.slice(2, 2).from, input.slice(2, 2).text)
+      expectation.pushTagStart(input.slice(4, 4).from, input.slice(4, 4).to, 'title#characteristics')
+      expectation.pushWhitespace(input.slice(9, 1).from, input.slice(9, 1).text)
+      expectation.pushWord(input.slice(10, 1).from, input.slice(10, 1).text)
+      expectation.pushWhitespace(input.slice(11, 1).from, input.slice(11, 1).text)
+      expectation.pushTagEnd(input.slice(12, 1).from, input.slice(12, 1).to, 'title#characteristics')
+      expectation.pushWhitespace(input.slice(13, 1).from, input.slice(13, 1).text)
+      expectation.pushTagEnd(input.to, input.to, 'document.ruleset')
+
+      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+    })
   })
 
   describe('whitespace recognition', function () {

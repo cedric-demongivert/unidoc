@@ -270,8 +270,10 @@ export class UnidocParser {
           this._states.last.type = UnidocParserStateType.START_CLASSES_BEFORE_IDENTIFIER
           this.location.copy(token.to)
         } else {
+          this.location.copy(this._tokens.from)
           this.emitTagStart()
           this._states.last.type = UnidocParserStateType.STREAM_CONTENT
+          this.location.copy(this._tokens.to)
           this.emitWhitespaceEvent()
           this._tokens.clear()
           this.next(token)
@@ -310,14 +312,17 @@ export class UnidocParser {
       case UnidocTokenType.TAG         :
       case UnidocTokenType.BLOCK_START :
       case UnidocTokenType.WORD        :
-        this.emitTagStart()
-        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-
         if (this._tokens.size > 0) {
+          this.location.copy(this._tokens.from)
+          this.emitTagStart()
+          this.location.copy(this._tokens.to)
           this.emitWhitespaceEvent()
           this._tokens.clear()
+        } else {
+          this.emitTagStart()
         }
 
+        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
         this.next(token)
         return
       case UnidocTokenType.BLOCK_END   :
@@ -348,14 +353,17 @@ export class UnidocParser {
       case UnidocTokenType.TAG         :
       case UnidocTokenType.BLOCK_START :
       case UnidocTokenType.WORD        :
-        this.emitTagStart()
-        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-
         if (this._tokens.size > 0) {
+          this.location.copy(this._tokens.from)
+          this.emitTagStart()
+          this.location.copy(this._tokens.to)
           this.emitWhitespaceEvent()
           this._tokens.clear()
+        } else {
+          this.emitTagStart()
         }
 
+        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
         this.next(token)
         return
       case UnidocTokenType.BLOCK_END   :

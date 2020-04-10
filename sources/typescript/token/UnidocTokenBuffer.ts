@@ -245,6 +245,20 @@ export class UnidocTokenBuffer {
     this._tokens.clear()
   }
 
+  public toString () : string {
+    let result : string = '['
+
+    for (let index = 0; index < this._tokens.size; ++index) {
+      if (index > 0) result += ','
+      result += '\r\n' + this._tokens.get(index).toString()
+    }
+
+    if (this._tokens.size > 0) result += '\r\n'
+    result += ']'
+
+    return result
+  }
+
   /**
   * @see Symbol.iterator
   */
