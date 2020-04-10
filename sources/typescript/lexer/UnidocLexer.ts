@@ -278,6 +278,7 @@ export class UnidocLexer {
       case CodePoint.NEW_LINE:
         this._symbols.push(codePoint)
         this.location.add(0, 0, 1)
+        this.location.column = 0
         this.emitNewLine()
         this._state = UnidocLexerState.START
         break
