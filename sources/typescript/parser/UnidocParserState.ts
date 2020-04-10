@@ -1,3 +1,5 @@
+import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+
 import { UnidocParserStateType } from './UnidocParserStateType'
 
 import { UnidocLocation } from '../UnidocLocation'
@@ -71,6 +73,31 @@ export class UnidocParserState {
       }
 
       return true
+    }
+  }
+}
+
+export namespace UnidocParserState {
+  export const ALLOCATOR : Allocator<UnidocParserState> = {
+    /**
+    * @see Allocator.copy
+    */
+    allocate () : UnidocParserState {
+      return new UnidocParserState()
+    },
+
+    /**
+    * @see Allocator.copy
+    */
+    copy (source : UnidocParserState, destination : UnidocParserState) : void {
+      destination.copy(source)
+    },
+
+    /**
+    * @see Allocator.clear
+    */
+    clear (instance : UnidocParserState) : void {
+      instance.clear()
     }
   }
 }

@@ -6,8 +6,7 @@ import { CodePoint } from '../CodePoint'
 
 import { UnidocEventType } from './UnidocEventType'
 
-const BLOCK_EVENT_CONFIGURATION : RegExp = /^(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
-const TAG_EVENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
+const TAG_EVENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?((?:\.[a-zA-Z0-9\-]+)+)?$/i
 
 /**
 * A unidoc event.
@@ -85,7 +84,7 @@ export class UnidocEvent {
     this.symbols.size = content.length
 
     for (let index = 0; index < content.length; ++index) {
-      this.symbols.push(content.codePointAt(index))
+      this.symbols.set(index, content.codePointAt(index))
     }
   }
 
@@ -148,60 +147,6 @@ export class UnidocEvent {
   }
 
   /**
-  * Configure this event as a new starting block event.
-  *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
-  * @param [configuration = ''] - Identifiers and classes of the block.
-  */
-  public asBlockStart (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
-    this.clear()
-
-    const tokens : RegExpExecArray = BLOCK_EVENT_CONFIGURATION.exec(configuration)
-
-    this.type = UnidocEventType.START_BLOCK
-    this.from.copy(from)
-    this.to.copy(to)
-
-    for (let index = 1; index < tokens.length; ++index) {
-      const token : string = tokens[index]
-
-      if (token.startsWith('#')) {
-        this.identifier = token.substring(1)
-      } else {
-        this.classes.add(token.substring(1))
-      }
-    }
-  }
-
-  /**
-  * Configure this event as a new ending block event.
-  *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
-  * @param [configuration = ''] - Identifiers and classes of the block.
-  */
-  public asBlockEnd (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
-    this.clear()
-
-    const tokens : RegExpExecArray = BLOCK_EVENT_CONFIGURATION.exec(configuration)
-
-    this.type = UnidocEventType.END_BLOCK
-    this.from.copy(from)
-    this.to.copy(to)
-
-    for (let index = 1; index < tokens.length; ++index) {
-      const token : string = tokens[index]
-
-      if (token.startsWith('#')) {
-        this.identifier = token.substring(1)
-      } else {
-        this.classes.add(token.substring(1))
-      }
-    }
-  }
-
-  /**
   * Configure this event as a new word event.
   *
   * @param from - New starting location of this event into the parent document.
@@ -234,32 +179,6 @@ export class UnidocEvent {
   }
 
   /**
-  * Instantiate a new document starting event.
-  *
-  * @param location - Location of the event into the parent document.
-  */
-  public asDocumentStart (location : UnidocLocation) : void {
-    this.clear()
-
-    this.type = UnidocEventType.START_DOCUMENT
-    this.from.copy(location)
-    this.to.copy(location)
-  }
-
-  /**
-  * Instantiate a new document ending event.
-  *
-  * @param location - Location of the event into the parent document.
-  */
-  public asDocumentEnd (location : UnidocLocation) : void {
-    this.clear()
-
-    this.type = UnidocEventType.END_DOCUMENT
-    this.from.copy(location)
-    this.to.copy(location)
-  }
-
-  /**
   * Configure this event as a new starting tag event.
   *
   * @param from - New starting location of this event into the parent document.
@@ -275,15 +194,12 @@ export class UnidocEvent {
     this.from.copy(from)
     this.to.copy(to)
 
-    for (let index = 1; index < tokens.length; ++index) {
-      const token : string = tokens[index]
+    this.tag = tokens[1]
+    this.identifier = tokens[2] == null ? undefined : tokens[2].substring(1)
 
-      if (token.startsWith('#')) {
-        this.identifier = token.substring(1)
-      } else if (token.startsWith('.')) {
-        this.classes.add(token.substring(1))
-      } else {
-        this.tag = token
+    if (tokens[3] != null) {
+      for (const token of tokens[3].substring(1).split('.')) {
+        this.classes.add(token)
       }
     }
   }
@@ -304,15 +220,12 @@ export class UnidocEvent {
     this.from.copy(from)
     this.to.copy(to)
 
-    for (let index = 1; index < tokens.length; ++index) {
-      const token : string = tokens[index]
+    this.tag = tokens[1]
+    this.identifier = tokens[2] == null ? undefined : tokens[2].substring(1)
 
-      if (token.startsWith('#')) {
-        this.identifier = token.substring(1)
-      } else if (token.startsWith('.')) {
-        this.classes.add(token.substring(1))
-      } else {
-        this.tag = token
+    if (tokens[3] != null) {
+      for (const token of tokens[3].substring(1).split('.')) {
+        this.classes.add(token)
       }
     }
   }
@@ -377,7 +290,7 @@ export class UnidocEvent {
 
     result += this.timestamp
     result += ' '
-    result += UnidocEventType.toString(this.type)
+    result += UnidocEventType.toString(this.type).padEnd(15)
     result += ' '
     result += this.from.toString().padEnd(15, ' ')
     result += ' - '
@@ -402,18 +315,38 @@ export class UnidocEvent {
     }
 
     if (this.symbols.size > 0) {
-      result += ' \"'
+      result += ' "'
       result += this.debugText
-      result += '\"'
+      result += '"'
     }
 
     return result
   }
 
   /**
+  * Like equals, but ignore the timestamp field.
+  */
+  public similar (other : UnidocEvent) : boolean {
+    if (
+      other.type         !== this.type         ||
+      other.classes.size !== this.classes.size ||
+      other.identifier   !== this.identifier   ||
+      other.tag          !== this.tag
+    ) { return false }
+
+    for (const clazz of other.classes) {
+      if (!this.classes.has(clazz)) {
+        return false
+      }
+    }
+
+    return this.symbols.equals(other.symbols)
+  }
+
+  /**
   * @see Object#equals
   */
-  public equals (other : any) {
+  public equals (other : any) : boolean {
     if (other == null) return false
     if (other === this) return true
 

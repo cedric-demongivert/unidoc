@@ -230,6 +230,40 @@ export class UnidocToken {
   }
 
   /**
+  * Assess if this token is a tag of the given type.
+  *
+  * @param tag - Type of tag to check.
+  *
+  * @return True if this token is a tag of the given type.
+  */
+  public isTag (tag : string) : boolean {
+    if (this.type === UnidocTokenType.TAG) {
+      if (this.symbols.get(0) !== CodePoint.ANTISLASH) return false
+
+      for (let index = 1; index < this.symbols.size; ++index) {
+        let origin : number = this.symbols.get(index)
+        let target : number = tag.codePointAt(index - 1)
+
+        if (origin >= 65 && origin <= 90) {
+          origin += 32
+        }
+
+        if (target >= 65 && target <= 90) {
+          target += 32
+        }
+
+        if (origin !== target) {
+          return false
+        }
+      }
+
+      return true
+    } else {
+      return false
+    }
+  }
+
+  /**
   * Deep-copy another token instance.
   *
   * @param toCopy - Another token instance to copy.
@@ -297,6 +331,94 @@ export namespace UnidocToken {
   */
   export function copy (toCopy : UnidocToken) : UnidocToken {
     return toCopy == null ? null : toCopy.clone()
+  }
+
+  /**
+  * @see UnidocToken.asIdentifier
+  */
+  export function identifier (from : UnidocLocation, value : string) : UnidocToken {
+    const result : UnidocToken = new UnidocToken(value.length)
+
+    result.asIdentifier(from, value)
+
+    return result
+  }
+
+  /**
+  * @see UnidocToken.asClass
+  */
+  export function clazz (from : UnidocLocation, value : string) : UnidocToken {
+    const result : UnidocToken = new UnidocToken(value.length)
+
+    result.asClass(from, value)
+
+    return result
+  }
+
+  /**
+  * @see UnidocToken.asTag
+  */
+  export function tag (from : UnidocLocation, value : string) : UnidocToken {
+    const result : UnidocToken = new UnidocToken(value.length)
+
+    result.asTag(from, value)
+
+    return result
+  }
+
+  /**
+  * @see UnidocToken.asBlockStart
+  */
+  export function blockStart (from : UnidocLocation) : UnidocToken {
+    const result : UnidocToken = new UnidocToken(1)
+
+    result.asBlockStart(from)
+
+    return result
+  }
+
+  /**
+  * @see UnidocToken.asBlockEnd
+  */
+  export function blockEnd (from : UnidocLocation) : UnidocToken {
+    const result : UnidocToken = new UnidocToken(1)
+
+    result.asBlockEnd(from)
+
+    return result
+  }
+
+  /**
+  * @see UnidocToken.asSpace
+  */
+  export function space (from : UnidocLocation, value : string) : UnidocToken {
+    const result : UnidocToken = new UnidocToken(value.length)
+
+    result.asSpace(from, value)
+
+    return result
+  }
+
+  /**
+  * @see UnidocToken.asNewline
+  */
+  export function newline (from : UnidocLocation, type : '\r\n' | '\r' | '\n' = '\r\n') : UnidocToken {
+    const result : UnidocToken = new UnidocToken(type.length)
+
+    result.asNewline(from, type)
+
+    return result
+  }
+
+  /**
+  * @see UnidocToken.asWord
+  */
+  export function word (from : UnidocLocation, value : string) : UnidocToken {
+    const result : UnidocToken = new UnidocToken(value.length)
+
+    result.asWord(from, value)
+
+    return result
   }
 
   export const ALLOCATOR : Allocator<UnidocToken> = {

@@ -225,7 +225,7 @@ describe('UnidocLexer', function () {
   })
 
   describe('block opening recognition', function () {
-    it ('recognize bloc opening', function () {
+    it('recognize block opening', function () {
       const lexer  : UnidocLexer = new UnidocLexer()
       const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
@@ -244,7 +244,7 @@ describe('UnidocLexer', function () {
   })
 
   describe('block closing recognition', function () {
-    it ('recognize bloc closing', function () {
+    it ('recognize block closing', function () {
       const lexer  : UnidocLexer = new UnidocLexer()
       const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
 

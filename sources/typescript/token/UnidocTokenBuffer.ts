@@ -37,6 +37,20 @@ export class UnidocTokenBuffer {
   }
 
   /**
+  * @see Sequence.last
+  */
+  public get last () : UnidocToken {
+    return this._tokens.last
+  }
+
+  /**
+  * @see Sequence.first
+  */
+  public get first () : UnidocToken {
+    return this._tokens.first
+  }
+
+  /**
   * @return The starting location of this buffer.
   */
   public get from () : UnidocLocation {
@@ -48,6 +62,30 @@ export class UnidocTokenBuffer {
   */
   public get to () : UnidocLocation {
     return this._tokens.size === 0 ? UnidocLocation.ZERO : this._tokens.last.to
+  }
+
+  /**
+  * @return The text content associated with this buffer.
+  */
+  public get text () : string {
+    let result : string = ''
+
+    for (const token of this._tokens) {
+      result += token.text
+    }
+
+    return result
+  }
+
+  public slice (from : number, length : number) : UnidocTokenBuffer {
+    const result : UnidocTokenBuffer = new UnidocTokenBuffer(length)
+    const size : number = Math.min(length, this.size - from)
+
+    for (let index = 0; index < size; ++index) {
+      result.push(this._tokens.get(index + from))
+    }
+
+    return result
   }
 
   public reallocate (capacity : number) : void {
@@ -67,8 +105,10 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushIdentifier (value : string) : void {
+    const ending : UnidocLocation = this.to
+
     this._tokens.size += 1
-    this._tokens.last.asIdentifier(this.to, value)
+    this._tokens.last.asIdentifier(ending, value)
   }
 
   /**
@@ -77,8 +117,10 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushClass (value : string) : void {
+    const ending : UnidocLocation = this.to
+
     this._tokens.size += 1
-    this._tokens.last.asClass(this.to, value)
+    this._tokens.last.asClass(ending, value)
   }
 
   /**
@@ -87,24 +129,30 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushTag (value : string) : void {
+    const ending : UnidocLocation = this.to
+
     this._tokens.size += 1
-    this._tokens.last.asTag(this.to, value)
+    this._tokens.last.asTag(ending, value)
   }
 
   /**
   * Append a block start token at the end of this buffer.
   */
   public pushBlockStart () : void {
+    const ending : UnidocLocation = this.to
+
     this._tokens.size += 1
-    this._tokens.last.asBlockStart(this.to)
+    this._tokens.last.asBlockStart(ending)
   }
 
   /**
   * Append a block end token at the end of this buffer.
   */
   public pushBlockEnd () : void  {
+    const ending : UnidocLocation = this.to
+
     this._tokens.size += 1
-    this._tokens.last.asBlockEnd(this.to)
+    this._tokens.last.asBlockEnd(ending)
   }
 
   /**
@@ -113,8 +161,10 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushSpace (value : string) : void {
+    const ending : UnidocLocation = this.to
+
     this._tokens.size += 1
-    this._tokens.last.asSpace(this.to, value)
+    this._tokens.last.asSpace(ending, value)
   }
 
   /**
@@ -123,8 +173,10 @@ export class UnidocTokenBuffer {
   * @param type - Type of newline token to add.
   */
   public pushNewline (type : '\r\n' | '\r' | '\n' = '\r\n') : void {
+    const ending : UnidocLocation = this.to
+
     this._tokens.size += 1
-    this._tokens.last.asNewline(this.to, type)
+    this._tokens.last.asNewline(ending, type)
   }
 
   /**
@@ -133,8 +185,10 @@ export class UnidocTokenBuffer {
   * @param value - Code points of the token to append.
   */
   public pushWord (value : string) : void {
+    const ending : UnidocLocation = this.to
+
     this._tokens.size += 1
-    this._tokens.last.asWord(this.to, value)
+    this._tokens.last.asWord(ending, value)
   }
 
   /**
@@ -189,6 +243,13 @@ export class UnidocTokenBuffer {
   */
   public clear () : void {
     this._tokens.clear()
+  }
+
+  /**
+  * @see Symbol.iterator
+  */
+  public * [Symbol.iterator] () : Iterator<UnidocToken> {
+    yield * this._tokens
   }
 
   /**

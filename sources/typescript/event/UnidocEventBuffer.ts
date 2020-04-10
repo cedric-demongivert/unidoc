@@ -75,6 +75,52 @@ export class UnidocEventBuffer {
   }
 
   /**
+  * Configure this event as a new word event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param content - Content of the resulting event.
+  */
+  public pushWord (from : UnidocLocation, content : string) : void {
+    this._events.size += 1
+    this._events.last.asWord(from, content)
+  }
+
+  /**
+  * Configure this event as a new whitespace event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param content - Content of the resulting event.
+  */
+  public pushWhitespace (from : UnidocLocation, content : string) : void {
+    this._events.size += 1
+    this._events.last.asWhitespace(from, content)
+  }
+
+  /**
+  * Configure this event as a new starting tag event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
+  * @param configuration - Type, identifiers and classes of the resulting tag.
+  */
+  public pushTagStart (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
+    this._events.size += 1
+    this._events.last.asTagStart(from, to, configuration)
+  }
+
+  /**
+  * Configure this event as a new ending tag event.
+  *
+  * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
+  * @param configuration - Type, identifiers and classes of the resulting tag.
+  */
+  public pushTagEnd (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
+    this._events.size += 1
+    this._events.last.asTagEnd(from, to, configuration)
+  }
+
+  /**
   * @see Pack.delete
   */
   public delete (index : number) : void {
@@ -115,6 +161,20 @@ export class UnidocEventBuffer {
     this._events.clear()
   }
 
+  public toString () : string {
+    let result : string = '['
+
+    for (let index = 0; index < this._events.size; ++index) {
+      if (index > 0) result += ','
+      result += '\r\n' + this._events.get(index).toString()
+    }
+
+    if (this._events.size > 0) result += '\r\n'
+    result += ']'
+
+    return result
+  }
+
   /**
   * @see Object.equals
   */
@@ -148,9 +208,9 @@ export namespace UnidocEventBuffer {
   export function assert (left : UnidocEventBuffer, right : UnidocEventBuffer) : void {
     if (left.events.size !== right.events.size) {
       throw new Error(
-        'Buffers ' + right.toString() + ' and ' + left.toString() + ' are ' +
+        'Buffers ' + left.toString() + ' and ' + right.toString() + ' are ' +
         'not equals because thay contains a different amount of.events ' +
-        right.events.size + ' !== ' + left.events.size + '.'
+        left.events.size + ' !== ' + right.events.size + '.'
       )
     }
 
@@ -158,14 +218,14 @@ export namespace UnidocEventBuffer {
       const oldTimestamp : number = right.events.get(index).timestamp
       right.events.get(index).timestamp = left.events.get(index).timestamp
 
-      if (!left.events.get(index).equals(right.events.get(index))) {
+      if (!left.events.get(index).similar(right.events.get(index))) {
         right.events.get(index).timestamp = oldTimestamp
 
         throw new Error(
-          'Buffers ' + right.toString() + ' and ' + left.toString() + ' are ' +
-          'not equals because their #' + index + ' token are not equal ' +
-          right.events.get(index).toString() + ' !== ' +
-          left.events.get(index).toString() + '.'
+          'Buffers ' + left.toString() + ' and ' + right.toString() + ' are ' +
+          'not equals because their #' + index + ' token are not similar ' +
+          left.events.get(index).toString() + ' !== ' +
+          right.events.get(index).toString() + '.'
         )
       } else {
         right.events.get(index).timestamp = oldTimestamp

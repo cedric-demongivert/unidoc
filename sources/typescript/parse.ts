@@ -2,8 +2,6 @@ import { Observable } from 'rxjs'
 import { Subscriber } from 'rxjs'
 import { Subscription } from 'rxjs'
 
-import { CodePoint } from './CodePoint'
-
 import { UnidocParser } from './parser/UnidocParser'
 import { UnidocEvent } from './event/UnidocEvent'
 import { UnidocToken } from './token/UnidocToken'
@@ -25,6 +23,11 @@ class Parser {
   private _subscription : Subscription
 
   /**
+  * The subscription to the source of symbol of this tokenizer.
+  */
+  private _outputs : Set<Subscriber<UnidocEvent>>
+
+  /**
   * Instantiate a new tokenizer.
   *
   * @param lexer - The lexer to use for tokenization.
@@ -33,10 +36,19 @@ class Parser {
     this._parser           = new UnidocParser()
     this._input            = null
     this._subscription     = null
+    this._outputs          = new Set<Subscriber<UnidocEvent>>()
 
     this.consumeNextToken = this.consumeNextToken.bind(this)
     this.consumeNextError  = this.consumeNextError.bind(this)
     this.consumeCompletion = this.consumeCompletion.bind(this)
+
+    this.handleNextEvent = this.handleNextEvent.bind(this)
+    this.handleNextValidation = this.handleNextValidation.bind(this)
+    this.handleCompletion = this.handleCompletion.bind(this)
+
+    this._parser.addEventListener('event', this.handleNextEvent)
+    this._parser.addEventListener('validation', this.handleNextValidation)
+    this._parser.addEventListener('completion', this.handleCompletion)
   }
 
   /**
@@ -45,7 +57,7 @@ class Parser {
   * @param output - An output to fill with recognized events.
   */
   public stream (output : Subscriber<UnidocEvent>) : void {
-    this._parser.addEventListener(output)
+    this._outputs.add(output)
   }
 
   /**
@@ -54,7 +66,7 @@ class Parser {
   * @param output - An output to stop to fill with recognized events.
   */
   public unstream (output : Subscriber<UnidocEvent>) : void {
-    this._parser.deleteEventListener(output)
+    this._outputs.delete(output)
   }
 
   /**
@@ -83,6 +95,35 @@ class Parser {
   }
 
   /**
+  * Handle the emission of the given event.
+  *
+  * @param event - The token to consume.
+  */
+  public handleNextEvent (event : UnidocEvent) : void {
+    for (const output of this._outputs) {
+      output.next(event)
+    }
+  }
+
+  /**
+  * Handle the emission of the given event.
+  *
+  * @param validation - The token to consume.
+  */
+  public handleNextValidation (validation : any) : void {
+    console.log('validation')
+  }
+
+  /**
+  * Handle a parsing completion event.
+  */
+  public handleCompletion () : void {
+    for (const output of this._outputs) {
+      output.complete()
+    }
+  }
+
+  /**
   * Consume the next available token.
   *
   * @param symbol - The token to consume.
@@ -104,7 +145,7 @@ class Parser {
   * Consume a completion signal.
   */
   public consumeCompletion () : void {
-    console.log('completion')
+    this._parser.complete()
   }
 }
 

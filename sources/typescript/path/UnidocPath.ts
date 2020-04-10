@@ -63,18 +63,6 @@ export class UnidocPath {
   }
 
   /**
-  * Push a new block at the end of this path.
-  *
-  * @param from - Starting location of the block in its parent document.
-  * @param to - Ending location of the block in its parent document, may be unknown.
-  * @param configuration - Identifier and classes of the block to append.
-  */
-  public pushBlock (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
-    this._elements.size += 1
-    this._elements.last.asBlock(from, to, configuration)
-  }
-
-  /**
   * Push a new tag at the end of this path.
   *
   * @param from - Starting location of the tag in its parent document.

@@ -4,7 +4,6 @@ import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocPathElementType } from './UnidocPathElementType'
 
-const BLOCK_ELEMENT_CONFIGURATION : RegExp = /^(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
 const TAG_ELEMENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
 
 export class UnidocPathElement {
@@ -60,33 +59,6 @@ export class UnidocPathElement {
     this.type = UnidocPathElementType.SYMBOL
     this.from.copy(location)
     this.to.copy(location)
-  }
-
-  /**
-  * Transform this path element as a block path element.
-  *
-  * @param from - Starting location of the block.
-  * @param to - Ending location of the block, may be unknown.
-  * @param configuration - Identifier and classes of the block element.
-  */
-  public asBlock (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
-    this.clear()
-
-    const tokens : RegExpExecArray = BLOCK_ELEMENT_CONFIGURATION.exec(configuration)
-
-    this.type = UnidocPathElementType.BLOCK
-    this.from.copy(from)
-    this.to.copy(to)
-
-    for (let index = 1; index < tokens.length; ++index) {
-      const token : string = tokens[index]
-
-      if (token.startsWith('#')) {
-        this.identifier = token.substring(1)
-      } else {
-        this.classes.add(token.substring(1))
-      }
-    }
   }
 
   /**

@@ -1,4 +1,4 @@
-import { Path } from '@library/path'
+import { UnidocPath } from '../path/UnidocPath'
 
 import { UnidocValidationType } from './UnidocValidationType'
 
@@ -6,7 +6,7 @@ const EMPTY_MESSAGE : string = ''
 
 export class UnidocValidation {
   public type : UnidocValidationType
-  public path : Path
+  public path : UnidocPath
   public code : string
   public data : Map<string, any>
 
@@ -15,8 +15,8 @@ export class UnidocValidation {
   */
   public constructor () {
     this.type = UnidocValidationType.DEFAULT
-    this.path = new Path()
-    this.message = EMPTY_MESSAGE
+    this.path = new UnidocPath()
+    //this.message = EMPTY_MESSAGE
   }
 
   /**
@@ -26,7 +26,7 @@ export class UnidocValidation {
   */
   public asError (message : string) : void {
     this.type = UnidocValidationType.ERROR
-    this.message = message
+    //this.message = message
   }
 
   /**
@@ -36,7 +36,7 @@ export class UnidocValidation {
   */
   public asInformation (message : string) : void {
     this.type = UnidocValidationType.INFORMATION
-    this.message = message
+    //this.message = message
   }
 
   /**
@@ -46,7 +46,7 @@ export class UnidocValidation {
   */
   public asWarning (message : string) : void {
     this.type = UnidocValidationType.WARNING
-    this.message = message
+    //this.message = message
   }
 
   /**
@@ -55,7 +55,7 @@ export class UnidocValidation {
   public clear () : void {
     this.type = UnidocValidationType.DEFAULT
     this.path.clear()
-    this.message = EMPTY_MESSAGE
+    //this.message = EMPTY_MESSAGE
   }
 
   /**
@@ -66,7 +66,7 @@ export class UnidocValidation {
   public copy (toCopy : UnidocValidation) : void {
     this.type = toCopy.type
     this.path.copy(toCopy.path)
-    this.message = toCopy.message
+    //this.message = toCopy.message
   }
 
   /**
@@ -85,7 +85,7 @@ export class UnidocValidation {
   */
   public toString () : string {
     return (
-      `[${UnidocValidationType.toString(this.type)}] ${this.path.toString()} : ${this.message}`
+      `[${UnidocValidationType.toString(this.type)}] ${this.path.toString()} : ${9/*this.message*/}`
     )
   }
 
@@ -98,8 +98,8 @@ export class UnidocValidation {
 
     if (other instanceof UnidocValidation) {
       return other.type === this.type &&
-             other.path.equals(this.path) &&
-             other.message === this.message
+             other.path.equals(this.path)// &&
+             //other.message === this.message
     }
 
     return false
