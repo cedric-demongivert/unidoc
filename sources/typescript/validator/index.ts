@@ -1,0 +1,1 @@
+export { UnidocValidator } from './UnidocValidator'

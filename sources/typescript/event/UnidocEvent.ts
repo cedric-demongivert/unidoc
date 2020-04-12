@@ -1,6 +1,8 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
+import { UnidocPath } from '../path/UnidocPath'
+
 import { UnidocLocation } from '../UnidocLocation'
 import { CodePoint } from '../CodePoint'
 
@@ -52,6 +54,11 @@ export class UnidocEvent {
   */
   public readonly symbols : Pack<CodePoint>
 
+  /**
+  * Content associated to this event.
+  */
+  public readonly path : UnidocPath
+
 
   /**
   * Instantiate a new tag event.
@@ -65,6 +72,7 @@ export class UnidocEvent {
     this.identifier = undefined
     this.classes    = new Set<string>()
     this.symbols    = Pack.uint32(128)
+    this.path       = new UnidocPath(32)
   }
 
   /**
@@ -246,6 +254,7 @@ export class UnidocEvent {
     this.type       = toCopy.type
     this.tag        = toCopy.tag
     this.identifier = toCopy.identifier
+    this.path.copy(toCopy.path)
 
     this.from.copy(toCopy.from)
     this.to.copy(toCopy.to)
@@ -275,6 +284,7 @@ export class UnidocEvent {
     this.timestamp  = Date.now()
     this.tag        = undefined
     this.identifier = undefined
+    this.path.clear()
 
     this.from.clear()
     this.to.clear()
@@ -295,6 +305,9 @@ export class UnidocEvent {
     result += this.from.toString().padEnd(15, ' ')
     result += ' - '
     result += this.to.toString().padEnd(15, ' ')
+    result += ' ['
+    result += this.path.toString()
+    result += ']'
 
     if (this.tag) {
       result += ' \\'
@@ -331,7 +344,8 @@ export class UnidocEvent {
       other.type         !== this.type         ||
       other.classes.size !== this.classes.size ||
       other.identifier   !== this.identifier   ||
-      other.tag          !== this.tag
+      other.tag          !== this.tag          ||
+      !other.path.equals(this.path)
     ) { return false }
 
     for (const clazz of other.classes) {
@@ -356,7 +370,8 @@ export class UnidocEvent {
         other.type         !== this.type         ||
         other.classes.size !== this.classes.size ||
         other.identifier   !== this.identifier   ||
-        other.tag          !== this.tag
+        other.tag          !== this.tag          ||
+        !other.path.equals(this.path)
       ) { return false }
 
       for (const clazz of other.classes) {

@@ -144,6 +144,42 @@ export class UnidocPathElement {
   }
 
   /**
+  * @see Object#toString
+  */
+  public toString () : string {
+    let result : string = ''
+
+    if (this.type === UnidocPathElementType.SYMBOL) {
+      result += 'symbol'
+    }
+
+    if (this.tag) {
+      result += '\\'
+      result += this.tag
+    }
+
+    if (this.identifier) {
+      result += '#'
+      result += this.identifier
+    }
+
+    for (const clazz of this.classes) {
+      result += '.'
+      result += clazz
+    }
+
+    if (!this.from.isUnknown() && !this.to.isUnknown()) {
+      result += ' between ' + this.from.toString() + ' and ' + this.to.toString()
+    } else if (!this.from.isUnknown()) {
+      result += ' at ' + this.from.toString()
+    } else if (!this.to.isUnknown()) {
+      result += ' at ' + this.to.toString()
+    }
+
+    return result
+  }
+
+  /**
   * @see Object#equals
   */
   public equals (other : any) : boolean {

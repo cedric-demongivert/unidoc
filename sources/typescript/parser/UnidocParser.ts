@@ -4,6 +4,9 @@ import { UnidocTokenBuffer } from '../token/UnidocTokenBuffer'
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
 
+import { UnidocPath } from '../path/UnidocPath'
+import { UnidocPathElementType } from '../path/UnidocPathElementType'
+
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
@@ -684,7 +687,7 @@ export class UnidocParser {
   */
   private emitDocumentStartWithBlockEndingError () {
     this._validation.clear()
-    this._validation.asError('An unidoc document cannot start with a block ending character.')
+    //this._validation.asError('An unidoc document cannot start with a block ending character.')
     this.emitValidation(this._validation)
   }
 
@@ -699,6 +702,7 @@ export class UnidocParser {
     this._event.addClasses(this._states.last.classes)
     this._event.identifier = this._states.last.identifier
     this._event.tag = this._states.last.tag
+    this.computePath(this._event.path)
 
     this.emit(this._event)
   }
@@ -716,6 +720,8 @@ export class UnidocParser {
       this._event.symbols.concat(token.symbols)
     }
 
+    this.computePath(this._event.path)
+
     this.emit(this._event)
   }
 
@@ -732,6 +738,8 @@ export class UnidocParser {
       this._event.symbols.concat(token.symbols)
     }
 
+    this.computePath(this._event.path)
+
     this.emit(this._event)
   }
 
@@ -746,6 +754,7 @@ export class UnidocParser {
     this._event.addClasses(this._states.last.classes)
     this._event.identifier = this._states.last.identifier
     this._event.tag = this._states.last.tag
+    this.computePath(this._event.path)
 
     this.emit(this._event)
   }
@@ -768,6 +777,44 @@ export class UnidocParser {
     for (const callback of this._validationListeners) {
       callback(validation)
     }
+  }
+
+  public computePath (path : UnidocPath) : void {
+    path.clear()
+
+    for (const state of this._states.states) {
+      switch (state.type) {
+        case UnidocParserStateType.START :
+        case UnidocParserStateType.START_WHITESPACE :
+        case UnidocParserStateType.START_CLASSES_BEFORE_IDENTIFIER :
+        case UnidocParserStateType.START_CLASSES_AFTER_IDENTIFIER :
+        case UnidocParserStateType.TERMINATION :
+        case UnidocParserStateType.STREAM_CONTENT :
+        case UnidocParserStateType.SINGLETON_CONTENT :
+        case UnidocParserStateType.SINGLETON_TERMINATION :
+        case UnidocParserStateType.BLOCK_CONTENT :
+          path.size += 1
+          path.last.type = UnidocPathElementType.TAG
+          path.last.tag = state.tag
+          path.last.identifier = state.identifier
+          path.last.addClasses(state.classes)
+          path.last.from.copy(state.from)
+          path.last.to.asUnknown()
+          break
+        case UnidocParserStateType.TAG_CLASSES_BEFORE_IDENTIFIER :
+        case UnidocParserStateType.TAG_CLASSES_AFTER_IDENTIFIER :
+        case UnidocParserStateType.WHITESPACE :
+        case UnidocParserStateType.WORD :
+        case UnidocParserStateType.ERROR :
+          path.size += 1
+          path.last.type = UnidocPathElementType.SYMBOL
+          path.last.from.copy(this.location)
+          path.last.to.asUnknown()
+          break
+      }
+    }
+
+    path.size -= 1
   }
 
   /**

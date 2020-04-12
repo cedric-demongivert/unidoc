@@ -1,6 +1,7 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
+import { UnidocPath } from '../path/UnidocPath'
 import { UnidocLocation } from '../UnidocLocation'
 import { UnidocEvent } from './UnidocEvent'
 
@@ -214,12 +215,17 @@ export namespace UnidocEventBuffer {
       )
     }
 
+    const oldPath : UnidocPath = new UnidocPath()
+
     for (let index = 0, size = right.events.size; index < size; ++index) {
       const oldTimestamp : number = right.events.get(index).timestamp
+      oldPath.copy(right.events.get(index).path)
       right.events.get(index).timestamp = left.events.get(index).timestamp
+      right.events.get(index).path.copy(left.events.get(index).path)
 
       if (!left.events.get(index).similar(right.events.get(index))) {
         right.events.get(index).timestamp = oldTimestamp
+        right.events.get(index).path.copy(oldPath)
 
         throw new Error(
           'Buffers ' + left.toString() + ' and ' + right.toString() + ' are ' +
@@ -229,6 +235,7 @@ export namespace UnidocEventBuffer {
         )
       } else {
         right.events.get(index).timestamp = oldTimestamp
+        right.events.get(index).path.copy(oldPath)
       }
     }
   }

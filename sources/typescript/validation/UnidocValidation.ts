@@ -2,13 +2,11 @@ import { UnidocPath } from '../path/UnidocPath'
 
 import { UnidocValidationType } from './UnidocValidationType'
 
-const EMPTY_MESSAGE : string = ''
-
 export class UnidocValidation {
-  public type : UnidocValidationType
-  public path : UnidocPath
-  public code : string
-  public data : Map<string, any>
+  public type          : UnidocValidationType
+  public path          : UnidocPath
+  public code          : string
+  public readonly data : Map<string, any>
 
   /**
   * Instantiate a new validation instance.
@@ -16,37 +14,29 @@ export class UnidocValidation {
   public constructor () {
     this.type = UnidocValidationType.DEFAULT
     this.path = new UnidocPath()
-    //this.message = EMPTY_MESSAGE
+    this.code = undefined
+    this.data = new Map<string, any>()
   }
 
   /**
-  * Configure this validation as an error message.
-  *
-  * @param message - Message to set.
+  * Configure this validation as an error.
   */
-  public asError (message : string) : void {
+  public asError () : void {
     this.type = UnidocValidationType.ERROR
-    //this.message = message
   }
 
   /**
-  * Configure this validation as an information message.
-  *
-  * @param message - Message to set.
+  * Configure this validation as an information.
   */
-  public asInformation (message : string) : void {
+  public asInformation () : void {
     this.type = UnidocValidationType.INFORMATION
-    //this.message = message
   }
 
   /**
-  * Configure this validation as a warning message.
-  *
-  * @param message - Message to set.
+  * Configure this validation as a warning.
   */
-  public asWarning (message : string) : void {
+  public asWarning () : void {
     this.type = UnidocValidationType.WARNING
-    //this.message = message
   }
 
   /**
@@ -54,8 +44,9 @@ export class UnidocValidation {
   */
   public clear () : void {
     this.type = UnidocValidationType.DEFAULT
+    this.code = undefined
+    this.data.clear()
     this.path.clear()
-    //this.message = EMPTY_MESSAGE
   }
 
   /**
@@ -65,8 +56,13 @@ export class UnidocValidation {
   */
   public copy (toCopy : UnidocValidation) : void {
     this.type = toCopy.type
+    this.code = toCopy.code
     this.path.copy(toCopy.path)
-    //this.message = toCopy.message
+    this.data.clear()
+
+    for (const [key, data] of toCopy.data) {
+      this.data.set(key, data)
+    }
   }
 
   /**
@@ -85,7 +81,7 @@ export class UnidocValidation {
   */
   public toString () : string {
     return (
-      `[${UnidocValidationType.toString(this.type)}] ${this.path.toString()} : ${9/*this.message*/}`
+      `[${UnidocValidationType.toString(this.type)}] ${this.code} ${this.path.toString()} : ${this.data}`
     )
   }
 
@@ -97,9 +93,20 @@ export class UnidocValidation {
     if (other === this) return true
 
     if (other instanceof UnidocValidation) {
-      return other.type === this.type &&
-             other.path.equals(this.path)// &&
-             //other.message === this.message
+      if (
+        other.type !== this.type ||
+        other.code !== this.code ||
+        other.data.size !== this.data.size ||
+        !other.path.equals(this.path)
+      ) return false
+
+      for (const [key, data] of this.data) {
+        if (other.data.get(key) !== data) {
+          return false
+        }
+      }
+
+      return true
     }
 
     return false

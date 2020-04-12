@@ -44,6 +44,29 @@ export class UnidocPath {
   }
 
   /**
+  * Update the number of element into this path.
+  *
+  * @param size - The new number of element into this path.
+  */
+  public set size (size : number) {
+    this._elements.size = size
+  }
+
+  /**
+  * @see Sequence.last
+  */
+  public get last () : UnidocPathElement {
+    return this._elements.last
+  }
+
+  /**
+  * @see Sequence.first
+  */
+  public get first () : UnidocPathElement {
+    return this._elements.first
+  }
+
+  /**
   * Append the given element at the end of the path.
   *
   * @param step - New element to append at the end of the path.
