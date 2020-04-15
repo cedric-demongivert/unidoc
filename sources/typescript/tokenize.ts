@@ -120,7 +120,7 @@ class Tokenizer {
   * Consume a completion signal.
   */
   public consumeCompletion () : void {
-    console.log('completion')
+    this._lexer.complete()
   }
 
   /**

@@ -2,10 +2,9 @@ import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 import { UnidocValidation } from '../validation/UnidocValidation'
 import { StandardErrorCode } from '../standard/StandardErrorCode'
+import { UnidocPath } from '../path'
 
 import { BaseUnidocValidator } from './BaseUnidocValidator'
-import { UnidocValidator } from './UnidocValidator'
-import { AnyValidator } from './AnyValidator'
 
 export class CompositionValidator extends BaseUnidocValidator {
   private _minimums            : Map<string, number>
@@ -13,17 +12,22 @@ export class CompositionValidator extends BaseUnidocValidator {
 
   private _counts              : Map<string, number>
   private _depth               : number
+  private _initialized         : boolean
 
   private readonly _validation : UnidocValidation
+
+  public readonly path         : UnidocPath
 
   public constructor () {
     super()
 
-    this._maximums   = new Map<string, number>()
-    this._minimums   = new Map<string, number>()
-    this._counts     = new Map<string, number>()
-    this._depth      = 0
-    this._validation = new UnidocValidation
+    this._maximums    = new Map<string, number>()
+    this._minimums    = new Map<string, number>()
+    this._counts      = new Map<string, number>()
+    this._depth       = 0
+    this._initialized = false
+    this._validation  = new UnidocValidation()
+    this.path         = new UnidocPath()
   }
 
   /**
@@ -69,6 +73,12 @@ export class CompositionValidator extends BaseUnidocValidator {
   * @see UnidocValidator.next
   */
   public next (event : UnidocEvent) : void {
+    if (!this._initialized) {
+      this.path.copy(event.path)
+      this._initialized = true
+      return
+    }
+
     if (this._depth < 0) return
 
     switch (event.type) {
@@ -116,11 +126,18 @@ export class CompositionValidator extends BaseUnidocValidator {
 
       if (count < minimum || count > maximum) {
         this._validation.asError()
-        this._validation.code = StandardErrorCode.COMPOSITION_ERROR
+
+        if (count < minimum) {
+          this._validation.code = StandardErrorCode.NOT_ENOUGH_TAG
+        } else {
+          this._validation.code = StandardErrorCode.TOO_MANY_TAG
+        }
+
+        this._validation.data.set('tag', type)
         this._validation.data.set('minimum', minimum)
         this._validation.data.set('maximum', maximum)
         this._validation.data.set('count', count)
-        //this._validation.path.copy(this.path)
+        this._validation.path.copy(this.path)
 
         this.emitValidation(this._validation)
       }
@@ -132,7 +149,7 @@ export class CompositionValidator extends BaseUnidocValidator {
   */
   private increment (type : string) : void {
     if (this._counts.has(type)) {
-      this._counts.set(type, this._counts.get(type))
+      this._counts.set(type, this._counts.get(type) + 1)
     } else {
       this._counts.set(type, 1)
     }
@@ -146,8 +163,10 @@ export class CompositionValidator extends BaseUnidocValidator {
 
     this._depth = 0
     this._counts.clear()
+    this._initialized = false
     this._maximums.clear()
     this._minimums.clear()
+    this.path.clear()
   }
 
   /**
@@ -156,6 +175,7 @@ export class CompositionValidator extends BaseUnidocValidator {
   public reset () : void {
     this._counts.clear()
     this._depth = 0
+    this._initialized = false
   }
 
   /**
@@ -165,6 +185,8 @@ export class CompositionValidator extends BaseUnidocValidator {
     super.copy(toCopy)
 
     this._depth = toCopy._depth
+    this.path.copy(toCopy.path)
+    this._initialized = toCopy._initialized
 
     this._counts.clear()
     this._maximums.clear()

@@ -169,7 +169,11 @@ export class UnidocPathElement {
     }
 
     if (!this.from.isUnknown() && !this.to.isUnknown()) {
-      result += ' between ' + this.from.toString() + ' and ' + this.to.toString()
+      if (this.from.equals(this.to)) {
+        result += ' at ' + this.from.toString()
+      } else {
+        result += ' between ' + this.from.toString() + ' and ' + this.to.toString()
+      }
     } else if (!this.from.isUnknown()) {
       result += ' at ' + this.from.toString()
     } else if (!this.to.isUnknown()) {

@@ -1,6 +1,11 @@
 import { UnidocValidation } from '../validation/UnidocValidation'
 import { UnidocEvent } from '../event/UnidocEvent'
 
+import { AnyValidator } from './AnyValidator'
+import { CompositeValidator } from './CompositeValidator'
+import { CompositionValidator } from './CompositionValidator'
+import { TypeValidator } from './TypeValidator'
+
 export interface UnidocValidator {
   /**
   * Handle the next available parsing event.
@@ -60,4 +65,55 @@ export interface UnidocValidator {
 export namespace UnidocValidator {
   export type ValidationListener = (event : UnidocValidation) => void
   export type CompletionListener = () => void
+
+  export function any () : AnyValidator {
+    return new AnyValidator()
+  }
+
+  export function all (...validators : UnidocValidator[]) : CompositeValidator {
+    return new CompositeValidator(validators)
+  }
+
+  export function composition (configuration? : {[key : string] : [number, number] | number}) : CompositionValidator {
+    const result : CompositionValidator = new CompositionValidator()
+
+    if (configuration != null) {
+      for (const key of Object.keys(configuration)) {
+        const range : number | [number, number] = configuration[key]
+
+        if (typeof range === 'number') {
+          result.require(range, key)
+        } else {
+          result.requireAtLeast(range[0], key)
+          result.mayHave(range[1], key)
+        }
+      }
+    }
+
+    return result
+  }
+
+  export function types (configuration? : { [key : string] : UnidocValidator | boolean, allowWords : boolean, allowWhitespaces : boolean }) : TypeValidator {
+    const result : TypeValidator = new TypeValidator()
+
+    if (configuration != null) {
+      for (const key of Object.keys(configuration)) {
+        if (key === 'allowWords') {
+          result.allowWords = configuration.allowWords
+        } else if (key === 'allowWhitespaces') {
+          result.allowWhitespaces = configuration.allowWhitespaces
+        } else {
+          const validator : UnidocValidator | boolean = configuration[key]
+
+          if (typeof validator === 'boolean') {
+            result.allow(key)
+          } else {
+            result.allow(key, validator)
+          }
+        }
+      }
+    }
+
+    return result
+  }
 }
