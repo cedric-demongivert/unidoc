@@ -5,11 +5,11 @@ import { BaseUnidocValidator } from './BaseUnidocValidator'
 /**
 * A validator that validate anything.
 */
-export class AnyValidator extends BaseUnidocValidator {
+export class AnythingValidator extends BaseUnidocValidator {
   /**
   * @see UnidocValidator.next
   */
-  public next (event: UnidocEvent): void { }
+  public next (event : UnidocEvent): void { }
 
   /**
   * @see UnidocValidator.complete
@@ -26,8 +26,8 @@ export class AnyValidator extends BaseUnidocValidator {
   /**
   * @see UnidocValidator.clone
   */
-  public clone (): AnyValidator {
-    const result : AnyValidator = new AnyValidator()
+  public clone (): AnythingValidator {
+    const result : AnythingValidator = new AnythingValidator()
 
     result.copy(this)
 

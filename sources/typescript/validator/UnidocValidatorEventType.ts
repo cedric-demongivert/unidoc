@@ -5,6 +5,7 @@ export namespace UnidocValidatorEventType {
   export const VALIDATION : UnidocValidatorEventType = 'validation'
 
   export const ALL        : UnidocValidatorEventType[] = [
-    COMPLETION, VALIDATION
+    COMPLETION,
+    VALIDATION
   ]
 }

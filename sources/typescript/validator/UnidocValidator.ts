@@ -1,21 +1,22 @@
 import { UnidocValidation } from '../validation/UnidocValidation'
 import { UnidocEvent } from '../event/UnidocEvent'
 
-import { AnyValidator } from './AnyValidator'
+import { AnythingValidator } from './AnythingValidator'
 import { CompositeValidator } from './CompositeValidator'
-import { CompositionValidator } from './CompositionValidator'
-import { TypeValidator } from './TypeValidator'
+import { ConditionalValidator } from './ConditionalValidator'
+import { AssertionValidator } from './AssertionValidator'
+import { TagValidator } from './TagValidator'
 
 export interface UnidocValidator {
   /**
-  * Handle the next available parsing event.
+  * Handle the next available event.
   *
-  * @param event - Event to handle.
+  * @param event - The next event to handle.
   */
   next (event: UnidocEvent) : void
 
   /**
-  * Handle a completion of the stream.
+  * Handle a completion of the event stream.
   */
   complete () : void
 
@@ -63,57 +64,40 @@ export interface UnidocValidator {
 }
 
 export namespace UnidocValidator {
+  /**
+  * Function called when a validator emit a validation.
+  */
   export type ValidationListener = (event : UnidocValidation) => void
+
+  /**
+  * Function called when a validator end is work.
+  */
   export type CompletionListener = () => void
 
-  export function any () : AnyValidator {
-    return new AnyValidator()
+  export function clone (validator : UnidocValidator) : UnidocValidator {
+    return validator == null ? null : validator.clone()
+  }
+
+  /**
+  * Return a validator that validate anything.
+  */
+  export function any () : AnythingValidator {
+    return new AnythingValidator()
   }
 
   export function all (...validators : UnidocValidator[]) : CompositeValidator {
     return new CompositeValidator(validators)
   }
 
-  export function composition (configuration? : {[key : string] : [number, number] | number}) : CompositionValidator {
-    const result : CompositionValidator = new CompositionValidator()
-
-    if (configuration != null) {
-      for (const key of Object.keys(configuration)) {
-        const range : number | [number, number] = configuration[key]
-
-        if (typeof range === 'number') {
-          result.require(range, key)
-        } else {
-          result.requireAtLeast(range[0], key)
-          result.mayHave(range[1], key)
-        }
-      }
-    }
-
-    return result
+  export function conditional () : ConditionalValidator {
+    return new ConditionalValidator()
   }
 
-  export function types (configuration? : { [key : string] : UnidocValidator | boolean, allowWords : boolean, allowWhitespaces : boolean }) : TypeValidator {
-    const result : TypeValidator = new TypeValidator()
+  export function assertion () : AssertionValidator {
+    return new AssertionValidator()
+  }
 
-    if (configuration != null) {
-      for (const key of Object.keys(configuration)) {
-        if (key === 'allowWords') {
-          result.allowWords = configuration.allowWords
-        } else if (key === 'allowWhitespaces') {
-          result.allowWhitespaces = configuration.allowWhitespaces
-        } else {
-          const validator : UnidocValidator | boolean = configuration[key]
-
-          if (typeof validator === 'boolean') {
-            result.allow(key)
-          } else {
-            result.allow(key, validator)
-          }
-        }
-      }
-    }
-
-    return result
+  export function tag () : TagValidator {
+    return new TagValidator()
   }
 }

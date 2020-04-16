@@ -6,21 +6,23 @@ import { UnidocValidator } from './UnidocValidator'
 
 export class CompositeValidator extends BaseUnidocValidator {
   private _validators : Set<UnidocValidator>
+  private _instances : UnidocValidator[]
 
   /**
   * Build a new composite validator.
   *
   * @param [validators=[]] validators - Child validators to add to this composite validator.
   */
-  public constructor (validators : UnidocValidator[] = []) {
+  public constructor (validators : Iterable<UnidocValidator> = []) {
     super()
 
-    this.handleNextValidation = this.handleNextValidation.bind(this)
+    this.handleSubValidation = this.handleSubValidation.bind(this)
+
     this._validators = new Set<UnidocValidator>()
+    this._instances = []
 
     for (const validator of validators) {
       this._validators.add(validator)
-      validator.addEventListener('validation', this.handleNextValidation)
     }
   }
 
@@ -31,7 +33,6 @@ export class CompositeValidator extends BaseUnidocValidator {
   */
   public addValidator (validator : UnidocValidator) : void {
     this._validators.add(validator)
-    validator.addEventListener('validation', this.handleNextValidation)
   }
 
   /**
@@ -41,18 +42,14 @@ export class CompositeValidator extends BaseUnidocValidator {
   */
   public deleteValidator (validator : UnidocValidator) : void {
     this._validators.delete(validator)
-    validator.removeEventListener('validation', this.handleNextValidation)
   }
 
   /**
   * Remove all validators from this composite validator.
   */
   public deleteAllValidator () : void {
-    for (const validator of this._validators) {
-      validator.removeEventListener('validation', this.handleNextValidation)
-    }
-
     this._validators.clear()
+    this._instances.length = 0
   }
 
   /**
@@ -71,7 +68,7 @@ export class CompositeValidator extends BaseUnidocValidator {
   *
   * @param validation - Validation that was emitted.
   */
-  private handleNextValidation (validation : UnidocValidation) : void {
+  private handleSubValidation (validation : UnidocValidation) : void {
     this.emitValidation(validation)
   }
 
@@ -79,7 +76,17 @@ export class CompositeValidator extends BaseUnidocValidator {
   * @see UnidocValidator.next
   */
   public next (event : UnidocEvent) : void {
-    for (const validator of this._validators) {
+    if (this._instances.length !== this._validators.size) {
+      this._instances.length = 0
+
+      for (const validator of this._validators) {
+        const instance : UnidocValidator = validator.clone()
+        instance.addEventListener('validation', this.handleSubValidation)
+        this._instances.push(instance)
+      }
+    }
+
+    for (const validator of this._instances) {
       validator.next(event)
     }
   }
@@ -88,10 +95,12 @@ export class CompositeValidator extends BaseUnidocValidator {
   * @see UnidocValidator.complete
   */
   public complete () : void {
-    for (const validator of this._validators) {
+    for (const validator of this._instances) {
       validator.complete()
+      validator.removeEventListener('validation', this.handleSubValidation)
     }
 
+    this._instances.length = 0
     this.emitCompletion()
   }
 
@@ -100,15 +109,21 @@ export class CompositeValidator extends BaseUnidocValidator {
   */
   public clear () : void {
     super.clear()
+
+    for (const validator of this._instances) {
+      validator.removeEventListener('validation', this.handleSubValidation)
+    }
+
     this.deleteAllValidator()
+    this._instances.length = 0
   }
 
   /**
   * @see UnidocValidator.reset
   */
   public reset (): void {
-    for (const validator of this._validators) {
-      validator.reset()
+    for (const instance of this._instances) {
+      instance.reset()
     }
   }
 
@@ -118,15 +133,18 @@ export class CompositeValidator extends BaseUnidocValidator {
   public copy (toCopy : CompositeValidator) : void {
     super.copy(toCopy)
 
-    this.deleteAllValidator()
+    this._validators.clear()
+    this._instances.length = 0
 
     for (const validator of toCopy._validators) {
-      const copy : UnidocValidator = validator.clone()
+      this._validators.add(validator)
+    }
 
+    for (const instance of toCopy._instances) {
+      const copy : UnidocValidator = instance.clone()
       copy.removeAllEventListeners('*')
-      copy.addEventListener('validation', this.handleNextValidation)
-
-      this._validators.add(copy)
+      copy.addEventListener('validation', this.handleSubValidation)
+      this._instances.push(copy)
     }
   }
 
