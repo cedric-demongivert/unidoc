@@ -1,6 +1,10 @@
 import { UnidocAssertion } from '../assertion/UnidocAssertion'
+import { UnidocAssertion as Assert } from '../assertion/UnidocAssertion'
+import { StandardErrorFormatter } from '../standard/StandardErrorFormatters'
+
 import { UnidocValidator } from './UnidocValidator'
 import { AssertionValidator } from './AssertionValidator'
+import { ConditionalValidator } from './ConditionalValidator'
 
 export class TagMetadata {
   public readonly allowedTags : Set<string>
@@ -17,6 +21,38 @@ export class TagMetadata {
     this.composition = new Map<string, TagMetadata.Composition>()
     this.validations = []
     this.assertions = []
+  }
+
+  public configureConditionalValidator (validator : ConditionalValidator) : void {
+    for (const validation of this.validations) {
+      validator.whenTruthy(validation.assertion)
+      validator.thenValidateUsing(validation.validator)
+    }
+  }
+
+  public configureAssertionValidator (validator : AssertionValidator) : void {
+    if (this.allowedTags.size > 0) {
+      validator.whenGoesFalsy(Assert.current(Assert.children(Assert.hasOnlyTagsOfType(this.allowedTags))))
+      validator.thenEmit(StandardErrorFormatter.createForbiddenContentFormatter(this))
+    } else {
+      validator.whenGoesTruthy(Assert.current(Assert.children(UnidocAssertion.hasTagOfAnyType())))
+      validator.thenEmit(StandardErrorFormatter.createForbiddenContentFormatter(this))
+    }
+
+    if (!this.allowWords) {
+      validator.whenGoesTruthy(Assert.current(Assert.children(UnidocAssertion.hasWord())))
+      validator.thenEmit(StandardErrorFormatter.createForbiddenContentFormatter(this))
+    }
+
+    if (!this.allowWhitespaces) {
+      validator.whenGoesTruthy(Assert.current(Assert.children(UnidocAssertion.hasWhitespace())))
+      validator.thenEmit(StandardErrorFormatter.createForbiddenContentFormatter(this))
+    }
+
+    for (const assertion of this.assertions) {
+      validator.whenGoesTruthy(assertion.assertion)
+      validator.thenEmit(assertion.consequence)
+    }
   }
 
   public mayHaveMany (type : string) : void {

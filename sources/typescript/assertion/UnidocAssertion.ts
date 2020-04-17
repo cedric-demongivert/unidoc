@@ -1,9 +1,12 @@
 import { UnidocEvent } from '../event/UnidocEvent'
 
+import { AtCompletion } from './AtCompletion'
 import { Children } from './Children'
 import { Conjunction } from './Conjunction'
 import { Disjunction } from './Disjunction'
 import { False } from './False'
+import { HasMoreTagOfTypeThan } from './HasMoreTagOfTypeThan'
+import { HasLessTagOfTypeThan } from './HasLessTagOfTypeThan'
 import { HasOnlyTagsOfType } from './HasOnlyTagsOfType'
 import { HasTagOfAnyType } from './HasTagOfAnyType'
 import { HasTagOfType } from './HasTagOfType'
@@ -82,6 +85,18 @@ export namespace UnidocAssertion {
 
   export function falsy () : False {
     return new False()
+  }
+
+  export function atCompletion (operand : UnidocAssertion) : AtCompletion {
+    return new AtCompletion(operand)
+  }
+
+  export function hasLessTagOfTypeThan (type : string, ceil : number) : HasLessTagOfTypeThan {
+    return new HasLessTagOfTypeThan(type, ceil)
+  }
+
+  export function hasMoreTagOfTypeThan (type : string, floor : number) : HasMoreTagOfTypeThan {
+    return new HasMoreTagOfTypeThan(type, floor)
   }
 
   export function hasOnlyTagsOfType (types : Iterable<string>) : HasOnlyTagsOfType {

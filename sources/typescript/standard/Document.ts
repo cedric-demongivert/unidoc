@@ -1,6 +1,5 @@
 import { TagValidator } from '../validator/TagValidator'
 import { TagMetadata } from '../validator/TagMetadata'
-import { UnidocAssertion } from '../assertion/UnidocAssertion'
 
 import { Paragraph } from './Paragraph'
 import { Title } from './Title'

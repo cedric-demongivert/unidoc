@@ -18,11 +18,8 @@ export class TagValidator extends BaseUnidocValidator {
 
     this.handleSubValidation = this.handleSubValidation.bind(this)
 
-    this._assertions = new AssertionValidator()
-    this._restream = new ConditionalValidator()
-
-    this._assertions.addEventListener('validation', this.handleSubValidation)
-    this._restream.addEventListener('validation', this.handleSubValidation)
+    this._assertions = null
+    this._restream = null
 
     this.metadata = new TagMetadata()
   }
@@ -55,10 +52,35 @@ export class TagValidator extends BaseUnidocValidator {
     this._restream.copy(toCopy._restream)
   }
 
+  private instantiate () : void {
+    if (this._assertions != null) return
+
+    this._assertions = new AssertionValidator()
+    this._restream = new ConditionalValidator()
+
+    this._assertions.addEventListener('validation', this.handleSubValidation)
+    this._restream.addEventListener('validation', this.handleSubValidation)
+
+    this.metadata.configureAssertionValidator(this._assertions)
+    this.metadata.configureConditionalValidator(this._restream)
+  }
+
+  private destroy () : void {
+    if (this._assertions == null) return
+
+    this._assertions.removeEventListener('validation', this.handleSubValidation)
+    this._restream.removeEventListener('validation', this.handleSubValidation)
+
+    this._assertions = null
+    this._restream = null
+  }
+
   /**
   * @see UnidocValidator#next
   */
   public next (event : UnidocEvent) : void {
+    this.instantiate()
+
     this._assertions.next(event)
     this._restream.next(event)
   }
@@ -69,6 +91,10 @@ export class TagValidator extends BaseUnidocValidator {
   public complete () : void {
     this._assertions.complete()
     this._restream.complete()
+
+    this.emitCompletion()
+    
+    this.destroy()
   }
 
   private handleSubValidation (validation : UnidocValidation) : void {
