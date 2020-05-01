@@ -725,10 +725,10 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@cedric-demongivert/gl-tool-collection@^0.20.8":
-  version "0.20.8"
-  resolved "https://registry.yarnpkg.com/@cedric-demongivert/gl-tool-collection/-/gl-tool-collection-0.20.8.tgz#c902ead64adef85f8eee451ab8cedc9a5843dae6"
-  integrity sha512-5O2QJGKOO9AjLDq55AyyaVRvzBYMsPbNDw8utujVt9gwy4FvlhuFPTlqGBtVp4yiW+XMkI+WBqL0KSlHfoRY3Q==
+"@cedric-demongivert/gl-tool-collection@^0.20.9":
+  version "0.20.9"
+  resolved "https://registry.yarnpkg.com/@cedric-demongivert/gl-tool-collection/-/gl-tool-collection-0.20.9.tgz#9f54b9c1f657f1997fe35894153c10d12c78a13b"
+  integrity sha512-kbXZ/FHykc3Dvmsa5BUkE+jRDFw47riWeuNX9+8RQUlBO59iehgPaI4RpEFh8Wl7U4zCFKSocDFjaAxpicaOww==
 
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
