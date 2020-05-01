@@ -1,27 +1,28 @@
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
-import { BasicQuery } from './BasicQuery'
+import { UnidocQuery } from './UnidocQuery'
+import { FilteredQuery } from './FilteredQuery'
+import { UnaryOperator } from './UnaryOperator'
 
-export class CountQuery extends BasicQuery<number> {
+export class CountQuery
+     extends FilteredQuery<number>
+     implements UnaryOperator<boolean, number>
+{
+  public readonly operand : UnidocQuery<boolean>
+
   private _current : number
 
-  public constructor () {
-    super()
+  public constructor (filter : UnidocQuery<boolean>) {
+    super(filter)
+    this.operand = filter
     this._current = 0
   }
 
   /**
-  * @see UnidocQuery.start
+  * @see FilteredQuery.handleFilteredEvent
   */
-  public start () : void {
-
-  }
-
-  /**
-  * @see UnidocQuery.next
-  */
-  public next (event : UnidocEvent) : void {
+  protected handleFilteredEvent (event : UnidocEvent) : void {
     switch (event.type) {
       case UnidocEventType.END_TAG:
         return this.emit(this._current)
@@ -32,9 +33,9 @@ export class CountQuery extends BasicQuery<number> {
   }
 
   /**
-  * @see UnidocQuery.complete
+  * @see FilteredQuery.handleFilteredEventCompletion
   */
-  public complete () : void {
+  protected handleFilteredEventCompletion () : void {
     this._current = 0
     this.emitCompletion()
   }
@@ -43,6 +44,7 @@ export class CountQuery extends BasicQuery<number> {
   * @see UnidocQuery.reset
   */
   public reset () : void {
+    super.reset()
     this._current = 0
   }
 
@@ -50,7 +52,7 @@ export class CountQuery extends BasicQuery<number> {
   * @see UnidocQuery.clone
   */
   public clone () : CountQuery {
-    const selector : CountQuery = new CountQuery()
+    const selector : CountQuery = new CountQuery(this.filter.clone())
 
     selector._current = this._current
     selector.copy(this)
@@ -62,6 +64,6 @@ export class CountQuery extends BasicQuery<number> {
   * @see UnidocQuery.toString
   */
   public toString () : string {
-    return '$ELEMENT-COUNT'
+    return 'COUNT ' + this.operand.toString()
   }
 }

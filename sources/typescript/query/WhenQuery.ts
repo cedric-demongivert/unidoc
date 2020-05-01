@@ -111,10 +111,11 @@ export class WhenQuery<Output> extends BasicQuery<Output> {
   /**
   * @see UnidocQuery.clone
   */
-  public clone () : FilteringQuery {
-    const result : FilteringQuery = new FilteringQuery(this.operand.clone())
+  public clone () : WhenQuery<Output> {
+    const result : WhenQuery<Output> = new WhenQuery<Output>(this.filter, this.filtered)
 
     result.copy(this)
+
     for (const event of this._events) {
       result._events.push(event)
     }
@@ -126,6 +127,6 @@ export class WhenQuery<Output> extends BasicQuery<Output> {
   * @see UnidocQuery.toString
   */
   public toString () : string {
-    return 'FILTERING BY ' + this.operand.toString()
+    return this.filtered.toString + ' WHEN ' + this.filter.toString()
   }
 }

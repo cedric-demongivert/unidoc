@@ -17,6 +17,9 @@ import { IsWordQuery } from './IsWordQuery'
 import { NegationQuery } from './NegationQuery'
 import { WasFalsyQuery } from './WasFalsyQuery'
 import { WasTruthyQuery } from './WasTruthyQuery'
+import { TruthyQuery } from './TruthyQuery'
+import { FalsyQuery } from './FalsyQuery'
+import { WhenQuery } from './WhenQuery'
 
 /**
 * A query over a stream of unidoc event that produce a stream of arbitrary
@@ -103,8 +106,8 @@ export namespace UnidocQuery {
     return new NegationQuery(query)
   }
 
-  export function count () : CountQuery {
-    return new CountQuery()
+  export function count (operand : UnidocQuery<boolean>) : CountQuery {
+    return new CountQuery(operand)
   }
 
   export function depth () : DepthQuery {
@@ -151,11 +154,23 @@ export namespace UnidocQuery {
     return new IsWordQuery()
   }
 
+  export function isNothing () : FalsyQuery {
+    return new FalsyQuery()
+  }
+
+  export function isAnything () : TruthyQuery {
+    return new TruthyQuery()
+  }
+
   export function wasFalsy (query : UnidocQuery<boolean>) : WasFalsyQuery {
     return new WasFalsyQuery(query)
   }
 
   export function wasTruthy (query : UnidocQuery<boolean>) : WasTruthyQuery {
     return new WasTruthyQuery(query)
+  }
+
+  export function when <Output> (query : UnidocQuery<Output>, filter : UnidocQuery<boolean>) : WhenQuery<Output> {
+    return new WhenQuery(filter, query)
   }
 }
