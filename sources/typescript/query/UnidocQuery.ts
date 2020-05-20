@@ -1,74 +1,59 @@
+import { Pack } from '@cedric-demongivert/gl-tool-collection'
+
 import { UnidocEvent } from '../event/UnidocEvent'
 
-import { ConjunctionQuery } from './ConjunctionQuery'
-import { CountQuery } from './CountQuery'
-import { DepthQuery } from './DepthQuery'
-import { DisjunctionQuery } from './DisjunctionQuery'
-import { FilteringQuery } from './FilteringQuery'
-import { HeadQuery } from './HeadQuery'
+import { MappingQuery } from './MappingQuery'
+import { ReducingQuery } from './ReducingQuery'
+import { MergedQuery } from './MergedQuery'
 import { IndexQuery } from './IndexQuery'
-import { IsAnyTagQuery } from './IsAnyTagQuery'
-import { IsHeadingElementQuery } from './IsHeadingElementQuery'
-import { IsTagOfTypeQuery } from './IsTagOfTypeQuery'
-import { IsTagWithClassQuery } from './IsTagWithClassQuery'
-import { IsTagWithIdentifierQuery } from './IsTagWithIdentifierQuery'
-import { IsWhitespaceQuery } from './IsWhitespaceQuery'
-import { IsWordQuery } from './IsWordQuery'
-import { NegationQuery } from './NegationQuery'
-import { WasFalsyQuery } from './WasFalsyQuery'
-import { WasTruthyQuery } from './WasTruthyQuery'
-import { TruthyQuery } from './TruthyQuery'
-import { FalsyQuery } from './FalsyQuery'
-import { WhenQuery } from './WhenQuery'
+import { ChainedQuery } from './ChainedQuery'
+import { EachQuery } from './EachQuery'
+import { conjunction as conjunctionMapper } from './conjunction'
+import { disjunction as disjunctionMapper } from './disjunction'
+import { negate as negationMapper } from './negate'
+import { count as countReducer} from './count'
+import { depth as depthReducer } from './depth'
+import { isTag as isTagMapper} from './isTag'
+import { isTagOfType as isTagOfTypeFactory } from './isTagOfType'
+import { isTagWithClass as isTagWithClassFactory } from './isTagWithClass'
+import { isTagWithIdentifier as isTagWithIdentifierFactory} from './isTagWithIdentifier'
+import { isWhitespace as isWhitespaceMapper} from './isWhitespace'
+import { isWord as isWordMapper } from './isWord'
+import { wasFalsy as wasFalsyReducer } from './wasFalsy'
+import { wasTruthy as wasTruthyReducer } from './wasTruthy'
+import { truthy as truthyMapper} from './truthy'
+import { falsy as falsyMapper } from './falsy'
 
 /**
-* A query over a stream of unidoc event that produce a stream of arbitrary
-* values.
+* A query over a stream of values that produce another stream of values.
 */
-export interface UnidocQuery<Output> {
+export interface UnidocQuery<Input, Output> {
   /**
-  * Called at the begining of the parent event stream.
+  * A listener called when a value is published by this query.
+  */
+  resultListener : UnidocQuery.ResultListener<Output>
+
+  /**
+  * A listener called when the output stream of this query reach it's end.
+  */
+  completionListener : UnidocQuery.CompletionListener
+
+  /**
+  * Called at the begining of the parent stream.
   */
   start () : void
 
   /**
-  * Handle the next available event of the parent event stream.
+  * Handle the next available value of the parent stream.
   *
   * @param event - The next available event.
   */
-  next (event : UnidocEvent) : void
+  next (event : Input) : void
 
   /**
-  * Called when the parent event stream reach it's end.
+  * Called when the parent stream reach it's end.
   */
   complete () : void
-
-  /**
-  * Add a new callback to call for each emission of a given event type.
-  *
-  * @param type - Type of event to listen.
-  * @param listener - Callback to add.
-  */
-  addEventListener (type : 'next', listener : UnidocQuery.NextListener<Output>) : void
-  addEventListener (type : 'complete', listener : UnidocQuery.CompletionListener) : void
-
-  /**
-  * Remove an existing callback attached to the given event type.
-  *
-  * @param type - Type of event to listen.
-  * @param listener - Callback to remove.
-  */
-  removeEventListener (type : 'next', listener : UnidocQuery.NextListener<Output>) : void
-  removeEventListener (type : 'complete', listener : UnidocQuery.CompletionListener) : void
-
-  /**
-  * Remove all existing callback of the given event type.
-  *
-  * @param type - Type of event to stop to listen.
-  */
-  removeAllEventListener (type : 'next') : void
-  removeAllEventListener (type : 'complete') : void
-  removeAllEventListener (type : '*') : void
 
   /**
   * Reset this query inner state in order to reuse it on another stream.
@@ -76,9 +61,14 @@ export interface UnidocQuery<Output> {
   reset () : void
 
   /**
+  * Reset this instance to its initial state in order to reuse it.
+  */
+  clear () : void
+
+  /**
   * @return A deep copy of this query, including its current inner state.
   */
-  clone () : UnidocQuery<Output>
+  clone () : UnidocQuery<Input, Output>
 
   /**
   * @see Object.toString
@@ -87,90 +77,164 @@ export interface UnidocQuery<Output> {
 }
 
 export namespace UnidocQuery {
-  export type NextListener<Output> = (next : Output) => void
+  export type ResultListener<Output> = (next : Output) => void
   export type CompletionListener = () => void
 
-  export function clone <Output> (query : UnidocQuery<Output>) : UnidocQuery<Output> {
+  export function clone <Input, Output> (query : UnidocQuery<Input, Output>) : UnidocQuery<Input, Output> {
     return query == null ? query : query.clone()
   }
 
-  export function and (...queries : UnidocQuery<boolean>[]) : ConjunctionQuery {
-    return new ConjunctionQuery(queries)
+  export function all <Input, Output> (...queries : UnidocQuery<Input, Output>[]) : UnidocQuery<Input, Output> {
+    return new MergedQuery(queries)
   }
 
-  export function or (...queries : UnidocQuery<boolean>[]) : DisjunctionQuery {
-    return new DisjunctionQuery(queries)
+  export function each <Input, Output> (...queries : UnidocQuery<Input, Output>[]) : UnidocQuery<Input, Pack<Output>> {
+    return new EachQuery(queries)
   }
 
-  export function not (query : UnidocQuery<boolean>) : NegationQuery {
-    return new NegationQuery(query)
+  export function and () :  UnidocQuery<Iterable<boolean>, boolean>
+  export function and <Input> (...queries : UnidocQuery<Input, boolean>[]) : UnidocQuery<Input, boolean>
+  export function and <Input> (...queries : UnidocQuery<Input, boolean>[]) : UnidocQuery<Input, boolean> | UnidocQuery<Iterable<boolean>, boolean> {
+    if (queries.length === 0) {
+      return new MappingQuery(conjunctionMapper)
+    } else {
+      return then(each(...queries), new MappingQuery(conjunctionMapper))
+    }
   }
 
-  export function count (operand : UnidocQuery<boolean>) : CountQuery {
-    return new CountQuery(operand)
+  export function or () :  UnidocQuery<Iterable<boolean>, boolean>
+  export function or <Input> (...queries : UnidocQuery<Input, boolean>[]) : UnidocQuery<Input, boolean>
+  export function or <Input> (...queries : UnidocQuery<Input, boolean>[]) : UnidocQuery<Input, boolean> | UnidocQuery<Iterable<boolean>, boolean> {
+    if (queries.length === 0) {
+      return new MappingQuery(disjunctionMapper)
+    } else {
+      return then(each(...queries), new MappingQuery(disjunctionMapper))
+    }
   }
 
-  export function depth () : DepthQuery {
-    return new DepthQuery()
+  export function not () : UnidocQuery<boolean, boolean>
+  export function not <Input> (query : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean>
+  export function not <Input> (query? : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean> | UnidocQuery<boolean, boolean> {
+    if (query) {
+      return then(query, new MappingQuery(negationMapper))
+    } else {
+      return new MappingQuery(negationMapper)
+    }
   }
 
-  export function filter (query : UnidocQuery<boolean>) : FilteringQuery {
-    return new FilteringQuery(query)
+  export function count () : UnidocQuery<UnidocEvent, number>
+  export function count <Input> (query : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, number>
+  export function count <Input> (query? : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, number> | UnidocQuery<UnidocEvent, number> {
+    if (query) {
+      return then(query, new ReducingQuery(countReducer, 0))
+    } else {
+      return new ReducingQuery(countReducer, 0)
+    }
   }
 
-  export function head <Output> (query : UnidocQuery<Output>, count : number) : HeadQuery<Output> {
-    return new HeadQuery(query, count)
+  export function depth () : UnidocQuery<UnidocEvent, number>
+  export function depth <Input> (query : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, number>
+  export function depth <Input> (query? : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, number> | UnidocQuery<UnidocEvent, number> {
+    if (query) {
+      return then(query, new ReducingQuery(depthReducer, 0))
+    } else {
+      return new ReducingQuery(depthReducer, 0)
+    }
   }
 
-  export function index () : IndexQuery {
-    return new IndexQuery()
+  export function index () : UnidocQuery<UnidocEvent, number>
+  export function index <Input> (query : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, number>
+  export function index <Input> (query? : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, number> | UnidocQuery<UnidocEvent, number> {
+    if (query) {
+      return then(query, new IndexQuery())
+    } else {
+      return new IndexQuery()
+    }
   }
 
-  export function isAnyTag () : IsAnyTagQuery {
-    return new IsAnyTagQuery()
+  export function isTag () : UnidocQuery<UnidocEvent, boolean>
+  export function isTag <Input> (query : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, boolean>
+  export function isTag <Input> (query? : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, boolean> | UnidocQuery<UnidocEvent, boolean> {
+    if (query) {
+      return then(query, new MappingQuery(isTagMapper))
+    } else {
+      return new MappingQuery(isTagMapper)
+    }
   }
 
-  export function isHeadingElement (count : number) : IsHeadingElementQuery {
-    return new IsHeadingElementQuery(count)
+  export function isWhitespace () : UnidocQuery<UnidocEvent, boolean>
+  export function isWhitespace <Input> (query : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, boolean>
+  export function isWhitespace <Input> (query? : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, boolean> | UnidocQuery<UnidocEvent, boolean> {
+    if (query) {
+      return then(query, new MappingQuery(isWhitespaceMapper))
+    } else {
+      return new MappingQuery(isWhitespaceMapper)
+    }
   }
 
-  export function isTagOfType (...types : string[]) : IsTagOfTypeQuery {
-    return new IsTagOfTypeQuery(types)
+  export function isWord () : UnidocQuery<UnidocEvent, boolean>
+  export function isWord <Input> (query : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, boolean>
+  export function isWord <Input> (query? : UnidocQuery<Input, UnidocEvent>) : UnidocQuery<Input, boolean> | UnidocQuery<UnidocEvent, boolean> {
+    if (query) {
+      return then(query, new MappingQuery(isWordMapper))
+    } else {
+      return new MappingQuery(isWordMapper)
+    }
   }
 
-  export function isTagWithClass (...classes : string[]) : IsTagWithClassQuery {
-    return new IsTagWithClassQuery(classes)
+  export function isTagOfType (...types : string[]) : MappingQuery<UnidocEvent, boolean> {
+    return new MappingQuery(isTagOfTypeFactory(types))
   }
 
-  export function isTagWithIdentifier (...identifiers : string[]) : IsTagWithIdentifierQuery {
-    return new IsTagWithIdentifierQuery(identifiers)
+  export function isTagWithClass (...classes : string[]) : MappingQuery<UnidocEvent, boolean> {
+    return new MappingQuery(isTagWithClassFactory(classes))
   }
 
-  export function isWhitespace () : IsWhitespaceQuery {
-    return new IsWhitespaceQuery()
+  export function isTagWithIdentifier (...identifiers : string[]) : MappingQuery<UnidocEvent, boolean> {
+    return new MappingQuery(isTagWithIdentifierFactory(identifiers))
   }
 
-  export function isWord () : IsWordQuery {
-    return new IsWordQuery()
+  export function falsy <Input> () : UnidocQuery<Input, boolean>
+  export function falsy <Input> (query : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean>
+  export function falsy <Input> (query? : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean> | UnidocQuery<Input, boolean> {
+    if (query) {
+      return then(query, new MappingQuery(falsyMapper))
+    } else {
+      return new MappingQuery(falsyMapper)
+    }
   }
 
-  export function isNothing () : FalsyQuery {
-    return new FalsyQuery()
+  export function truthy <Input> () : UnidocQuery<Input, boolean>
+  export function truthy <Input> (query : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean>
+  export function truthy <Input> (query? : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean> | UnidocQuery<Input, boolean> {
+    if (query) {
+      return then(query, new MappingQuery(truthyMapper))
+    } else {
+      return new MappingQuery(truthyMapper)
+    }
   }
 
-  export function isAnything () : TruthyQuery {
-    return new TruthyQuery()
+  export function wasFalsy <Input> () : UnidocQuery<boolean, boolean>
+  export function wasFalsy <Input> (query : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean>
+  export function wasFalsy <Input> (query? : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean> | UnidocQuery<boolean, boolean> {
+    if (query) {
+      return then(query, new ReducingQuery(wasFalsyReducer, false))
+    } else {
+      return new ReducingQuery(wasFalsyReducer, false)
+    }
   }
 
-  export function wasFalsy (query : UnidocQuery<boolean>) : WasFalsyQuery {
-    return new WasFalsyQuery(query)
+  export function wasTruthy <Input> () : UnidocQuery<boolean, boolean>
+  export function wasTruthy <Input> (query : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean>
+  export function wasTruthy <Input> (query? : UnidocQuery<Input, boolean>) : UnidocQuery<Input, boolean> | UnidocQuery<boolean, boolean> {
+    if (query) {
+      return then(query, new ReducingQuery(wasTruthyReducer, false))
+    } else {
+      return new ReducingQuery(wasTruthyReducer, false)
+    }
   }
 
-  export function wasTruthy (query : UnidocQuery<boolean>) : WasTruthyQuery {
-    return new WasTruthyQuery(query)
-  }
-
-  export function when <Output> (query : UnidocQuery<Output>, filter : UnidocQuery<boolean>) : WhenQuery<Output> {
-    return new WhenQuery(filter, query)
+  export function then <Input, Join, Output> (left : UnidocQuery<Input, Join>, right : UnidocQuery<Join, Output>) : UnidocQuery<Input, Output> {
+    return new ChainedQuery(left, right)
   }
 }

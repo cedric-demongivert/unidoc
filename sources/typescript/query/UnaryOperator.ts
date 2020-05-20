@@ -1,8 +1,8 @@
 import { UnidocQuery } from './UnidocQuery'
 
-export interface UnaryOperator<Input, Output> extends UnidocQuery<Output> {
+export interface UnaryOperator<Input, Output> {
   /**
   * Operand of this operator.
   */
-  readonly operand : UnidocQuery<Input>
+  readonly operand : UnidocQuery<Input, Output>
 }
