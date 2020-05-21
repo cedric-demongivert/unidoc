@@ -8,6 +8,11 @@ import { MergedQuery } from './MergedQuery'
 import { IndexQuery } from './IndexQuery'
 import { ChainedQuery } from './ChainedQuery'
 import { EachQuery } from './EachQuery'
+import { SelectionQuery } from './SelectionQuery'
+
+import { empty as emptyMapper } from './empty'
+import { clone as cloneMapper } from './clone'
+import { identity as identityMapper } from './identity'
 import { conjunction as conjunctionMapper } from './conjunction'
 import { disjunction as disjunctionMapper } from './disjunction'
 import { negate as negationMapper } from './negate'
@@ -90,6 +95,22 @@ export namespace UnidocQuery {
 
   export function each <Input, Output> (...queries : UnidocQuery<Input, Output>[]) : UnidocQuery<Input, Pack<Output>> {
     return new EachQuery(queries)
+  }
+
+  export function select (selector : UnidocQuery<UnidocEvent, boolean>) : UnidocQuery<UnidocEvent, UnidocEvent> {
+    return new SelectionQuery(selector)
+  }
+
+  export function identity <Input> () :  UnidocQuery<Input, Input> {
+    return new MappingQuery(identityMapper)
+  }
+
+  export function copy <Input extends cloneMapper.Clonable<Input>> () :  UnidocQuery<Input, Input> {
+    return new MappingQuery(cloneMapper)
+  }
+
+  export function empty <Input, Output> () :  UnidocQuery<Input, Output> {
+    return new MappingQuery(emptyMapper)
   }
 
   export function and () :  UnidocQuery<Iterable<boolean>, boolean>

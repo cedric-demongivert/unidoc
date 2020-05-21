@@ -1,141 +1,120 @@
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocValidation } from '../validation/UnidocValidation'
 import { UnidocQuery } from '../query/UnidocQuery'
+import { nothing } from '../query/nothing'
 
-import { BaseUnidocValidator } from './BaseUnidocValidator'
+import { UnidocValidator } from './UnidocValidator'
+import { Rule } from './Rule'
 
-export class RulesetValidator extends BaseUnidocValidator {
-  private _rules               : UnidocQuery<UnidocEvent, boolean>[]
-  private _consequences        : AssertionValidator.Consequence[]
+export class RulesetValidator implements UnidocValidator {
+  /**
+  * A listener called when a value is published by this query.
+  */
+  public resultListener : UnidocQuery.ResultListener<UnidocValidation>
 
-  private readonly _validation : UnidocValidation
+  /**
+  * A listener called when the output stream of this query reach it's end.
+  */
+  public completionListener : UnidocQuery.CompletionListener
 
-  private _completed : number
+  private readonly _rules : Rule<any>[]
+
+  private _all            : UnidocQuery<UnidocEvent, UnidocValidation>
 
   public constructor () {
-    super()
+    this._rules = []
+    this._all = null
 
-    this._rules        = []
-    this._consequences = []
-    this._validation   = new UnidocValidation()
-    this._completed    = 0
+    this.handleValidation = this.handleValidation.bind(this)
+    this.handleCompletion = this.handleCompletion.bind(this)
+
+    this.resultListener = nothing
+    this.completionListener = nothing
+  }
+
+  private handleValidation (validation : UnidocValidation) : void {
+    this.resultListener(validation)
+  }
+
+  private handleCompletion () : void {
+    this.completionListener()
   }
 
   /**
   * Add the given rule to this ruleset.
   *
-  * Must be followed by a thenEmit call to define the consequence of the given
-  * rule.
-  *
   * @param rule - A rule to add to this validator ruleset.
   */
-  public whenTruthy (rule : UnidocQuery<UnidocEvent, boolean>) : void {
+  public add (rule : Rule<any>) : void {
     this._rules.push(rule)
-  }
-
-  /**
-  * Add the negation of the given rule to this ruleset.
-  *
-  * Must be followed by a thenEmit call to define the consequence of the given
-  * rule.
-  *
-  * @param rule - A rule to negate and add to this validator ruleset.
-  */
-  public whenFalsy (rule : UnidocQuery<UnidocEvent, boolean>) : void {
-    this._rules.push(UnidocQuery.not(rule))
-  }
-
-  /**
-  * Declare the consequence of a previously added rule.
-  *
-  * @param formatter - A consequence to add for a previously added rule.
-  */
-  public thenEmit (formatter : AssertionValidator.Consequence) : void {
-    this._consequences.push(formatter)
-  }
-
-  private handleNextValue (index : number, value : boolean) : void {
-    if (value) {
-      this._consequences[index](value)
-    }
   }
 
   /**
   * @see UnidocQuery.start
   */
   public start () : void {
-    for (const rule of this._rules) {
-      rule.start()
-    }
+    this._all = UnidocQuery.all(...this._rules)
+    this._all.resultListener = this.handleValidation
+    this._all.completionListener = this.handleCompletion
+
+    this._all.start()
   }
 
   /**
   * @see UnidocQuery.next
   */
   public next (event : UnidocEvent) : void {
-    for (const rule of this._rules) {
-      rule.next(event)
-    }
+    this._all.next(event)
   }
 
   /**
   * @see UnidocValidator.complete
   */
   public complete () : void {
-    for (const rule of this._rules) {
-      rule.complete()
-    }
+    this._all.complete()
   }
 
   /**
   * @see UnidocValidator.clear
   */
   public clear () : void {
-    super.clear()
-
+    this._all = null
     this._rules.length = 0
-    this._consequences.length = 0
+
+    this.resultListener = nothing
+    this.completionListener = nothing
   }
 
   /**
   * @see UnidocValidator.reset
   */
   public reset () : void {
-    for (const assertion of this._rules) {
-      assertion.reset()
-    }
-  }
-
-  /**
-  * @see BaseUnidocValidator.copy
-  */
-  public copy (toCopy : AssertionValidator) : void {
-    super.copy(toCopy)
-
-    this._rules.length = 0
-    this._consequences.length = 0
-
-    for (const assertion of toCopy._assertions) {
-      this._rules.push(assertion.clone())
-    }
-
-    for (const consequence of toCopy._consequences) {
-      this._consequences.push(consequence)
-    }
+    this._all.reset()
   }
 
   /**
   * @see UnidocValidator.clone
   */
-  public clone () : AssertionValidator {
-    const result : AssertionValidator = new AssertionValidator()
+  public copy (toCopy : RulesetValidator) : void {
+    this._rules.length = 0
+
+    for (const rule of toCopy._rules) {
+      this._rules.push(rule.clone())
+    }
+
+    this._all = UnidocQuery.clone(toCopy._all)
+    this.resultListener = toCopy.resultListener
+    this.completionListener = toCopy.completionListener
+  }
+
+  /**
+  * @see UnidocValidator.clone
+  */
+  public clone () : RulesetValidator {
+    const result : RulesetValidator = new RulesetValidator()
 
     result.copy(this)
 
     return result
   }
-}
-
-export namespace AssertionValidator {
-  export type Consequence = (validation : UnidocValidation, event : UnidocEvent, assertion : UnidocAssertion) => void
 }
