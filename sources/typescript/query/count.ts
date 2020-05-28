@@ -2,15 +2,15 @@ import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
 /**
-* Compute the count of different unidoc elements in the stream.
+* Compute the count of truthy values in a stream.
 *
-* @param state - Current count.
-* @param event - Event to reduce.
+* @param state - Current count of element.
+* @param value - Value to reduce.
 *
-* @return The current count of different unidoc elements in the stream.
+* @return The next count of truthy values in the stream.
 */
-export function count (state : number, event : UnidocEvent) : number {
-  return state + (event.type = UnidocEventType.END_TAG ? 0 : 1)
+export function count (state : number, value : boolean) : number {
+  return state + (value ? 1 : 0)
 }
 
 count.toString = function toString () : string {

@@ -15,15 +15,52 @@ export class RuleBuilder<Context> {
     this.formatter = ValidationFormatter.empty()
   }
 
-  public mustHave (quantity : number) : any {
-    const composition : Map<string, TagMetadata.Composition> = this.composition
+  public allows (quantity : number, type : string) : RuleBuilder<Context> {
+    return this.whenTruthy(
+      UnidocQuery.and(
+        UnidocQuery.isTagOfType(type),
+        UnidocQuery.map(
+          UnidocQuery.count(UnidocQuery.isTagStartOfType(type)),
+          (value : number) : boolean => value > quantity
+        )
+      )
+    )
+  }
 
-    return {
-      tag (type : string) : void {
-        composition.get(type)[0] = quantity
-        composition.get(type)[1] = quantity
-      }
-    }
+  public mayHave (quantity : number, type : string) : RuleBuilder<Context> {
+    return this.whenTruthy(
+      UnidocQuery.and(
+        UnidocQuery.isTagOfType(type),
+        UnidocQuery.map(
+          UnidocQuery.count(UnidocQuery.isTagStartOfType(type)),
+          (value : number) : boolean => value > quantity
+        )
+      )
+    )
+  }
+
+  public mustHaveLessThan (quantity : number, type : string) : RuleBuilder<Context> {
+    return this.whenTruthy(
+      UnidocQuery.and(
+        UnidocQuery.isTagOfType(type),
+        UnidocQuery.map(
+          UnidocQuery.count(UnidocQuery.isTagStartOfType(type)),
+          (value : number) : boolean => value >= quantity
+        )
+      )
+    )
+  }
+
+  public mustHaveLessThanOrEqual (quantity : number, type : string) : RuleBuilder<Context> {
+    return this.whenTruthy(
+      UnidocQuery.and(
+        UnidocQuery.isTagOfType(type),
+        UnidocQuery.map(
+          UnidocQuery.count(UnidocQuery.isTagStartOfType(type)),
+          (value : number) : boolean => value > quantity
+        )
+      )
+    )
   }
 
   public whenTruthy (rule : UnidocQuery<UnidocEvent, boolean>) : RuleBuilder<Context> {
@@ -33,6 +70,11 @@ export class RuleBuilder<Context> {
 
   public whenFalsy (rule : UnidocQuery<UnidocEvent, boolean>) : RuleBuilder<Context> {
     this.rule = UnidocQuery.not(rule)
+    return this
+  }
+
+  public otherwiseEmit (formatter : ValidationFormatter<Context>) : RuleBuilder<Context> {
+    this.formatter = formatter
     return this
   }
 

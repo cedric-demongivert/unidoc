@@ -2,7 +2,7 @@ import { CircularBuffer } from '@cedric-demongivert/gl-tool-collection'
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocQuery } from '../query/UnidocQuery'
-import { nothing } from '../query/nothing'
+import { Sink } from '../query/Sink'
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocValidation } from '../validation/UnidocValidation'
 
@@ -14,12 +14,7 @@ export class Rule<Context> implements UnidocQuery<UnidocEvent, UnidocValidation>
   /**
   * A listener called when a value is published by this query.
   */
-  public resultListener : UnidocQuery.ResultListener<UnidocValidation>
-
-  /**
-  * A listener called when the output stream of this query reach it's end.
-  */
-  public completionListener : UnidocQuery.CompletionListener
+  public output : Sink<UnidocValidation>
 
   /**
   * A query that return false when an event must be skipped and true if the
@@ -47,25 +42,25 @@ export class Rule<Context> implements UnidocQuery<UnidocEvent, UnidocValidation>
   */
   private readonly each : UnidocQuery<UnidocEvent, Pack<any>>
 
+  private readonly eachHandler : Sink<Pack<any>>
+
   private readonly buffer : CircularBuffer<UnidocEvent>
 
   public constructor (rule : UnidocQuery<UnidocEvent, boolean>, context : UnidocQuery<UnidocEvent, Context>, formatter : ValidationFormatter<Context>) {
-    this.handleValidation           = this.handleValidation.bind(this)
-    this.handleValidationCompletion = this.handleValidationCompletion.bind(this)
-
     this.rule = rule
     this.context = context
     this.formatter = formatter
     this.each = UnidocQuery.each<UnidocEvent, any>(this.rule, this.context)
+    this.eachHandler = {
+      start: this.handleValidationStart.bind(this),
+      next: this.handleValidation.bind(this),
+      error: this.handleValidationError.bind(this),
+      complete: this.handleValidationCompletion.bind(this)
+    }
 
-    this.each.resultListener = this.handleValidation
-    this.each.completionListener = this.handleValidationCompletion
-
-    this.resultListener = nothing
-    this.completionListener = nothing
-
+    this.each.output = this.eachHandler
+    this.output = Sink.NONE
     this.buffer = CircularBuffer.fromPack(Pack.instance(UnidocEvent.ALLOCATOR, 8))
-
     this.validation = new UnidocValidation()
   }
 
@@ -74,6 +69,7 @@ export class Rule<Context> implements UnidocQuery<UnidocEvent, UnidocValidation>
   */
   public start () : void {
     this.each.start()
+    this.output.start()
   }
 
   /**
@@ -82,6 +78,13 @@ export class Rule<Context> implements UnidocQuery<UnidocEvent, UnidocValidation>
   public next (value : UnidocEvent) : void {
     this.buffer.push(value)
     this.each.next(value)
+  }
+
+  /**
+  * @see UnidocQuery.error
+  */
+  public error (error : Error) : void {
+    this.output.error(error)
   }
 
   /**
@@ -96,7 +99,7 @@ export class Rule<Context> implements UnidocQuery<UnidocEvent, UnidocValidation>
     const context : Context = value.get(1)
 
     if (rule) {
-      this.resultListener(
+      this.output.next(
         this.formatter(
           this.buffer.shift(),
           this.validation,
@@ -107,7 +110,14 @@ export class Rule<Context> implements UnidocQuery<UnidocEvent, UnidocValidation>
   }
 
   private handleValidationCompletion () : void {
-    this.completionListener()
+    this.output.complete()
+  }
+
+  private handleValidationStart () : void {
+  }
+
+  private handleValidationError (error : Error) : void {
+    this.output.error(error)
   }
 
   /**
@@ -124,13 +134,11 @@ export class Rule<Context> implements UnidocQuery<UnidocEvent, UnidocValidation>
   */
   public clear () : void {
     this.each.clear()
-    this.each.resultListener = this.handleValidation
-    this.each.completionListener = this.handleValidationCompletion
+    this.each.output = this.eachHandler
 
     this.buffer.clear()
 
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this.output = Sink.NONE
   }
 
   /**
@@ -139,8 +147,7 @@ export class Rule<Context> implements UnidocQuery<UnidocEvent, UnidocValidation>
   public clone () : Rule<Context> {
     const result : Rule<Context> = new Rule<Context>(this.rule.clone(), this.context.clone(), this.formatter)
 
-    result.resultListener = this.resultListener
-    result.completionListener = this.completionListener
+    result.output = this.output
 
     return result
   }

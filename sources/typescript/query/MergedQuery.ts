@@ -1,5 +1,5 @@
 import { UnidocQuery } from './UnidocQuery'
-import { nothing } from './nothing'
+import { Sink } from './Sink'
 
 /**
 * Stateless mapping of given inputs to outputs.
@@ -7,15 +7,7 @@ import { nothing } from './nothing'
 export class MergedQuery<Input, Output>
   implements UnidocQuery<Input, Output>
 {
-  /**
-  * A listener called when a value is published by this query.
-  */
-  public resultListener : UnidocQuery.ResultListener<Output>
-
-  /**
-  * A listener called when the output stream of this query reach it's end.
-  */
-  public completionListener : UnidocQuery.CompletionListener
+  public output : Sink<Output>
 
   /**
   * Merged queries.
@@ -23,37 +15,47 @@ export class MergedQuery<Input, Output>
   public readonly queries : Set<UnidocQuery<Input, Output>>
 
   /**
-  * Number of queries that currently be completed.
+  * Number of queries that are currently completed.
   */
   private _completed : number
 
-  public constructor (queries : Iterable<UnidocQuery<Input, Output>>) {
-    this.resultListener = nothing
-    this.completionListener = nothing
+  private subQueryHandler : Sink<Output>
 
-    this.handleNextValue  = this.handleNextValue.bind(this)
-    this.handleCompletion = this.handleCompletion.bind(this)
+  public constructor (queries : Iterable<UnidocQuery<Input, Output>>) {
+    this.output = Sink.NONE
+    this.subQueryHandler = {
+      start: this.handleSubQueryStart.bind(this),
+      next: this.handleSubQueryValue.bind(this),
+      error: this.handleSubQueryError.bind(this),
+      complete: this.handleSubQueryCompletion.bind(this)
+    }
 
     this.queries = new Set<UnidocQuery<Input, Output>>(queries)
     Object.freeze(this.queries)
 
     for (const query of this.queries) {
-      query.resultListener = this.handleNextValue
-      query.completionListener = this.handleCompletion
+      query.output = this.subQueryHandler
     }
 
     this._completed = 0
   }
 
-  private handleNextValue (output : Output) : void {
-    this.resultListener(output)
+  private handleSubQueryStart () : void {
   }
 
-  private handleCompletion () : void {
+  private handleSubQueryValue (output : Output) : void {
+    this.output.next(output)
+  }
+
+  private handleSubQueryError (error : Error) : void {
+    this.output.error(error)
+  }
+
+  private handleSubQueryCompletion () : void {
     this._completed += 1
 
     if (this._completed === this.queries.size) {
-      this.completionListener()
+      this.output.complete()
     }
   }
 
@@ -85,6 +87,13 @@ export class MergedQuery<Input, Output>
   }
 
   /**
+  * @see UnidocQuery.error
+  */
+  public error (error : Error) : void {
+    this.output.error(error)
+  }
+
+  /**
   * @see UnidocQuery.reset
   */
   public reset () : void {
@@ -101,11 +110,11 @@ export class MergedQuery<Input, Output>
   public clear () : void {
     for (const query of this.queries) {
       query.clear()
-      query.resultListener = this.handleNextValue
-      query.completionListener = this.handleCompletion
+      query.output = this.subQueryHandler
     }
 
     this._completed = 0
+    this.output = Sink.NONE
   }
 
   /**
@@ -121,8 +130,7 @@ export class MergedQuery<Input, Output>
     const result : MergedQuery<Input, Output> = new MergedQuery<Input, Output>(queries)
 
     result._completed = this._completed
-    result.completionListener = this.completionListener
-    result.resultListener = this.resultListener
+    result.output = this.output
 
     return result
   }

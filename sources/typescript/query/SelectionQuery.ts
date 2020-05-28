@@ -4,26 +4,23 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { UnidocEvent } from '../event/UnidocEvent'
 
 import { UnidocQuery } from './UnidocQuery'
-import { nothing } from './nothing'
+import { Sink } from './Sink'
 
 export class SelectionQuery implements UnidocQuery<UnidocEvent, UnidocEvent>
 {
   /**
   * A listener called when a value is published by this query.
   */
-  public resultListener : UnidocQuery.ResultListener<UnidocEvent>
+  public output : Sink<UnidocEvent>
 
   /**
-  * A listener called when the output stream of this query reach it's end.
+  * Stream of boolean values used to filter the ingoing stream of events.
   */
-  public completionListener : UnidocQuery.CompletionListener
-
-  /**
-  * @see UnaryOperator.operand
-  */
-  public readonly operand : UnidocQuery<UnidocEvent, boolean>
+  public readonly filter : UnidocQuery<UnidocEvent, boolean>
 
   private readonly _buffer : CircularBuffer<UnidocEvent>
+
+  private readonly filteringHandler : Sink<boolean>
 
   /**
   * Instantiate a new chain.
@@ -31,12 +28,15 @@ export class SelectionQuery implements UnidocQuery<UnidocEvent, UnidocEvent>
   * @param operand - Operand of the negation to instantiate.
   */
   public constructor (operand : UnidocQuery<UnidocEvent, boolean>) {
-    this.handleNextValue = this.handleNextValue.bind(this)
-    this.handleCompletion = this.handleCompletion.bind(this)
+    this.filteringHandler = {
+      start: this.handleFilteringStart.bind(this),
+      next: this.handleFiltering.bind(this),
+      error: this.handleFilteringError.bind(this),
+      complete: this.handleFilteringCompletion.bind(this)
+    }
 
-    this.operand = operand
-    this.operand.resultListener = this.handleNextValue
-    this.operand.completionListener = this.handleCompletion
+    this.filter = operand
+    this.filter.output = this.filteringHandler
 
     this._buffer = CircularBuffer.fromPack(Pack.instance(UnidocEvent.ALLOCATOR, 16))
   }
@@ -45,7 +45,7 @@ export class SelectionQuery implements UnidocQuery<UnidocEvent, UnidocEvent>
   * @see UnidocQuery.start
   */
   public start () : void {
-    this.operand.start()
+    this.filter.start()
   }
 
   /**
@@ -53,26 +53,51 @@ export class SelectionQuery implements UnidocQuery<UnidocEvent, UnidocEvent>
   */
   public next (value : UnidocEvent) : void {
     this._buffer.push(value)
-    this.operand.next(value)
+    this.filter.next(value)
   }
 
   /**
   * @see UnidocQuery.complete
   */
   public complete () : void {
-    this.operand.complete()
+    this.filter.complete()
   }
 
-  private handleNextValue (value : boolean) : void {
+  /**
+  * Called when the filter makes a decision for the current ingoing event.
+  *
+  * @param value - True for keeping the current event, false otherwise.
+  */
+  private handleFiltering (value : boolean) : void {
     if (value) {
-      this.resultListener(this._buffer.shift())
+      this.output.next(this._buffer.shift())
     } else {
       this._buffer.shift()
     }
   }
 
-  private handleCompletion () : void {
-    this.completionListener()
+  /**
+  * Called when the filter emit an error.
+  *
+  * @param error - Error emitted by the underlying filter.
+  */
+  private handleFilteringError (error : Error) : void {
+    this.output.error(error)
+    this._buffer.shift()
+  }
+
+  /**
+  * Called when the filtering stream starts.
+  */
+  private handleFilteringStart () : void {
+    this.output.start()
+  }
+
+  /**
+  * Called when the filtering stream ends.
+  */
+  private handleFilteringCompletion () : void {
+    this.output.complete()
     this._buffer.clear()
   }
 
@@ -80,32 +105,36 @@ export class SelectionQuery implements UnidocQuery<UnidocEvent, UnidocEvent>
   * @see UnidocQuery.reset
   */
   public reset () : void {
-    this.operand.reset()
+    this.filter.reset()
     this._buffer.clear()
+  }
+
+  /**
+  * @see UnidocQuery.error
+  */
+  public error (error : Error) : void {
+    this.output.error(error)
   }
 
   /**
   * @see UnidocQuery.clear
   */
   public clear () : void {
-    this.operand.clear()
-    this.operand.resultListener = this.handleNextValue
-    this.operand.completionListener = this.handleCompletion
+    this.filter.clear()
+    this.filter.output = this.filteringHandler
 
     this._buffer.clear()
 
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this.output = Sink.NONE
   }
 
   /**
   * @see UnidocQuery.clone
   */
   public clone () : SelectionQuery {
-    const result : SelectionQuery = new SelectionQuery(this.operand.clone())
+    const result : SelectionQuery = new SelectionQuery(this.filter.clone())
 
-    result.resultListener = this.resultListener
-    result.completionListener = this.completionListener
+    result.output = this.output
 
     return result
   }
@@ -114,6 +143,6 @@ export class SelectionQuery implements UnidocQuery<UnidocEvent, UnidocEvent>
   * @see UnidocQuery.toString
   */
   public toString () : string {
-    return 'select (' + this.operand + ')'
+    return 'select (' + this.filter + ')'
   }
 }

@@ -1,7 +1,7 @@
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocValidation } from '../validation/UnidocValidation'
 import { UnidocQuery } from '../query/UnidocQuery'
-import { nothing } from '../query/nothing'
+import { Sink } from '../query/Sink'
 
 import { UnidocValidator } from './UnidocValidator'
 import { Rule } from './Rule'
@@ -10,12 +10,7 @@ export class RulesetValidator implements UnidocValidator {
   /**
   * A listener called when a value is published by this query.
   */
-  public resultListener : UnidocQuery.ResultListener<UnidocValidation>
-
-  /**
-  * A listener called when the output stream of this query reach it's end.
-  */
-  public completionListener : UnidocQuery.CompletionListener
+  private _output : Sink<UnidocValidation>
 
   private readonly _rules : Rule<any>[]
 
@@ -25,19 +20,19 @@ export class RulesetValidator implements UnidocValidator {
     this._rules = []
     this._all = null
 
-    this.handleValidation = this.handleValidation.bind(this)
-    this.handleCompletion = this.handleCompletion.bind(this)
-
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this._output = Sink.NONE
   }
 
-  private handleValidation (validation : UnidocValidation) : void {
-    this.resultListener(validation)
+  public get output () : Sink<UnidocValidation> {
+    return this._output
   }
 
-  private handleCompletion () : void {
-    this.completionListener()
+  public set output (value : Sink<UnidocValidation>) {
+    this._output = value
+
+    if (this._all) {
+      this._all.output = value
+    }
   }
 
   /**
@@ -54,8 +49,7 @@ export class RulesetValidator implements UnidocValidator {
   */
   public start () : void {
     this._all = UnidocQuery.all(...this._rules)
-    this._all.resultListener = this.handleValidation
-    this._all.completionListener = this.handleCompletion
+    this._all.output = this.output
 
     this._all.start()
   }
@@ -65,6 +59,13 @@ export class RulesetValidator implements UnidocValidator {
   */
   public next (event : UnidocEvent) : void {
     this._all.next(event)
+  }
+
+  /**
+  * @see UnidocQuery.error
+  */
+  public error (error : Error) : void {
+    this._output.error(error)
   }
 
   /**
@@ -81,8 +82,7 @@ export class RulesetValidator implements UnidocValidator {
     this._all = null
     this._rules.length = 0
 
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this.output = Sink.NONE
   }
 
   /**
@@ -103,8 +103,7 @@ export class RulesetValidator implements UnidocValidator {
     }
 
     this._all = UnidocQuery.clone(toCopy._all)
-    this.resultListener = toCopy.resultListener
-    this.completionListener = toCopy.completionListener
+    this.output = toCopy.output
   }
 
   /**

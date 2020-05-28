@@ -13,5 +13,5 @@ export function isTagStart (event : UnidocEvent) : boolean {
 }
 
 isTagStart.toString = function toString () : string {
-  return 'is tag begining'
+  return 'is tag start'
 }

@@ -1,6 +1,5 @@
 import { UnidocEvent } from '../event/UnidocEvent'
-import { nothing } from '../query/nothing'
-import { UnidocQuery } from '../query/UnidocQuery'
+import { Sink } from '../query/Sink'
 import { UnidocValidation } from '../validation/UnidocValidation'
 
 import { UnidocValidator } from './UnidocValidator'
@@ -12,23 +11,17 @@ export class AnythingValidator implements UnidocValidator {
   /**
   * A listener called when a value is published by this query.
   */
-  public resultListener : UnidocQuery.ResultListener<UnidocValidation>
-
-  /**
-  * A listener called when the output stream of this query reach it's end.
-  */
-  public completionListener : UnidocQuery.CompletionListener
+  public output : Sink<UnidocValidation>
 
   public constructor () {
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this.output = Sink.NONE
   }
 
   /**
   * @see UnidocQuery.start
   */
   public start (): void {
-
+    this.output.start()
   }
 
   /**
@@ -39,10 +32,17 @@ export class AnythingValidator implements UnidocValidator {
   }
 
   /**
+  * @see UnidocQuery.next
+  */
+  public error (error : Error): void {
+    this.output.error(error)
+  }
+
+  /**
   * @see UnidocQuery.complete
   */
   public complete () : void {
-    this.completionListener()
+    this.output.complete()
   }
 
   /**
@@ -56,8 +56,7 @@ export class AnythingValidator implements UnidocValidator {
   * @see UnidocQuery.reset
   */
   public clear () : void {
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this.output = Sink.NONE
   }
 
   /**
@@ -66,8 +65,7 @@ export class AnythingValidator implements UnidocValidator {
   public clone (): AnythingValidator {
     const result : AnythingValidator = new AnythingValidator()
 
-    result.resultListener = this.resultListener
-    result.completionListener = this.completionListener
+    result.output = this.output
 
     return result
   }

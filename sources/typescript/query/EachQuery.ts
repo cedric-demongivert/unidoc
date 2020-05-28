@@ -2,7 +2,7 @@ import { CircularBuffer } from '@cedric-demongivert/gl-tool-collection'
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocQuery } from './UnidocQuery'
-import { nothing } from './nothing'
+import { Sink } from './Sink'
 
 const COMPLETED : symbol = Symbol('completed')
 
@@ -10,12 +10,7 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
   /**
   * A listener called when a value is published by this query.
   */
-  public resultListener : UnidocQuery.ResultListener<Pack<Output>>
-
-  /**
-  * A listener called when the output stream of this query reach it's end.
-  */
-  public completionListener : UnidocQuery.CompletionListener
+  public output : Sink<Pack<Output>>
 
   /**
   * Operands of this conjunction.
@@ -26,6 +21,11 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
   * Operands result buffers.
   */
   private readonly _buffers : CircularBuffer<Output | symbol>[]
+
+  /**
+  * Operands handlers.
+  */
+  private readonly _handlers : Sink<Output>[]
 
   /**
   * Operands result buffers.
@@ -45,6 +45,7 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
   public constructor (operands? : Iterable<UnidocQuery<Input, Output>>) {
     this.operands = []
     this._buffers = []
+    this._handlers = []
 
     if (operands) {
       for (const operand of operands) {
@@ -60,15 +61,20 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
 
     for (let index = 0, size = this.operands.length; index < size; ++index) {
       const operand : UnidocQuery<Input, Output> = this.operands[index]
+      const handler : Sink<Output> = {
+        start: this.handleSubQueryStart.bind(this, index),
+        next: this.handleSubQueryValue.bind(this, index),
+        error: this.handleSubQueryError.bind(this, index),
+        complete: this.handleSubQueryCompletion.bind(this, index)
+      }
 
-      operand.resultListener = this.handleNextValue.bind(this, index)
-      operand.completionListener = this.handleCompletion.bind(this, index)
+      operand.output = handler
 
+      this._handlers.push(handler)
       this._buffers.push(CircularBuffer.any(16))
     }
 
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this.output = Sink.NONE
 
     this._filled = 0
     this._result = Pack.any(this.operands.length)
@@ -76,7 +82,7 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
     Object.freeze(this.operands)
   }
 
-  private handleNextValue (index : number, value : Output) : void {
+  private handleSubQueryValue (index : number, value : Output) : void {
     const buffer : CircularBuffer<Output | symbol> = this._buffers[index]
 
     if (buffer.capacity === buffer.size) {
@@ -89,7 +95,14 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
     this.resolve()
   }
 
-  private handleCompletion (index : number) : void {
+  private handleSubQueryError (index : number, error : Error) : void {
+    this.output.error(error)
+  }
+
+  private handleSubQueryStart (index : number) : void {
+  }
+
+  private handleSubQueryCompletion (index : number) : void {
     const buffer : CircularBuffer<Output | symbol> = this._buffers[index]
 
     if (buffer.capacity === buffer.size) {
@@ -124,10 +137,10 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
   private resolve () : void {
     while (this._filled === this.operands.length) {
       if (this.computeNextState()) {
-        this.completionListener()
+        this.output.complete()
         this._filled = 0
       } else {
-        this.resultListener(this._result)
+        this.output.next(this._result)
       }
     }
   }
@@ -139,6 +152,8 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
     for (const operand of this.operands) {
       operand.start()
     }
+
+    this.output.start()
   }
 
   /**
@@ -148,6 +163,13 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
     for (const operand of this.operands) {
       operand.next(value)
     }
+  }
+
+  /**
+  * @see UnidocQuery.error
+  */
+  public error (error : Error) : void {
+    this.output.error(error)
   }
 
   /**
@@ -179,14 +201,12 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
       const operand : UnidocQuery<Input, Output> = this.operands[index]
 
       operand.clear()
-      operand.resultListener = this.handleNextValue.bind(this, index)
-      operand.completionListener = this.handleCompletion.bind(this, index)
+      operand.output = this._handlers[index]
 
       this._buffers[index].clear()
     }
 
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this.output = Sink.NONE
 
     this._filled = 0
   }
@@ -202,8 +222,7 @@ export class EachQuery<Input, Output> implements UnidocQuery<Input, Pack<Output>
     }
 
     result._filled = this._filled
-    result.resultListener = this.resultListener
-    result.completionListener = this.completionListener
+    result.output = this.output
 
     return result
   }

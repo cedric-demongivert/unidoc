@@ -1,6 +1,4 @@
-import { UnidocQuery } from '../query/UnidocQuery'
-import { nothing } from '../query/nothing'
-import { depth } from '../query/depth'
+import { Sink } from '../query/Sink'
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 import { UnidocValidation } from '../Validation/UnidocValidation'
@@ -13,12 +11,7 @@ export class TreeValidator implements UnidocValidator {
   /**
   * A listener called when a value is published by this query.
   */
-  public resultListener : UnidocQuery.ResultListener<UnidocValidation>
-
-  /**
-  * A listener called when the output stream of this query reach it's end.
-  */
-  public completionListener : UnidocQuery.CompletionListener
+  public output : Sink<UnidocValidation>
 
   /**
   * Rules that apply only on the substream of events related to immediate children of the current node.
@@ -42,25 +35,28 @@ export class TreeValidator implements UnidocValidator {
 
   private depth : number
 
-  private completed : number
+  private running : number
+
+  private subValidationHandler : Sink<UnidocValidation>
 
   public constructor () {
     this.children = new RulesetValidator()
     this.deep = new RulesetValidator()
     this.types = new Map()
     this.depth = 0
-    this.completed = 0
+    this.running = 0
 
-    this.handleValidation = this.handleValidation.bind(this)
-    this.handleCompletion = this.handleCompletion.bind(this)
+    this.subValidationHandler = {
+      start: this.handleSubValidationStart.bind(this),
+      next: this.handleSubValidation.bind(this),
+      error: this.handleSubValidationError.bind(this),
+      complete: this.handleSubValidationCompletion.bind(this)
+    }
 
-    this.children.resultListener = this.handleValidation
-    this.children.completionListener = this.handleCompletion
-    this.deep.resultListener = this.handleValidation
-    this.deep.completionListener = this.handleCompletion
+    this.children.output = this.subValidationHandler
+    this.deep.output = this.subValidationHandler
 
-    this.resultListener = nothing
-    this.completionListener = nothing
+    this.output = Sink.NONE
   }
 
   public setTypeValidator (type : string, validator : TreeValidator.ValidatorFactory<any>) : void {
@@ -75,7 +71,7 @@ export class TreeValidator implements UnidocValidator {
     this.deep.reset()
     this.current = null
     this.depth = 0
-    this.completed = 0
+    this.running = 0
   }
 
   /**
@@ -84,10 +80,15 @@ export class TreeValidator implements UnidocValidator {
   public clear () : void {
     this.children.clear()
     this.deep.clear()
+
+    this.children.output = this.subValidationHandler
+    this.deep.output = this.subValidationHandler
+
     this.types.clear()
     this.current = null
     this.depth = 0
-    this.completed = 0
+    this.running = 0
+    this.output = Sink.NONE
   }
 
   /**
@@ -97,14 +98,38 @@ export class TreeValidator implements UnidocValidator {
     this.children.start()
     this.deep.start()
     this.depth = 0
-    this.completed = 0
+    this.running = 0
+    this.output.start()
+  }
+
+  private currentDepth (event : UnidocEvent) : number {
+    switch (event.type) {
+      case UnidocEventType.END_TAG:
+        return this.depth - 1
+      default:
+        return this.depth
+    }
+  }
+
+  private updateDepth (event : UnidocEvent) : void {
+    switch (event.type) {
+      case UnidocEventType.START_TAG:
+        this.depth += 1
+        break
+      case UnidocEventType.END_TAG:
+        this.depth -= 1
+      default:
+        break
+    }
   }
 
   /**
   * @see UnidocValidator#next
   */
   public next (event : UnidocEvent) : void {
-    if (this.depth == 0) {
+    const depth : number = this.currentDepth(event)
+
+    if (depth == 0) {
       this.children.next(event)
 
       if (event.type === UnidocEventType.START_TAG) {
@@ -114,23 +139,26 @@ export class TreeValidator implements UnidocValidator {
           this.current = new AnythingValidator()
         }
 
-        this.current.resultListener = this.handleValidation
+        this.current.output = this.subValidationHandler
         this.current.start()
       }
     }
 
-    if (this.depth >= 0) {
+    if (depth >= 0) {
       this.deep.next(event)
+    }
+
+    if (depth > 0) {
       this.current.next(event)
     }
 
-    this.depth = depth(this.depth, event)
-
-    if (event.type === UnidocEventType.END_TAG) {
+    if (event.type === UnidocEventType.END_TAG && depth === 0) {
       this.children.next(event)
       this.current.complete()
       this.current = null
     }
+
+    this.updateDepth(event)
   }
 
   /**
@@ -139,18 +167,38 @@ export class TreeValidator implements UnidocValidator {
   public complete () : void {
     this.children.complete()
     this.deep.complete()
-  }
 
-  private handleValidation (validation : UnidocValidation) : void {
-    this.resultListener(validation)
-  }
-
-  private handleCompletion () : void {
-    this.completed += 1
-
-    if (this.completed === 2) {
-      this.completionListener()
+    if (this.current != null) {
+      this.current.complete()
+      this.current = null
     }
+  }
+
+  /**
+  * @see UnidocValidator#error
+  */
+  public error (error : Error) : void {
+    this.output.error(error)
+  }
+
+  private handleSubValidation (validation : UnidocValidation) : void {
+    this.output.next(validation)
+  }
+
+  private handleSubValidationError (error : Error) : void {
+    this.output.error(error)
+  }
+
+  private handleSubValidationCompletion () : void {
+    this.running -= 1
+
+    if (this.running === 0) {
+      this.output.complete()
+    }
+  }
+
+  private handleSubValidationStart () : void {
+    this.running += 1
   }
 
   /**
@@ -161,10 +209,8 @@ export class TreeValidator implements UnidocValidator {
 
     result.children.copy(this.children)
     result.deep.copy(this.deep)
-    result.children.resultListener = result.handleValidation
-    result.children.completionListener = result.handleCompletion
-    result.deep.resultListener = result.handleValidation
-    result.deep.completionListener = result.handleCompletion
+    result.children.output = result.subValidationHandler
+    result.deep.output = result.subValidationHandler
 
     result.types.clear()
 
@@ -173,11 +219,10 @@ export class TreeValidator implements UnidocValidator {
     }
 
     result.depth = this.depth
-    result.completed = this.completed
+    result.running = this.running
     result.current = this.current.clone()
 
-    result.resultListener = this.resultListener
-    result.completionListener = this.completionListener
+    result.output = this.output
 
     return result
   }

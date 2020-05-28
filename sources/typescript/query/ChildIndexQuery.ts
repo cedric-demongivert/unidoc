@@ -4,7 +4,7 @@ import { UnidocEventType } from '../event/UnidocEventType'
 import { UnidocQuery } from './UnidocQuery'
 import { Sink } from './Sink'
 
-export class IndexQuery implements UnidocQuery<UnidocEvent, number>
+export class ChildIndexQuery implements UnidocQuery<UnidocEvent, number>
 {
   /**
   * A listener called when a value is published by this query.
@@ -12,19 +12,13 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   public output : Sink<number>
 
   /**
-  * Current index.
+  * State stack.
   */
-  private _current : number
-
-  /**
-  * Current opened tags.
-  */
-  private _tags : number[]
+  private readonly _stack : number[]
 
   public constructor () {
     this.output = Sink.NONE
-    this._current = 0
-    this._tags = []
+    this._stack = [0]
   }
 
   /**
@@ -39,13 +33,14 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   */
   public next (event : UnidocEvent) : void {
     switch (event.type) {
-      case UnidocEventType.END_TAG:
-        return this.output.next(this._tags.pop())
       case UnidocEventType.START_TAG:
-        this._tags.push(this._current)
+        this._stack.push(0)
+        return this.output.next(this._stack[this._stack.length - 2])
+      case UnidocEventType.END_TAG:
+        this._stack.pop()
       default:
-        const result : number = this._current
-        this._current += 1
+        const result : number = this._stack[this._stack.length - 1]
+        this._stack[this._stack.length - 1] += 1
         return this.output.next(result)
     }
   }
@@ -54,7 +49,8 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   * @see UnidocQuery.complete
   */
   public complete () : void {
-    this._current = 0
+    this._stack.length = 1
+    this._stack[0] = 0
     this.output.complete()
   }
 
@@ -69,8 +65,8 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   * @see UnidocQuery.reset
   */
   public reset () : void {
-    this._tags.length = 0
-    this._current = 0
+    this._stack.length = 1
+    this._stack[0] = 0
   }
 
   /**
@@ -79,20 +75,20 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   public clear () : void {
     this.output = Sink.NONE
 
-    this._tags.length = 0
-    this._current = 0
+    this._stack.length = 1
+    this._stack[0] = 0
   }
 
   /**
   * @see UnidocQuery.clone
   */
-  public clone () : IndexQuery {
-    const selector : IndexQuery = new IndexQuery()
+  public clone () : ChildIndexQuery {
+    const selector : ChildIndexQuery = new ChildIndexQuery()
 
-    selector._current = this._current
+    selector._stack.length = 0
 
-    for (const value of this._tags) {
-      selector._tags.push(value)
+    for (const value of this._stack) {
+      selector._stack.push(value)
     }
 
     selector.output = this.output
@@ -104,6 +100,6 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   * @see UnidocQuery.toString
   */
   public toString () : string {
-    return 'map:$index'
+    return 'map:$child-index'
   }
 }

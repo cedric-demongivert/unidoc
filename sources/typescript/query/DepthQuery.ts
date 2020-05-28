@@ -4,7 +4,7 @@ import { UnidocEventType } from '../event/UnidocEventType'
 import { UnidocQuery } from './UnidocQuery'
 import { Sink } from './Sink'
 
-export class IndexQuery implements UnidocQuery<UnidocEvent, number>
+export class DepthQuery implements UnidocQuery<UnidocEvent, number>
 {
   /**
   * A listener called when a value is published by this query.
@@ -12,19 +12,13 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   public output : Sink<number>
 
   /**
-  * Current index.
+  * Current depth.
   */
-  private _current : number
-
-  /**
-  * Current opened tags.
-  */
-  private _tags : number[]
+  private _depth : number
 
   public constructor () {
     this.output = Sink.NONE
-    this._current = 0
-    this._tags = []
+    this._depth = 0
   }
 
   /**
@@ -39,14 +33,13 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   */
   public next (event : UnidocEvent) : void {
     switch (event.type) {
-      case UnidocEventType.END_TAG:
-        return this.output.next(this._tags.pop())
       case UnidocEventType.START_TAG:
-        this._tags.push(this._current)
+        this._depth += 1
+        return this.output.next(this._depth - 1)
+      case UnidocEventType.END_TAG:
+        this._depth -= 1
       default:
-        const result : number = this._current
-        this._current += 1
-        return this.output.next(result)
+        return this.output.next(this._depth)
     }
   }
 
@@ -54,7 +47,7 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   * @see UnidocQuery.complete
   */
   public complete () : void {
-    this._current = 0
+    this._depth = 0
     this.output.complete()
   }
 
@@ -69,8 +62,7 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   * @see UnidocQuery.reset
   */
   public reset () : void {
-    this._tags.length = 0
-    this._current = 0
+    this._depth = 0
   }
 
   /**
@@ -78,23 +70,16 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   */
   public clear () : void {
     this.output = Sink.NONE
-
-    this._tags.length = 0
-    this._current = 0
+    this._depth = 0
   }
 
   /**
   * @see UnidocQuery.clone
   */
-  public clone () : IndexQuery {
-    const selector : IndexQuery = new IndexQuery()
+  public clone () : DepthQuery {
+    const selector : DepthQuery = new DepthQuery()
 
-    selector._current = this._current
-
-    for (const value of this._tags) {
-      selector._tags.push(value)
-    }
-
+    selector._depth = this._depth
     selector.output = this.output
 
     return selector
@@ -104,6 +89,6 @@ export class IndexQuery implements UnidocQuery<UnidocEvent, number>
   * @see UnidocQuery.toString
   */
   public toString () : string {
-    return 'map:$index'
+    return 'map:$depth'
   }
 }

@@ -3,8 +3,8 @@ import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocQuery } from '../query/UnidocQuery'
 
 import { AnythingValidator } from './AnythingValidator'
-import { ConditionalValidator } from './ConditionalValidator'
-import { TagValidator } from './TagValidator'
+import { RulesetValidator } from './RulesetValidator'
+import { TreeValidator } from './TreeValidator'
 
 /**
 * An object that validate a stream of unidoc event.
@@ -34,23 +34,15 @@ export namespace UnidocValidator {
   /**
   * Return a validator that validate anything.
   */
-  export function any () : AnythingValidator {
+  export function anything () : AnythingValidator {
     return new AnythingValidator()
   }
 
-  export function all (...validators : UnidocValidator[]) : CompositeValidator {
-    return new CompositeValidator(validators)
+  export function tree () : TreeValidator {
+    return new TreeValidator()
   }
 
-  export function conditional () : ConditionalValidator {
-    return new ConditionalValidator()
-  }
-
-  export function assertion () : AssertionValidator {
-    return new AssertionValidator()
-  }
-
-  export function tag () : TagValidator {
-    return new TagValidator()
+  export function ruleset () : RulesetValidator {
+    return new RulesetValidator()
   }
 }

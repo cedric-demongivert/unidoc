@@ -13,5 +13,5 @@ export function isTagEnd (event : UnidocEvent) : boolean {
 }
 
 isTagEnd.toString = function toString () : string {
-  return 'is tag termination'
+  return 'is tag end'
 }
