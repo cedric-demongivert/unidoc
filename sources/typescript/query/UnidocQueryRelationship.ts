@@ -1,7 +1,5 @@
 import { UnidocQuery } from './UnidocQuery'
 import { UnidocQueryState } from './UnidocQueryState'
-import { UnidocQueryRule } from './UnidocQueryRule'
-import { UnidocQueryStarRule } from './UnidocQueryStarRule'
 
 /**
 * A unidoc validator state.

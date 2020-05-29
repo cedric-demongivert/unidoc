@@ -2,6 +2,7 @@ import { UnidocEvent } from '../../event/UnidocEvent'
 
 import { UnidocQueryRelationship } from '../UnidocQueryRelationship'
 import { UnidocQueryPredicateRelationship } from '../UnidocQueryPredicateRelationship'
+import { UnidocQueryFreeRelationship } from '../UnidocQueryFreeRelationship'
 
 import { UnidocQueryExecutionResult } from './UnidocQueryExecutionResult'
 import { UnidocQueryPredicateExecution } from './UnidocQueryPredicateExecution'
@@ -45,6 +46,8 @@ export namespace UnidocQueryExecution {
   export function create (relationship : UnidocQueryRelationship) : UnidocQueryExecution {
     if (relationship instanceof UnidocQueryPredicateRelationship) {
       return new UnidocQueryPredicateExecution(relationship)
+    } else if (relationship instanceof UnidocQueryFreeRelationship) {
+      return new UnidocQueryExecution(relationship)
     } else {
       throw new Error(
         'Unable to make an execution of the given relationship : ' +

@@ -105,6 +105,9 @@ export class UnidocQueryFreeRelationshipVisitor {
       this._cursors.reallocate(capacity)
     }
 
+    this._status.size = this._status.capacity
+    this._status.fill(UNVISITED)
+
     for (const state of states) {
       this._status.set(state.identifier, VISITED)
       this._states.push(state)

@@ -38,12 +38,16 @@ export class UnidocQueryExecutor {
 
     for (const state of this._freeRelationshipVisitor.visitWith(this.query.initial)) {
       for (const relationship of state.outputs) {
-        if (!(relationship instanceof UnidocQueryFreeRelationship)) {
+        if (
+          !(relationship instanceof UnidocQueryFreeRelationship) ||
+          relationship.from === relationship.to
+        ) {
           const execution : UnidocQueryExecution = UnidocQueryExecution.create(relationship)
+
           execution.from = 0
           execution.to = 0
 
-          this._current.push(execution)
+          this.emit(execution)
         }
       }
     }
@@ -106,10 +110,14 @@ export class UnidocQueryExecutor {
   private handleNext (execution : UnidocQueryExecution) {
     for (const state of this._freeRelationshipVisitor.visitWith(execution.relationship.to)) {
       for (const relationship of state.outputs) {
-        if (!(relationship instanceof UnidocQueryFreeRelationship)) {
+        if (
+          !(relationship instanceof UnidocQueryFreeRelationship) ||
+          relationship.from === relationship.to
+        ) {
           const execution : UnidocQueryExecution = UnidocQueryExecution.create(relationship)
-          execution.from = execution.from
-          execution.to = this._buffer.size + this._bufferOffset
+
+          execution.from = 0
+          execution.to = 0
 
           this.emit(execution)
         }

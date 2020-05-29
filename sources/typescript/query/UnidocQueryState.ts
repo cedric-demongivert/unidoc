@@ -45,6 +45,12 @@ export class UnidocQueryState {
       this.identifier = identifier
       query.states.add(this)
     }
+
+    this._outputs = Pack.any(4)
+    this._inputs = Pack.any(4)
+
+    this.outputs = this._outputs.view()
+    this.inputs = this._inputs.view()
   }
 
   public addIngoingRelationship (value : UnidocQueryRelationship) : void {
