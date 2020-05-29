@@ -8,7 +8,9 @@ import { UnidocEventType } from '../event/UnidocEventType'
 *
 * @return True if the given event notify the begining of a tag.
 */
-export function isTagStart (event : UnidocEvent) : boolean {
+export function isTagStart (event : UnidocEvent | symbol) : boolean {
+  if (typeof event === 'symbol') return false
+
   return event.type === UnidocEventType.START_TAG
 }
 

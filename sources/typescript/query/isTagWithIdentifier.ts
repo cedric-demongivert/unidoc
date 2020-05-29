@@ -1,12 +1,14 @@
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
-import { UnidocMapper } from './UnidocMapper'
+import { UnidocQueryPredicate } from './UnidocQueryPredicate'
 
-export function isTagWithIdentifier (identifiers : Iterable<string>) : UnidocMapper<UnidocEvent, boolean> {
+export function isTagWithIdentifier (identifiers : Iterable<string>) : UnidocQueryPredicate {
   const identifierSet : Set<string> = new Set<string>(identifiers)
 
-  function mapper (event : UnidocEvent) : boolean {
+  function mapper (event : UnidocEvent | symbol) : boolean {
+    if (typeof event === 'symbol') return false
+
     switch (event.type) {
       case UnidocEventType.START_TAG:
       case UnidocEventType.END_TAG:

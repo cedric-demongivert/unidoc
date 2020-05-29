@@ -8,7 +8,9 @@ import { UnidocEventType } from '../event/UnidocEventType'
 *
 * @return True if the given event notify the termination of a tag.
 */
-export function isTagEnd (event : UnidocEvent) : boolean {
+export function isTagEnd (event : UnidocEvent | symbol) : boolean {
+  if (typeof event === 'symbol') return false
+  
   return event.type === UnidocEventType.END_TAG
 }
 

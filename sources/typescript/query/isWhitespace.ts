@@ -8,7 +8,9 @@ import { UnidocEventType } from '../event/UnidocEventType'
 *
 * @return True if the given event notify a whitespace.
 */
-export function isWhitespace (event : UnidocEvent) : boolean {
+export function isWhitespace (event : UnidocEvent | symbol) : boolean {
+  if (typeof event === 'symbol') return false
+  
   return event.type === UnidocEventType.WHITESPACE
 }
 

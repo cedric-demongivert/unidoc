@@ -1,7 +1,7 @@
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
-import { UnidocMapper } from './UnidocMapper'
+import { UnidocQueryPredicate } from './UnidocQueryPredicate'
 
 /**
 * Return a mapping function that returns true if the given event is related
@@ -12,10 +12,12 @@ import { UnidocMapper } from './UnidocMapper'
 * @return A mapping function that returns true if the given event is related
 *         to a tag of any of the given types.
 */
-export function isTagOfType (types : Iterable<string>) : UnidocMapper<UnidocEvent, boolean> {
+export function isTagOfType (types : Iterable<string>) : UnidocQueryPredicate {
   const typeSet : Set<string> = new Set<string>(types)
 
-  function mapper (event : UnidocEvent) : boolean {
+  function mapper (event : UnidocEvent | symbol) : boolean {
+    if (typeof event === 'symbol') return false
+
     switch (event.type) {
       case UnidocEventType.START_TAG:
       case UnidocEventType.END_TAG:
