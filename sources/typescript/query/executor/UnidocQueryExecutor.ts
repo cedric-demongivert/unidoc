@@ -6,10 +6,10 @@ import { UnidocEvent } from '../../event/UnidocEvent'
 import { UnidocQueryExecution } from './UnidocQueryExecution'
 
 import { UnidocQuery } from '../UnidocQuery'
-import { UnidocQueryFreeRelationship } from '../UnidocQueryFreeRelationship'
-
-import { UnidocQueryFreeRelationshipVisitor } from './UnidocQueryFreeRelationshipVisitor'
-import { UnidocQueryExecutionResult } from './UnidocQueryExecutionResult'
+import { UnidocQueryCommand } from '../UnidocQueryCommand'
+import { UnidocQueryState } from '../UnidocQueryState'
+import { UnidocQueryRelationship } from '../UnidocQueryRelationship'
+import { UnidocQueryExecutionResolver } from './UnidocQueryExecutionResolver'
 
 export class UnidocQueryExecutor {
   public readonly query : UnidocQuery
@@ -21,7 +21,7 @@ export class UnidocQueryExecutor {
   private _bufferOffset : number
   private _nextBufferOffset : number
 
-  private _freeRelationshipVisitor : UnidocQueryFreeRelationshipVisitor
+  private _executionResolver : UnidocQueryExecutionResolver
 
   public constructor (query : UnidocQuery) {
     this.query = query
@@ -29,35 +29,24 @@ export class UnidocQueryExecutor {
     this._bufferOffset = 0
     this._current = Pack.any(32)
     this._next = Pack.any(32)
-    this._freeRelationshipVisitor = new UnidocQueryFreeRelationshipVisitor()
+    this._executionResolver = new UnidocQueryExecutionResolver(query)
   }
 
-  public initialize () : void {
+  /**
+  * Start an execution.
+  */
+  public start () : void {
     this._current.clear()
     this._next.clear()
+    this._buffer.clear()
+    this._bufferOffset = 0
+    this._nextBufferOffset = 0
 
-    for (const state of this._freeRelationshipVisitor.visitWith(this.query.initial)) {
-      for (const relationship of state.outputs) {
-        if (
-          !(relationship instanceof UnidocQueryFreeRelationship) ||
-          relationship.from === relationship.to
-        ) {
-          const execution : UnidocQueryExecution = UnidocQueryExecution.create(relationship)
+    this._executionResolver.start()
+    this._executionResolver.resolveForgetAsContinue = true
 
-          execution.from = 0
-          execution.to = 0
-
-          this.emit(execution)
-        }
-      }
-    }
-  }
-
-  public start () : void {
-    this._nextBufferOffset = this._buffer.size + this._bufferOffset
-
-    for (const execution of this._current) {
-      this.resolve(execution, execution.start())
+    for (const execution of this._executionResolver.resolve(this.query.input)) {
+      this.emit(execution)
     }
 
     this.swap()
@@ -70,58 +59,54 @@ export class UnidocQueryExecutor {
 
     this._buffer.push(event)
 
+    this._executionResolver.start()
+    this._executionResolver.resolveForgetAsContinue = false
+
     this._nextBufferOffset = this._buffer.size + this._bufferOffset
 
     for (const execution of this._current) {
-      this.resolve(execution, execution.next(event))
+      this.resolve(execution, event)
+    }
+
+    this._executionResolver.resolveForgetAsContinue = true
+
+    const offset : number = this._bufferOffset + this._buffer.size
+
+    for (const execution of this._executionResolver.resolve(...this._executionResolver.forgot())) {
+      execution.from = offset
+      execution.to = offset
+      this.emit(execution)
     }
 
     this.swap()
   }
 
-  public end () : void {
-    this._nextBufferOffset = this._buffer.size + this._bufferOffset
+  private resolve (execution : UnidocQueryExecution, event : UnidocEvent) : void {
+    const command : UnidocQueryCommand = execution.rule.next()
 
-    for (const execution of this._current) {
-      this.resolve(execution, execution.start())
-    }
-
-    this.swap()
-  }
-
-  private resolve (execution : UnidocQueryExecution, result : UnidocQueryExecutionResult) : void {
-    switch (result) {
-      case UnidocQueryExecutionResult.DROP:
-        break
-      case UnidocQueryExecutionResult.NEXT:
-        this.handleNext(execution)
-        break
-      case UnidocQueryExecutionResult.KEEP:
-        execution.to = this._buffer.size + this._bufferOffset
+    switch (command) {
+      case UnidocQueryCommand.AWAIT:
+        execution.to += 1
         this.emit(execution)
+        break
+      case UnidocQueryCommand.FORGET:
+        this._executionResolver.markAsForget(execution.relationship.to)
+        break
+      case UnidocQueryCommand.CONTINUE:
+        for (const next of this._executionResolver.resolve(execution.relationship.to)) {
+          next.from = execution.from
+          next.to = execution.to + 1
+
+          this.emit(next)
+        }
+        break
+      case UnidocQueryCommand.DROP:
         break
       default:
         throw new Error(
-          'Unhandled query execution result code : ' + result + '.'
+          'Unhandled unidoc query command : ' +
+          UnidocQueryCommand.toString(command) + '.'
         )
-    }
-  }
-
-  private handleNext (execution : UnidocQueryExecution) {
-    for (const state of this._freeRelationshipVisitor.visitWith(execution.relationship.to)) {
-      for (const relationship of state.outputs) {
-        if (
-          !(relationship instanceof UnidocQueryFreeRelationship) ||
-          relationship.from === relationship.to
-        ) {
-          const execution : UnidocQueryExecution = UnidocQueryExecution.create(relationship)
-
-          execution.from = 0
-          execution.to = 0
-
-          this.emit(execution)
-        }
-      }
     }
   }
 

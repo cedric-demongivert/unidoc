@@ -1,35 +1,14 @@
 import { UnidocEvent } from '../event/UnidocEvent'
 
-import { UnidocQueryRuleOutput } from './UnidocQueryRuleOutput'
+import { UnidocQueryCommand } from './UnidocQueryCommand'
 
 export interface UnidocQueryRule {
   /**
-  * Called when the rule execution begins.
+  * Called when the automaton evolve.
+  *
+  * @param event - Discovered event.
   *
   * @return The decision of this rule in regard of the received event.
   */
-  start () : UnidocQueryRuleOutput
-
-  /**
-  * Called when the validator discover a new event.
-  *
-  * @param event
-  *
-  * @return The decision of this rule in regard of the received event.
-  */
-  next (event : UnidocEvent) : UnidocQueryRuleOutput
-
-  /**
-  * Called when the validator discover the end of a given document.
-  */
-  end () : UnidocQueryRuleOutput
-
-  /**
-  * Duplicate this rule.
-  */
-  clone () : UnidocQueryRule
-}
-
-export namespace UnidocQueryRule {
-
+  next (event? : UnidocEvent) : UnidocQueryCommand
 }

@@ -4,21 +4,16 @@ import { UnidocQueryRelationshipCollection } from './UnidocQueryRelationshipColl
 
 export class UnidocQuery {
   /**
-  * This query initial state. The initial state is the state in wich this query
+  * This query input state. The input state is the state in wich this query
   * is when it's execution begins.
   */
-  public readonly initial : UnidocQueryState
+  public readonly input : UnidocQueryState
 
   /**
-  * This query final state. Entering into the final state of a query trigger the
-  * emission of a valid chain of events.
+  * This query output state. Entering into the output state of a query trigger
+  * the emission of a chain of events.
   */
-  public readonly final : UnidocQueryState
-
-  /**
-  * This query error state. Entering into an error state drops a chain of event.
-  */
-  public readonly error : UnidocQueryState
+  public readonly output : UnidocQueryState
 
   /**
   * A collection of all states of this query.
@@ -34,8 +29,7 @@ export class UnidocQuery {
     this.states = new UnidocQueryStateCollection(this, states)
     this.relationships = new UnidocQueryRelationshipCollection(this, relationships)
 
-    this.initial = this.states.state()
-    this.final = this.states.state()
-    this.error = this.states.state()
+    this.input = this.states.state()
+    this.output = this.states.state()
   }
 }

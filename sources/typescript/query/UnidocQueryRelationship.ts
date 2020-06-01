@@ -1,5 +1,7 @@
 import { UnidocQuery } from './UnidocQuery'
 import { UnidocQueryState } from './UnidocQueryState'
+import { UnidocQueryRuleFactory } from './UnidocQueryRuleFactory'
+import { Anything } from './rule/Anything'
 
 /**
 * A unidoc validator state.
@@ -26,6 +28,11 @@ export class UnidocQueryRelationship {
   private _to : UnidocQueryState
 
   /**
+  * The rule that define this relationship.
+  */
+  public rule : UnidocQueryRuleFactory<any>
+
+  /**
   * Instantiate a new relationship for the given query.
   *
   * @param query - The parent query.
@@ -44,6 +51,7 @@ export class UnidocQueryRelationship {
 
     this._from = null
     this._to = null
+    this.rule = Anything.factory
   }
 
   public get from () : UnidocQueryState {

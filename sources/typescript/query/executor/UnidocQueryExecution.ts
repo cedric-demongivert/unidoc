@@ -1,17 +1,16 @@
-import { UnidocEvent } from '../../event/UnidocEvent'
-
+import { UnidocQueryRule } from '../UnidocQueryRule'
 import { UnidocQueryRelationship } from '../UnidocQueryRelationship'
-import { UnidocQueryPredicateRelationship } from '../UnidocQueryPredicateRelationship'
-import { UnidocQueryFreeRelationship } from '../UnidocQueryFreeRelationship'
-
-import { UnidocQueryExecutionResult } from './UnidocQueryExecutionResult'
-import { UnidocQueryPredicateExecution } from './UnidocQueryPredicateExecution'
 
 export class UnidocQueryExecution {
   /**
   * Executed relationship.
   */
-  public readonly relationship : UnidocQueryRelationship
+  private _relationship : UnidocQueryRelationship
+
+  /**
+  *
+  */
+  private _rule : UnidocQueryRule
 
   /**
   * Begining of the path into the parent event stream.
@@ -24,35 +23,26 @@ export class UnidocQueryExecution {
   public to : number
 
   public constructor (relationship : UnidocQueryRelationship) {
-    this.relationship = relationship
+    this._relationship = relationship
+    this._rule = relationship.rule()
     this.from = 0
     this.to = 0
   }
 
-  public start () : UnidocQueryExecutionResult {
-    return UnidocQueryExecutionResult.NEXT
+  public get relationship () : UnidocQueryRelationship {
+    return this._relationship
   }
 
-  public next (event : UnidocEvent) : UnidocQueryExecutionResult {
-    return UnidocQueryExecutionResult.NEXT
+  public set relationship (relationship : UnidocQueryRelationship) {
+    this._relationship = relationship
+    this._rule = relationship.rule()
   }
 
-  public end () : UnidocQueryExecutionResult {
-    return UnidocQueryExecutionResult.NEXT
+  public get rule () : UnidocQueryRule {
+    return this._rule
   }
 }
 
 export namespace UnidocQueryExecution {
-  export function create (relationship : UnidocQueryRelationship) : UnidocQueryExecution {
-    if (relationship instanceof UnidocQueryPredicateRelationship) {
-      return new UnidocQueryPredicateExecution(relationship)
-    } else if (relationship instanceof UnidocQueryFreeRelationship) {
-      return new UnidocQueryExecution(relationship)
-    } else {
-      throw new Error(
-        'Unable to make an execution of the given relationship : ' +
-        relationship + ' because the given relationship is not supported yet.'
-      )
-    }
-  }
+
 }
