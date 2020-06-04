@@ -6,22 +6,22 @@ import { UnidocQueryRelationship } from './UnidocQueryRelationship'
 
 export class UnidocQueryState {
   /**
-  * This state's parent query.
+  * Parent query.
   */
   public readonly query : UnidocQuery
 
   /**
-  * This state's identifier in its parent query.
+  * Unique number in a query that identify this state.
   */
   public readonly identifier : number
 
   /**
-  * This state's outgoing relationships.
+  * Outgoing relationships.
   */
   public readonly outputs : Sequence<UnidocQueryRelationship>
 
   /**
-  * This state's ingoing relationships.
+  * Ingoing relationships.
   */
   public readonly inputs : Sequence<UnidocQueryRelationship>
 
@@ -35,6 +35,15 @@ export class UnidocQueryState {
   */
   private readonly _inputs : Pack<UnidocQueryRelationship>
 
+  /**
+  * Instantiate a new state for the given query.
+  *
+  * @param query - The parent query of the new state to create.
+  * @param [identifier] - Identifier of the state to create.
+  *
+  * @throw Error If the given identifier is already assigned to a state of the
+  *              parent query.
+  */
   public constructor (query : UnidocQuery, identifier? : number) {
     this.query = query
     this.assertThatIdentifierIsNotAlreadyUsed(identifier)
@@ -53,6 +62,11 @@ export class UnidocQueryState {
     this.inputs = this._inputs.view()
   }
 
+  /**
+  * Add a relationship that finish into this state.
+  *
+  * @param value - The relationship to add.
+  */
   public addIngoingRelationship (value : UnidocQueryRelationship) : void {
     if (!this._inputs.has(value)) {
       this._inputs.push(value)
@@ -60,6 +74,11 @@ export class UnidocQueryState {
     }
   }
 
+  /**
+  * Add a relationship that begins from this state.
+  *
+  * @param value - The relationship to add.
+  */
   public addOutgoingRelationship (value : UnidocQueryRelationship) : void {
     if (!this._outputs.has(value)) {
       this._outputs.push(value)
@@ -67,6 +86,11 @@ export class UnidocQueryState {
     }
   }
 
+  /**
+  * Delete a relationship that finish into this state.
+  *
+  * @param value - The relationship to delete.
+  */
   public deleteIngoingRelationship (value : UnidocQueryRelationship) : void {
     const index : number = this._inputs.indexOf(value)
 
@@ -76,6 +100,11 @@ export class UnidocQueryState {
     }
   }
 
+  /**
+  * Delete a relationship that begins from this state.
+  *
+  * @param value - The relationship to delete.
+  */
   public deleteOutgoingRelationship (value : UnidocQueryRelationship) : void {
     const index : number = this._outputs.indexOf(value)
 
@@ -85,6 +114,9 @@ export class UnidocQueryState {
     }
   }
 
+  /**
+  *
+  */
   private assertThatIdentifierIsNotAlreadyUsed (identifier : number) : void {
     if (identifier != null && this.query.states.has(identifier)) {
       throw new Error(
@@ -95,6 +127,16 @@ export class UnidocQueryState {
     }
   }
 
+  /**
+  * @see Object#toString
+  */
+  public toString () : string {
+    return 'UnidocQueryState@' + this.identifier
+  }
+
+  /**
+  * @see Object#equals
+  */
   public equals (other : any) : boolean {
     return other === this
   }

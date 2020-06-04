@@ -54,14 +54,27 @@ export class UnidocQueryRelationship {
     this.rule = Anything.factory
   }
 
+  /**
+  * @return The state that starts this relationship.
+  */
   public get from () : UnidocQueryState {
     return this._from
   }
 
+  /**
+  * @return The state that terminate this relationship.
+  */
   public get to () : UnidocQueryState {
     return this._to
   }
 
+  /**
+  * Update the state that starts this relationship.
+  *
+  * This operation auto-update the query in order to keep it valid.
+  *
+  * @param value - The new state that starts this relationship.
+  */
   public set from (value : UnidocQueryState) {
     if (value !== this._from) {
       if (this._from != null) {
@@ -78,6 +91,13 @@ export class UnidocQueryRelationship {
     }
   }
 
+  /**
+  * Update the state that terminate this relationship.
+  *
+  * This operation auto-update the query in order to keep it valid.
+  *
+  * @param value - The new state that terminate this relationship.
+  */
   public set to (value : UnidocQueryState) {
     if (value !== this._to) {
       if (this._to != null) {
@@ -94,6 +114,9 @@ export class UnidocQueryRelationship {
     }
   }
 
+  /**
+  *
+  */
   private assertThatIdentifierIsNotAlreadyUsed (identifier : number) : void {
     if (identifier != null && this.query.relationships.has(identifier)) {
       throw new Error(
@@ -104,6 +127,17 @@ export class UnidocQueryRelationship {
     }
   }
 
+  /**
+  * @see Object.toString
+  */
+  public toString () : string {
+    return 'UnidocQueryRelationship@' + this.identifier + ' { from: ' +
+    this.from.toString() + ', to ' + this.to.toString() + ' }'
+  }
+
+  /**
+  * @see Object.equals
+  */
   public equals (other : any) : boolean {
     return other === this
   }
