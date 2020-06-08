@@ -38,6 +38,7 @@ export class UnidocValidationContext {
   */
   public start (process : UnidocValidationProcess) : void {
     this.validator.start(process)
+    process.resolve(this)
   }
 
   /**
@@ -52,6 +53,10 @@ export class UnidocValidationContext {
   */
   public terminate () : void {
     this.validator.terminate()
+    
+    if (this.validator.current) {
+      this.validator.current.resolve(this)
+    }
   }
 
   /**
@@ -60,6 +65,7 @@ export class UnidocValidationContext {
   public replace (process : UnidocValidationProcess) : void {
     this.validator.terminate()
     this.validator.start(process)
+    process.resolve(this)
   }
 
   /**

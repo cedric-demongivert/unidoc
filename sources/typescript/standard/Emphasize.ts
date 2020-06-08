@@ -1,13 +1,13 @@
 import { UnidocValidationProcess } from '../validator/UnidocValidationProcess'
 import { ShallowValidationProcess } from '../validator/ShallowValidationProcess'
-import { TitleValidationPolicy } from './validation/TitleValidationPolicy'
+import { EmphasizeValidationPolicy } from './validation/EmphasizeValidationPolicy'
 
-export namespace Title {
-  export const TAG : string = 'title'
+export namespace Emphasize {
+  export const TAG : string = 'emphasize'
 
   export const ALLOWED_TAGS : string[] =  []
 
   export function validator () : UnidocValidationProcess {
-    return new ShallowValidationProcess(new TitleValidationPolicy())
+    return new ShallowValidationProcess(new EmphasizeValidationPolicy())
   }
 }

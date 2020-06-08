@@ -1,32 +1,42 @@
 import { UnidocEventType } from '../../event/UnidocEventType'
 import { UnidocEvent } from '../../event/UnidocEvent'
 
-import { UnidocValidationProcess } from '../../validator/UnidocValidationProcess'
+import { ShallowValidationPolicy } from '../../validator/ShallowValidationPolicy'
 import { UnidocValidationContext } from '../../validator/UnidocValidationContext'
 
 import { Title } from '../Title'
 
-import { SkipTagValidationProcess } from './SkipTagValidationProcess'
 import { StandardErrorCode } from './StandardErrorCode'
 
-export class TitleValidationProcess implements UnidocValidationProcess {
+export class TitleValidationPolicy implements ShallowValidationPolicy {
   /**
-  * @see UnidocValidationProcess.resolve
+  * @see ShallowValidationPolicy.start
   */
-  public resolve (context : UnidocValidationContext) : void {
+  public start (context : UnidocValidationContext) : void {
+
+  }
+
+  /**
+  * @see ShallowValidationPolicy.shallow
+  */
+  public shallow (context : UnidocValidationContext) : void {
     switch (context.event.type) {
       case UnidocEventType.START_TAG:
         this.makeForbiddenContentError(context)
         context.emit()
-        context.start(new SkipTagValidationProcess())
         return
       case UnidocEventType.END_TAG:
-        context.terminate()
-        return
       case UnidocEventType.WHITESPACE:
       case UnidocEventType.WORD:
         return
     }
+  }
+
+  /**
+  * @see ShallowValidationPolicy.end
+  */
+  public end (context : UnidocValidationContext) : void {
+
   }
 
   /**

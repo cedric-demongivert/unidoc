@@ -1,1 +1,0 @@
-export { TagWithTitleProperty } from './TagWithTitleProperty'

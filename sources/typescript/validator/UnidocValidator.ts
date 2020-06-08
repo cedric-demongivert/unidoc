@@ -44,6 +44,10 @@ export class UnidocValidator {
     return this._stack.pop()
   }
 
+  public get current () : UnidocValidationProcess {
+    return this._stack.last
+  }
+
   /**
   * Notify the validator that an event is ready for validation in the parent
   * stream of events.
@@ -51,6 +55,7 @@ export class UnidocValidator {
   * @param event - Next unidoc event to validate.
   */
   public next (event : UnidocEvent) : void {
+    //console.log(event.toString())
     this._context.event = event
     this._stack.last.resolve(this._context)
   }

@@ -1,5 +1,6 @@
 import { UnidocValidationProcess } from '../validator/UnidocValidationProcess'
-import { SectionValidationProcess } from './validation/SectionValidationProcess'
+import { ShallowValidationProcess } from '../validator/ShallowValidationProcess'
+import { SectionValidationPolicy } from './validation/SectionValidationPolicy'
 
 import { Title } from './Title'
 import { Paragraph } from './Paragraph'
@@ -14,6 +15,6 @@ export namespace Section {
   ]
 
   export function validator () : UnidocValidationProcess {
-    return new SectionValidationProcess()
+    return new ShallowValidationProcess(new SectionValidationPolicy())
   }
 }

@@ -1,7 +1,7 @@
 import { UnidocEventType } from '../../event/UnidocEventType'
 import { UnidocEvent } from '../../event/UnidocEvent'
 
-import { UnidocValidationProcess } from '../../validator/UnidocValidationProcess'
+import { ShallowValidationPolicy } from '../../validator/ShallowValidationPolicy'
 import { UnidocValidationContext } from '../../validator/UnidocValidationContext'
 
 import { Document } from '../Document'
@@ -9,33 +9,37 @@ import { Title } from '../Title'
 import { Paragraph } from '../Paragraph'
 import { Section } from '../Section'
 
-import { TagWithTitleProperty } from './properties/TagWithTitleProperty'
+import { TagWithTitleValidationPolicy } from './TagWithTitleValidationPolicy'
 
 import { StandardErrorCode } from './StandardErrorCode'
 
-import { SkipTagValidationProcess } from './SkipTagValidationProcess'
-
-export class DocumentValidationProcess implements UnidocValidationProcess {
-  private _tagWithTitle : TagWithTitleProperty
+export class DocumentValidationPolicy implements ShallowValidationPolicy {
+  private _tagWithTitle : TagWithTitleValidationPolicy
 
   public constructor () {
-    this._tagWithTitle = new TagWithTitleProperty()
+    this._tagWithTitle = new TagWithTitleValidationPolicy()
   }
 
   /**
-  * @see UnidocValidationProcess.resolve
+  * @see ShallowValidation.start
   */
-  public resolve (context : UnidocValidationContext) : void {
-    this._tagWithTitle.resolve(context)
+  public start (context : UnidocValidationContext) : void {
+    this._tagWithTitle.start(context)
+  }
+
+  /**
+  * @see ShallowValidation.shallow
+  */
+  public shallow (context : UnidocValidationContext) : void {
+    this._tagWithTitle.shallow(context)
 
     switch (context.event.type) {
       case UnidocEventType.START_TAG:
         return this.resolveTag(context)
-      case UnidocEventType.END_TAG:
-        return context.terminate()
       case UnidocEventType.WORD:
         this.makeForbiddenContentError(context)
-        return context.emit()
+        context.emit()
+      case UnidocEventType.END_TAG:
       case UnidocEventType.WHITESPACE:
         return
     }
@@ -51,8 +55,14 @@ export class DocumentValidationProcess implements UnidocValidationProcess {
     } else {
       this.makeForbiddenContentError(context)
       context.emit()
-      context.start(new SkipTagValidationProcess())
     }
+  }
+
+  /**
+  * @see ShallowValidation.end
+  */
+  public end (context : UnidocValidationContext) : void {
+    this._tagWithTitle.end(context)
   }
 
   /**

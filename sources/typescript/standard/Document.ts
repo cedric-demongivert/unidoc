@@ -1,6 +1,6 @@
 import { UnidocValidationProcess } from '../validator/UnidocValidationProcess'
-import { DocumentValidationProcess } from './validation/DocumentValidationProcess'
-import { SkipRootValidationProcess } from './validation/SkipRootValidationProcess'
+import { ShallowValidationProcess } from '../validator/ShallowValidationProcess'
+import { DocumentValidationPolicy } from './validation/DocumentValidationPolicy'
 
 import { Paragraph } from './Paragraph'
 import { Title } from './Title'
@@ -16,6 +16,6 @@ export namespace Document {
   ]
 
   export function validator () : UnidocValidationProcess {
-    return new SkipRootValidationProcess(new DocumentValidationProcess())
+    return new ShallowValidationProcess(new DocumentValidationPolicy())
   }
 }

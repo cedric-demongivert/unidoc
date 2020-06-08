@@ -1,37 +1,44 @@
 import { UnidocEventType } from '../../event/UnidocEventType'
 import { UnidocEvent } from '../../event/UnidocEvent'
 
-import { UnidocValidationProcess } from '../../validator/UnidocValidationProcess'
 import { UnidocValidationContext } from '../../validator/UnidocValidationContext'
+import { ShallowValidationPolicy } from '../../validator/ShallowValidationPolicy'
 
 import { Title } from '../Title'
 import { Paragraph } from '../Paragraph'
+import { Section } from '../Section'
 
-import { TagWithTitleProperty } from './properties/TagWithTitleProperty'
+import { TagWithTitleValidationPolicy } from './TagWithTitleValidationPolicy'
 
 import { StandardErrorCode } from './StandardErrorCode'
 
-import { SkipTagValidationProcess } from './SkipTagValidationProcess'
-
-export class ParagraphValidationProcess implements UnidocValidationProcess {
-  private _tagWithTitle : TagWithTitleProperty
+export class SectionValidationPolicy implements ShallowValidationPolicy {
+  private _tagWithTitle : TagWithTitleValidationPolicy
 
   public constructor () {
-    this._tagWithTitle = new TagWithTitleProperty()
+    this._tagWithTitle = new TagWithTitleValidationPolicy()
   }
 
   /**
-  * @see UnidocValidationProcess.resolve
+  * @see ShallowValidationPolicy.start
   */
-  public resolve (context : UnidocValidationContext) : void {
-    this._tagWithTitle.resolve(context)
+  public start (context : UnidocValidationContext) : void {
+    this._tagWithTitle.start(context)
+  }
+
+  /**
+  * @see ShallowValidationPolicy.shallow
+  */
+  public shallow (context : UnidocValidationContext) : void {
+    this._tagWithTitle.shallow(context)
 
     switch (context.event.type) {
       case UnidocEventType.START_TAG:
         return this.resolveTag(context)
-      case UnidocEventType.END_TAG:
-        return context.terminate()
       case UnidocEventType.WORD:
+        this.makeForbiddenContentError(context)
+        context.emit()
+      case UnidocEventType.END_TAG:
       case UnidocEventType.WHITESPACE:
         return
     }
@@ -40,11 +47,21 @@ export class ParagraphValidationProcess implements UnidocValidationProcess {
   private resolveTag (context : UnidocValidationContext) {
     if (context.event.tag === Title.TAG) {
       context.start(Title.validator())
+    } else if (context.event.tag === Paragraph.TAG) {
+      context.start(Paragraph.validator())
+    } else if (context.event.tag === Section.TAG) {
+      context.start(Section.validator())
     } else {
       this.makeForbiddenContentError(context)
       context.emit()
-      context.start(new SkipTagValidationProcess())
     }
+  }
+
+  /**
+  * @see ShallowValidationPolicy.end
+  */
+  public end (context : UnidocValidationContext) : void {
+    this._tagWithTitle.end(context)
   }
 
   /**
@@ -61,6 +78,6 @@ export class ParagraphValidationProcess implements UnidocValidationProcess {
     context.validation.data.set('content', event)
     context.validation.data.set('allowWords', true)
     context.validation.data.set('allowWhitespaces', true)
-    context.validation.data.set('allowedTags', Paragraph.ALLOWED_TAGS)
+    context.validation.data.set('allowedTags', Section.ALLOWED_TAGS)
   }
 }
