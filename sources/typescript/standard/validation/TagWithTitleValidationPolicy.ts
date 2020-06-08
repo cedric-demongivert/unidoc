@@ -91,7 +91,7 @@ export class TagWithTitleValidationPolicy implements ShallowValidationPolicy {
     const event : UnidocEvent = context.event.clone()
 
     context.validation.clear()
-    context.validation.asWarning()
+    context.validation.asError()
     context.validation.code = StandardErrorCode.TOO_MANY_TAG
     context.validation.path.copy(event.path)
     context.validation.data.set('parent', event.path.elements.get(event.path.size - 1).tag)
