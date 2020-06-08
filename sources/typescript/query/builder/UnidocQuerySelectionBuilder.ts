@@ -6,23 +6,28 @@ import * as rules from '../rule'
 
 import { UnidocQueryDisjunctionBuilder } from './UnidocQueryDisjunctionBuilder'
 import { UnidocQuerySelection } from './UnidocQuerySelection'
+import { UnidocQueryPathBuilder } from './UnidocQueryPathBuilder'
 
-export class UnidocQueryBuilder {
+/**
+* Build a unidoc query from a selection of existings states.
+*/
+export class UnidocQuerySelectionBuilder {
   /**
-  * State where this builder operate.
+  * Selected states.
   */
-  public readonly origin : UnidocQuerySelection
+  public readonly states : UnidocQuerySelection
 
   /**
-  * Instantiate a new query builder that handle the initial state of the given
-  * query.
+  * Instantiate a new selection query builder that operate from the initial
+  * state of the given query.
   *
   * @param query - A query to build.
   */
   public constructor (query : UnidocQuery)
 
   /**
-  * Instantiate a new query builder that handle all of the given states.
+  * Instantiate a new selection query builder that operate from all of the given
+  * states.
   *
   * @param origin - A selection of states to handle.
   */
@@ -33,52 +38,79 @@ export class UnidocQueryBuilder {
   */
   public constructor (parameter : UnidocQuerySelection | UnidocQuery) {
     if (parameter instanceof UnidocQuery) {
-      this.origin = UnidocQuerySelection.select(parameter.input)
+      this.states = UnidocQuerySelection.select(parameter.input)
     } else {
-      this.origin = parameter
+      this.states = parameter
     }
   }
 
   /**
-  * Instantiate a new relationship between the states handled by this builder
-  * and the given states. The relationship can be traversed only if the given
-  * rule is valid.
+  * Instantiate a new relationship between each of the selected states and
+  * the given states. Each relationship can be traversed only if the given
+  * rule is valid at some point in the stream of event of a given document.
   *
   * @param rule - A rule that describe the relationship.
-  * @param [outputs] - The resulting states.
+  * @param outputs - The resulting states.
   *
   * @return A new builder instance located on the resulting states.
   */
-  public rule (rule : UnidocQueryRuleFactory<any>, outputs? : UnidocQuerySelection) : UnidocQueryBuilder {
-    const query : UnidocQuery = this.origin.query
+  public rule (rule : UnidocQueryRuleFactory<any>, outputs : UnidocQuerySelection) : UnidocQuerySelectionBuilder
 
-    if (outputs == null) {
-      outputs = UnidocQuerySelection.select(new UnidocQueryState(query))
+  /**
+  * Instantiate a new relationship between each of the selected states and
+  * the given one. Each relationship can be traversed only if the given
+  * rule is valid at some point in the stream of event of a given document.
+  *
+  * @param rule - A rule that describe the relationship.
+  * @param [output] - The resulting state.
+  *
+  * @return A new builder instance located on the resulting state.
+  */
+  public rule (rule : UnidocQueryRuleFactory<any>, output? : UnidocQueryState) : UnidocQueryPathBuilder
+
+  /**
+  *
+  */
+  public rule (rule : UnidocQueryRuleFactory<any>, output? : UnidocQueryState | UnidocQuerySelection) : UnidocQuerySelectionBuilder | UnidocQueryPathBuilder {
+    const query : UnidocQuery = this.states.query
+
+    if (output == null) {
+      output = new UnidocQueryState(query)
     }
 
-    for (const from of this.origin) {
-      for (const to of outputs) {
+    if (output instanceof UnidocQuerySelection) {
+      for (const from of this.states) {
+        for (const to of output) {
+          const relationship : UnidocQueryRelationship = new UnidocQueryRelationship(query)
+
+          relationship.from = from
+          relationship.to = to
+          relationship.rule = rule
+        }
+      }
+
+      return new UnidocQuerySelectionBuilder(output)
+    } else {
+      for (const from of this.states) {
         const relationship : UnidocQueryRelationship = new UnidocQueryRelationship(query)
 
         relationship.from = from
-        relationship.to = to
+        relationship.to = output
         relationship.rule = rule
       }
-    }
 
-    if (outputs.equals(this.origin)) {
-      return this
-    } else {
-      return new UnidocQueryBuilder(output)
+      return new UnidocQueryPathBuilder(output)
     }
   }
 
   /**
-  * Create a looping relationship on the handled states that discard incoming
-  * events.
+  * Create a looping relationship on each selected states that discard incoming
+  * events until a rule is valid.
+  *
+  * @return A new selection build on the resulting states.
   */
-  public until () : UnidocQueryBuilder {
-    return this.rule(rules.Forget.factory, this.origin)
+  public until () : UnidocQuerySelectionBuilder {
+    return this.rule(rules.Forget.factory, this.states)
   }
 
   /**
@@ -87,17 +119,18 @@ export class UnidocQueryBuilder {
   *
   * @param [output] - The state in wich "merging" all handled state.
   */
-  public merge (output? : UnidocQueryState) : UnidocQueryBuilder {
-    const query : UnidocQuery = this.origin.query
+  public merge (output? : UnidocQueryState) : UnidocQueryPathBuilder {
+    const query : UnidocQuery = this.states.query
 
     if (output == null) {
+      if (this.states.size === 1) {
+        return new UnidocQueryPathBuilder(this.states.first)
+      }
+
       output = new UnidocQueryState(query)
     }
 
-    return this.rule(
-      rules.Continue.factory,
-      UnidocQuerySelection.select(output)
-    )
+    return this.rule(rules.Continue.factory, output)
   }
 
   public anything (output? : UnidocQuerySelection) : UnidocQueryBuilder {

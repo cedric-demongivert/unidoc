@@ -4,6 +4,8 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { UnidocQuery } from './UnidocQuery'
 import { UnidocQueryRelationship } from './UnidocQueryRelationship'
 
+import { UnidocQueryStateEvent } from './UnidocQueryStateEvent'
+
 export class UnidocQueryState {
   /**
   * Parent query.
@@ -24,6 +26,11 @@ export class UnidocQueryState {
   * Ingoing relationships.
   */
   public readonly inputs : Sequence<UnidocQueryRelationship>
+
+  /**
+  * Events associated to this state.
+  */
+  public readonly events : Set<UnidocQueryStateEvent>
 
   /**
   * Mutable collection of outgoing relationships.
@@ -60,6 +67,7 @@ export class UnidocQueryState {
 
     this.outputs = this._outputs.view()
     this.inputs = this._inputs.view()
+    this.events = new Set<UnidocQueryStateEvent>()
   }
 
   /**

@@ -1,6 +1,7 @@
 import { UnidocQueryState } from '../UnidocQueryState'
 import { UnidocQueryRelationship } from '../UnidocQueryRelationship'
 import { UnidocQueryRuleFactory } from '../UnidocQueryRuleFactory'
+
 import * as rules from '../rule'
 
 export class UnidocQueryDisjunctionBuilder {
@@ -26,11 +27,13 @@ export class UnidocQueryDisjunctionBuilder {
   }
 
   /**
-  * Add a the given rule as a clause to the disjunction.
+  * Add a new relationship to this disjunction. The relationship can be
+  * traversed only if the given rule is valid at some point in the stream of
+  * event of a given document.
   *
-  * @param rule - A rule to add as a clause of the disjunction.
+  * @param rule - A rule that describe the relationship.
   *
-  * @return This builder instance for chaining purposes.
+  * @return This builder for chaining purposes.
   */
   public rule (rule : UnidocQueryRuleFactory<any>) : UnidocQueryDisjunctionBuilder {
     const relationship : UnidocQueryRelationship = new UnidocQueryRelationship(this.from.query)
@@ -42,32 +45,80 @@ export class UnidocQueryDisjunctionBuilder {
     return this
   }
 
+  /**
+  * Add a new relationship to this disjunction that accept any kind of events.
+  * This kind of relationship can't be traversed freely.
+  *
+  * @return This builder for chaining purposes.
+  */
   public anything () : UnidocQueryDisjunctionBuilder {
     return this.rule(rules.Anything.factory)
   }
 
+  /**
+  * Add a new relationship to this disjunction that accept only whitespaces.
+  * This kind of relationship can't be traversed freely.
+  *
+  * @return This builder for chaining purposes.
+  */
   public whitespace () : UnidocQueryDisjunctionBuilder {
     return this.rule(rules.Whitespace.factory)
   }
 
+  /**
+  * Add a new relationship to this disjunction that accept only words.
+  * This kind of relationship can't be traversed freely.
+  *
+  * @return This builder for chaining purposes.
+  */
   public word () : UnidocQueryDisjunctionBuilder {
     return this.rule(rules.Word.factory)
   }
 
-  public entering (tag? : string) : UnidocQueryDisjunctionBuilder {
-    if (tag == null) {
-      return this.rule(rules.EnteringAnything.factory)
-    } else {
-      return this.rule(rules.Entering.factory(tag))
-    }
+  /**
+  * Add a new relationship to this disjunction that accept only the begining of
+  * a tag of the given type. This kind of relationship can't be traversed
+  * freely.
+  *
+  * @param tag - Expected tag type.
+  *
+  * @return This builder for chaining purposes.
+  */
+  public entering (tag : string) : UnidocQueryDisjunctionBuilder {
+    return this.rule(rules.Entering.factory(tag))
   }
 
-  public exiting (tag? : string) : UnidocQueryDisjunctionBuilder {
-    if (tag == null) {
-      return this.rule(rules.ExitingAnything.factory)
-    } else {
-      return this.rule(rules.Exiting.factory(tag))
-    }
+  /**
+  * Add a new relationship to this disjunction that accept only the begining of
+  * any type of tag. This kind of relationship can't be traversed freely.
+  *
+  * @return This builder for chaining purposes.
+  */
+  public enteringAnyTag () : UnidocQueryDisjunctionBuilder {
+    return this.rule(rules.EnteringAnything.factory)
+  }
+
+  /**
+  * Add a new relationship to this disjunction that accept only the termination
+  * of a tag of the given type. This kind of relationship can't be traversed
+  * freely.
+  *
+  * @param tag - Expected tag type.
+  *
+  * @return This builder for chaining purposes.
+  */
+  public exiting (tag : string) : UnidocQueryDisjunctionBuilder {
+    return this.rule(rules.Exiting.factory(tag))
+  }
+
+  /**
+  * Add a new relationship to this disjunction that accept only the termination
+  * of any type of tag. This kind of relationship can't be traversed freely.
+  *
+  * @return This builder for chaining purposes.
+  */
+  public exitingAnyTag () : UnidocQueryDisjunctionBuilder {
+    return this.rule(rules.ExitingAnything.factory)
   }
 }
 

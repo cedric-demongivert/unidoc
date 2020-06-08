@@ -6,22 +6,22 @@ import { UnidocQueryRelationshipCollection } from './UnidocQueryRelationshipColl
 * A query that recognize specific sub-streams of unidoc events into an overall
 * stream of unidoc events.
 */
-export class UnidocQuery {
+export class UnidocQuery<Output> {
   /**
   * This query input state. The input state is the state in wich this query
   * is when it's execution begins.
   */
-  public readonly input : UnidocQueryState
+  public readonly input : UnidocQueryState<Output>
 
   /**
   * A collection of all states of this query.
   */
-  public readonly states : UnidocQueryStateCollection
+  public readonly states : UnidocQueryStateCollection<Output>
 
   /**
   * A collection of all relationships of this query.
   */
-  public readonly relationships : UnidocQueryRelationshipCollection
+  public readonly relationships : UnidocQueryRelationshipCollection<Output>
 
   /**
   * Instantiate a new empty unidoc query.
