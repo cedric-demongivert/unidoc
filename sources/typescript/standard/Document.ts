@@ -1,24 +1,21 @@
-import { TagValidator } from '../validator/TagValidator'
-import { TagMetadata } from '../validator/TagMetadata'
+import { UnidocValidationProcess } from '../validator/UnidocValidationProcess'
+import { DocumentValidationProcess } from './validation/DocumentValidationProcess'
+import { SkipRootValidationProcess } from './validation/SkipRootValidationProcess'
 
 import { Paragraph } from './Paragraph'
 import { Title } from './Title'
+import { Section } from './Section'
 
 export namespace Document {
   export const TAG : string = 'document'
 
-  export const VALIDATOR : TagValidator = new TagValidator()
+  export const ALLOWED_TAGS : string[] = [
+    Title.TAG,
+    Paragraph.TAG,
+    Section.TAG
+  ]
 
-  const document : TagMetadata = VALIDATOR.metadata
-
-  document.mayHaveOne(Title.TAG)
-  document.mayHaveMany(Paragraph.TAG)
-
-  document.validateAllTag(Title.TAG).with(Title.VALIDATOR)
-  document.validateAllTag(Paragraph.TAG).with(Paragraph.VALIDATOR)
-
-  document.doesNotAllowWords()
-  document.doesAllowWhitespaces()
-
-  /*document.ifTagIsNotFirst(Title.TAG).then(StandardWarningFactory.buildPreferTitleFirstWarning)*/
+  export function validator () : UnidocValidationProcess {
+    return new SkipRootValidationProcess(new DocumentValidationProcess())
+  }
 }

@@ -121,6 +121,13 @@ export class UnidocPath {
   }
 
   /**
+  * Delete the last element of the path.
+  */
+  public pop () : void {
+    this._elements.pop()
+  }
+
+  /**
   * Update this path to keep only the given subpath.
   *
   * @param from - Index of the first element to keep.

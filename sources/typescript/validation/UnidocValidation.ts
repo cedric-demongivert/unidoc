@@ -81,7 +81,7 @@ export class UnidocValidation {
   */
   public toString () : string {
     return (
-      `[${UnidocValidationType.toString(this.type)}] ${this.path.toString()} ${this.code} : ${JSON.stringify([...this.data.entries()])}`
+      `[${UnidocValidationType.toString(this.type)}] ${this.path.toString()} ${this.code} : {${[...this.data.entries()].map(x => x[0] + ': ' + x[1]).join(', ')}}`
     )
   }
 

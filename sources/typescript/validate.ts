@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs'
 import { UnidocEvent } from './event/UnidocEvent'
 import { UnidocValidation } from './validation/UnidocValidation'
 import { UnidocValidator } from './validator/UnidocValidator'
+import { UnidocValidationProcess } from './validator/UnidocValidationProcess'
 
 class Validator {
   /**
@@ -33,7 +34,7 @@ class Validator {
   * @param lexer - The lexer to use for tokenization.
   */
   public constructor (validator : UnidocValidator) {
-    this._validator           = validator.clone()
+    this._validator           = validator
     this._input               = null
     this._subscription        = null
     this._outputs             = new Set<Subscriber<UnidocValidation>>()
@@ -145,7 +146,10 @@ type Operator<In, Out> = (source : Observable<In>) => Observable<Out>
 *
 * @return An operator that transform a stream of events to a stream of validation.
 */
-export function validate (validator : UnidocValidator) : Operator<UnidocEvent, UnidocValidation> {
+export function validate (process : UnidocValidationProcess) : Operator<UnidocEvent, UnidocValidation> {
+  const validator : UnidocValidator = new UnidocValidator()
+  validator.start(process)
+  
   const result : Validator = new Validator(validator)
 
   return function (input : Observable<UnidocEvent>) : Observable<UnidocValidation> {

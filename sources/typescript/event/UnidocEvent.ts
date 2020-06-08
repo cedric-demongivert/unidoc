@@ -300,11 +300,11 @@ export class UnidocEvent {
 
     result += this.timestamp
     result += ' '
-    result += UnidocEventType.toString(this.type).padEnd(15)
+    result += UnidocEventType.toString(this.type)
     result += ' '
-    result += this.from.toString().padEnd(15, ' ')
+    result += this.from.toString()
     result += ' - '
-    result += this.to.toString().padEnd(15, ' ')
+    result += this.to.toString()
     result += ' ['
     result += this.path.toString()
     result += ']'
@@ -420,5 +420,9 @@ export namespace UnidocEvent {
     clear (instance : UnidocEvent) : void {
       instance.clear()
     }
+  }
+
+  export function equals (left : UnidocEvent, right : UnidocEvent) : boolean {
+    return left == null ? left == right : left.equals(right)
   }
 }

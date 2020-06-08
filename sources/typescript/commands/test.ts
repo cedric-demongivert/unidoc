@@ -9,6 +9,6 @@ import { Document } from '../standard/Document'
 fromString(require('../../../local/test.unidoc').default)
   .pipe(tokenize())
   .pipe(parse())
-  .pipe(validate(Document.VALIDATOR))
+  .pipe(validate(Document.validator()))
   .pipe(map(x => x.toString()))
   .forEach(console.log)
