@@ -118,7 +118,6 @@ class Parser {
   * Handle a parsing completion event.
   */
   public handleCompletion () : void {
-    console.log('complete')
     for (const output of this._outputs) {
       output.complete()
     }

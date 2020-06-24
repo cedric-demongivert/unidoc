@@ -57,7 +57,7 @@ export class HTMLEvent {
   public copy (toCopy : HTMLEvent) : void {
     this.tag = toCopy.tag
     this.content = toCopy.content
-    this.block = true
+    this.block = toCopy.block
     this.type = toCopy.type
     this.attributes.clear()
 

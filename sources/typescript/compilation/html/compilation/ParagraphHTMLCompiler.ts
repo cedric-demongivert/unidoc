@@ -144,6 +144,7 @@ export class ParagraphHTMLCompiler extends ListenableHTMLCompiler {
         this._event.tag = HTMLTag.EMPHASIZE
         this._event.block = false
         this.publish(this._event)
+        this.flush()
         break
       default:
         throw new Error('Unhandled unidoc tag : ' + event.tag + '.')

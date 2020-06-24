@@ -13,7 +13,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   /**
   * Buffer of events to fill until a title was discovered.
   */
-  private _buffer : Pack<HTMLEvent>
+  private _buffer : Pack<string>
   private _bufferWidth : number
   private _spaces : number
 
@@ -28,7 +28,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   */
   public constructor () {
     super()
-    this._buffer = Pack.instance(HTMLEvent.ALLOCATOR, 68)
+    this._buffer = Pack.any(32)
     this._bufferWidth = 0
     this._spaces = 0
     this._state = HTMLContentType.DOCUMENT_START
@@ -67,11 +67,30 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   }
 
   private handleWhitespace (event : HTMLEvent) : void {
+    if (this._buffer.size <= 0) return
 
+    const availableSpace : number = this.availableSpace() - this._bufferWidth
+    const tokenSize : number = this.sizeofWhitespace(event)
+
+    if (tokenSize > availableSpace) {
+      this.publishInlineContent()
+    } else {
+      this._buffer.push(' ')
+      this._spaces += 1
+      this._bufferWidth += tokenSize
+    }
   }
 
   private handleWord (event : HTMLEvent) : void {
+    const availableSpace : number = this.availableSpace() - this._bufferWidth
+    const tokenSize : number = this.sizeofWord(event)
 
+    if (tokenSize > availableSpace) {
+      this.publishInlineContent()
+    }
+
+    this._buffer.push(event.content)
+    this._bufferWidth += tokenSize
   }
 
   private handleTagStart (event : HTMLEvent) : void {
@@ -83,7 +102,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   }
 
   private handleBlockStart (event : HTMLEvent) : void {
-    this.flush()
+    this.publishInlineContentIfExists()
 
     const length : number = this.sizeofTagStart(event)
     const availableSpace : number = this.availableSpace()
@@ -98,12 +117,31 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   }
 
   private handleInlineStart (event : HTMLEvent) : void {
+    const availableSpace : number = this.availableSpace() - this._bufferWidth
+    const tokenSize : number = this.sizeofTagStart(event)
 
+    if (tokenSize > availableSpace) {
+      this.publishInlineContentIfExists()
+    }
+
+    this._buffer.push('<')
+    this._buffer.push(event.tag)
+
+    for (const attribute of event.attributes.keys()) {
+      this._buffer.push(' ')
+      this._buffer.push(attribute)
+      this._buffer.push('="')
+      this._buffer.push(event.attributes.get(attribute).toString())
+      this._buffer.push('"')
+    }
+
+    this._buffer.push('>')
+    this._bufferWidth += tokenSize
   }
 
   private handleTagEnd (event : HTMLEvent) : void {
     if (event.block) {
-      this.flush()
+      this.publishInlineContentIfExists()
       this._depth -= 1
       this.publishBlockEnd(event)
     } else {
@@ -112,7 +150,17 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   }
 
   private handleInlineEnd (event : HTMLEvent) : void {
+    const availableSpace : number = this.availableSpace() - this._bufferWidth
+    const tokenSize : number = this.sizeofTagEnd(event)
 
+    if (tokenSize > availableSpace) {
+      this.publishInlineContentIfExists()
+    }
+
+    this._buffer.push('</')
+    this._buffer.push(event.tag)
+    this._buffer.push('>')
+    this._bufferWidth += tokenSize
   }
 
   private handleComment (event : HTMLEvent) : void {
@@ -147,6 +195,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   private publishInlineBlockStart (event : HTMLEvent) : void {
     if (this._state !== HTMLContentType.DOCUMENT_START) {
       this.publish(NEWLINE)
+      this.publish(NEWLINE)
     }
 
     this.publish(this.pad(this._depth))
@@ -169,6 +218,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   private publishMultilineBlockStart (event : HTMLEvent) : void {
     if (this._state !== HTMLContentType.DOCUMENT_START) {
       this.publish(NEWLINE)
+      this.publish(NEWLINE)
     }
 
     this.publish(this.pad(this._depth))
@@ -189,6 +239,27 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
     this.publish(this.pad(this._depth))
     this.publish('>')
     this._state = HTMLContentType.BLOCK_START
+  }
+
+  public publishInlineContentIfExists () : void {
+    if (this._bufferWidth > 0) {
+      this.publishInlineContent()
+    }
+  }
+
+  public publishInlineContent () : void {
+    this.publish(NEWLINE)
+    this.publish(this.pad(this._depth))
+
+    for (const token of this._buffer) {
+      this.publish(token)
+    }
+
+    this._buffer.clear()
+    this._bufferWidth = 0
+    this._spaces = 0
+
+    this._state = HTMLContentType.INLINE
   }
 
   private pad (length : number) : string {
@@ -240,21 +311,18 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   }
 
   private sizeofTagEnd (event : HTMLEvent) : number {
-    return 1
+    return 2 + event.tag.length + 1
   }
 
   private sizeofComment (event : HTMLEvent) : number {
     return 4 + event.content.length + 3
   }
 
-  public flush () : void {
-
-  }
-
   /**
   * @see HTMLFormatter.complete
   */
   public complete () : void {
+    this.publishInlineContentIfExists()
     this.publishCompletion()
   }
 
