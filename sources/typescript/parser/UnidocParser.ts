@@ -157,6 +157,7 @@ export class UnidocParser {
         this.emitTagEnd(UnidocLocation.ZERO, UnidocLocation.ZERO)
         this._states.last.type = UnidocParserStateType.TERMINATION
         this._states.last.from.copy(UnidocLocation.ZERO)
+        this.complete()
         return
       case UnidocParserStateType.START_WHITESPACE:
         this.location.copy(this._tokens.from)
@@ -166,6 +167,7 @@ export class UnidocParser {
         this.emitTagEnd(this._tokens.to, this._tokens.to)
         this._states.last.type = UnidocParserStateType.TERMINATION
         this._states.last.from.copy(UnidocLocation.ZERO)
+        this.complete()
         return
       case UnidocParserStateType.START_CLASSES_BEFORE_IDENTIFIER:
       case UnidocParserStateType.START_CLASSES_AFTER_IDENTIFIER:
@@ -173,10 +175,12 @@ export class UnidocParser {
         this.emitTagEnd(this.location, this.location)
         this._states.last.type = UnidocParserStateType.TERMINATION
         this._states.last.from.copy(UnidocLocation.ZERO)
+        this.complete()
         return
       case UnidocParserStateType.STREAM_CONTENT:
         this.emitTagEnd(this.location, this.location)
         this._states.last.type = UnidocParserStateType.TERMINATION
+        this.complete()
         return
       case UnidocParserStateType.SINGLETON_CONTENT:
       case UnidocParserStateType.SINGLETON_TERMINATION:
@@ -209,6 +213,8 @@ export class UnidocParser {
         this.complete()
         return
       case UnidocParserStateType.TERMINATION:
+        this.emitCompletion()
+        return
       case UnidocParserStateType.ERROR:
         return
     }
@@ -767,6 +773,12 @@ export class UnidocParser {
   private emit (event : UnidocEvent) : void {
     for (const callback of this._eventListeneners) {
       callback(event)
+    }
+  }
+
+  private emitCompletion () : void {
+    for (const callback of this._completionListeners) {
+      callback()
     }
   }
 

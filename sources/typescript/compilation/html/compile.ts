@@ -2,53 +2,43 @@ import { Observable } from 'rxjs'
 import { Subscriber } from 'rxjs'
 import { Subscription } from 'rxjs'
 
-import { UnidocParser } from './parser/UnidocParser'
-import { UnidocEvent } from './event/UnidocEvent'
-import { UnidocToken } from './token/UnidocToken'
+import { HTMLCompiler } from './compilation/HTMLCompiler'
+import { HTMLCompilerEventType } from './compilation/HTMLCompilerEventType'
+import { UnidocEvent } from '../../event/UnidocEvent'
+import { HTMLEvent } from './event/HTMLEvent'
 
-class Parser {
-  /**
-  * The lexer to use for tokenization.
-  */
-  private _parser : UnidocParser
+class Compilator {
+  private _compiler : HTMLCompiler
 
-  /**
-  * The source of symbol of this tokenizer.
-  */
-  private _input : Observable<UnidocToken>
+  private _input : Observable<UnidocEvent>
 
-  /**
-  * The subscription to the source of symbol of this tokenizer.
-  */
   private _subscription : Subscription
 
-  /**
-  * The subscription to the source of symbol of this tokenizer.
-  */
-  private _outputs : Set<Subscriber<UnidocEvent>>
+  private _outputs : Set<Subscriber<HTMLEvent>>
 
   /**
   * Instantiate a new tokenizer.
   *
   * @param lexer - The lexer to use for tokenization.
   */
-  public constructor () {
-    this._parser           = new UnidocParser()
+  public constructor (compiler : HTMLCompiler) {
+    this._compiler         = compiler
+    this._compiler.start()
     this._input            = null
     this._subscription     = null
-    this._outputs          = new Set<Subscriber<UnidocEvent>>()
+    this._outputs          = new Set<Subscriber<HTMLEvent>>()
 
     this.consumeNextToken = this.consumeNextToken.bind(this)
     this.consumeNextError  = this.consumeNextError.bind(this)
     this.consumeCompletion = this.consumeCompletion.bind(this)
 
     this.handleNextEvent = this.handleNextEvent.bind(this)
-    this.handleNextValidation = this.handleNextValidation.bind(this)
+    this.handleNextError = this.handleNextError.bind(this)
     this.handleCompletion = this.handleCompletion.bind(this)
 
-    this._parser.addEventListener('event', this.handleNextEvent)
-    this._parser.addEventListener('validation', this.handleNextValidation)
-    this._parser.addEventListener('completion', this.handleCompletion)
+    this._compiler.addEventListener(HTMLCompilerEventType.CONTENT, this.handleNextEvent)
+    this._compiler.addEventListener(HTMLCompilerEventType.ERROR, this.handleNextError)
+    this._compiler.addEventListener(HTMLCompilerEventType.COMPLETION, this.handleCompletion)
   }
 
   /**
@@ -56,7 +46,7 @@ class Parser {
   *
   * @param output - An output to fill with recognized events.
   */
-  public stream (output : Subscriber<UnidocEvent>) : void {
+  public stream (output : Subscriber<HTMLEvent>) : void {
     this._outputs.add(output)
   }
 
@@ -65,7 +55,7 @@ class Parser {
   *
   * @param output - An output to stop to fill with recognized events.
   */
-  public unstream (output : Subscriber<UnidocEvent>) : void {
+  public unstream (output : Subscriber<HTMLEvent>) : void {
     this._outputs.delete(output)
   }
 
@@ -74,7 +64,7 @@ class Parser {
   *
   * @param input - A source of token.
   */
-  public subscribe (input : Observable<UnidocToken>) : void {
+  public subscribe (input : Observable<UnidocEvent>) : void {
     if (this._input !== input) {
       if (this._subscription) {
         this._subscription.unsubscribe()
@@ -97,40 +87,39 @@ class Parser {
   /**
   * Handle the emission of the given event.
   *
-  * @param event - The token to consume.
+  * @param event - The event to consume.
   */
-  public handleNextEvent (event : UnidocEvent) : void {
+  public handleNextEvent (event : HTMLEvent) : void {
     for (const output of this._outputs) {
       output.next(event)
     }
   }
 
   /**
-  * Handle the emission of the given event.
+  * Handle the emission of the given error.
   *
-  * @param validation - The token to consume.
+  * @param error - The error to consume.
   */
-  public handleNextValidation (validation : any) : void {
-    console.log('validation')
+  public handleNextError (error : Error) : void {
+    console.error(error)
   }
 
   /**
-  * Handle a parsing completion event.
+  * Handle a completion event.
   */
   public handleCompletion () : void {
-    console.log('complete')
     for (const output of this._outputs) {
       output.complete()
     }
   }
 
   /**
-  * Consume the next available token.
+  * Consume the next available event.
   *
-  * @param symbol - The token to consume.
+  * @param event - The event to consume.
   */
-  public consumeNextToken (token : UnidocToken) : void {
-    this._parser.next(token)
+  public consumeNextToken (event : UnidocEvent) : void {
+    this._compiler.next(event)
   }
 
   /**
@@ -139,14 +128,14 @@ class Parser {
   * @param error - An error to consume.
   */
   public consumeNextError (error : Error) : void {
-    console.log(error)
+    console.error(error)
   }
 
   /**
   * Consume a completion signal.
   */
   public consumeCompletion () : void {
-    this._parser.complete()
+    this._compiler.complete()
   }
 }
 
@@ -157,14 +146,14 @@ type Operator<In, Out> = (source : Observable<In>) => Observable<Out>
 *
 * @return An operator that transform a stream of symbols to a stream of tokens.
 */
-export function parse () : Operator<UnidocToken, UnidocEvent> {
-  const tokenizer : Parser = new Parser()
+export function compile (compiler : HTMLCompiler) : Operator<UnidocEvent, HTMLEvent> {
+  const manager : Compilator = new Compilator(compiler)
 
-  return function (input : Observable<UnidocToken>) : Observable<UnidocEvent> {
-    return new Observable<UnidocEvent>(
-      function (subscriber : Subscriber<UnidocEvent>) {
-        tokenizer.stream(subscriber)
-        tokenizer.subscribe(input)
+  return function (input : Observable<UnidocEvent>) : Observable<HTMLEvent> {
+    return new Observable<HTMLEvent>(
+      function (subscriber : Subscriber<HTMLEvent>) {
+        manager.stream(subscriber)
+        manager.subscribe(input)
       }
     )
   }
