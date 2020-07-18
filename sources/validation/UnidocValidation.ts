@@ -2,6 +2,8 @@ import { UnidocPath } from '../path/UnidocPath'
 
 import { UnidocValidationType } from './UnidocValidationType'
 
+const EMPTY_STRING : string = ''
+
 export class UnidocValidation {
   public type          : UnidocValidationType
   public path          : UnidocPath
@@ -14,7 +16,7 @@ export class UnidocValidation {
   public constructor () {
     this.type = UnidocValidationType.DEFAULT
     this.path = new UnidocPath()
-    this.code = undefined
+    this.code = EMPTY_STRING
     this.data = new Map<string, any>()
   }
 
@@ -44,7 +46,7 @@ export class UnidocValidation {
   */
   public clear () : void {
     this.type = UnidocValidationType.DEFAULT
-    this.code = undefined
+    this.code = EMPTY_STRING
     this.data.clear()
     this.path.clear()
   }
@@ -121,7 +123,9 @@ export namespace UnidocValidation {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : UnidocValidation) : UnidocValidation {
-    return toCopy == null ? null : toCopy.clone()
+  export function copy (toCopy : UnidocValidation) : UnidocValidation
+  export function copy (toCopy : null) : null
+  export function copy (toCopy : UnidocValidation | null) : UnidocValidation | null {
+    return toCopy == null ? toCopy : toCopy.clone()
   }
 }

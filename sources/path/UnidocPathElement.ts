@@ -5,6 +5,7 @@ import { UnidocLocation } from '../UnidocLocation'
 import { UnidocPathElementType } from './UnidocPathElementType'
 
 const TAG_ELEMENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
+const EMPTY_STRING : string = ''
 
 export class UnidocPathElement {
   /**
@@ -44,8 +45,8 @@ export class UnidocPathElement {
     this.type = UnidocPathElementType.SYMBOL
     this.from = new UnidocLocation()
     this.to = new UnidocLocation()
-    this.tag = undefined
-    this.identifier = undefined
+    this.tag = EMPTY_STRING
+    this.identifier = EMPTY_STRING
     this.classes = new Set<string>()
   }
 
@@ -71,21 +72,23 @@ export class UnidocPathElement {
   public asTag (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
     this.clear()
 
-    const tokens : RegExpExecArray = TAG_ELEMENT_CONFIGURATION.exec(configuration)
-
     this.type = UnidocPathElementType.TAG
     this.from.copy(from)
     this.to.copy(to)
 
-    for (let index = 1; index < tokens.length; ++index) {
-      const token : string = tokens[index]
+    const tokens : RegExpExecArray | null = TAG_ELEMENT_CONFIGURATION.exec(configuration)
 
-      if (token.startsWith('#')) {
-        this.identifier = token.substring(1)
-      } else if (token.startsWith('.')) {
-        this.classes.add(token.substring(1))
-      } else {
-        this.tag = token
+    if (tokens != null) {
+      for (let index = 1; index < tokens.length; ++index) {
+        const token : string = tokens[index]
+
+        if (token.startsWith('#')) {
+          this.identifier = token.substring(1)
+        } else if (token.startsWith('.')) {
+          this.classes.add(token.substring(1))
+        } else {
+          this.tag = token
+        }
       }
     }
   }
@@ -138,8 +141,8 @@ export class UnidocPathElement {
     this.type = UnidocPathElementType.SYMBOL
     this.from.clear()
     this.to.clear()
-    this.tag = undefined
-    this.identifier = undefined
+    this.tag = EMPTY_STRING
+    this.identifier = EMPTY_STRING
     this.classes.clear()
   }
 
@@ -221,8 +224,10 @@ export namespace UnidocPathElement {
   *
   * @return A copy of the given path element.
   */
-  export function copy (toCopy : UnidocPathElement) : UnidocPathElement {
-    return toCopy == null ? null : toCopy.clone()
+  export function copy (toCopy : UnidocPathElement) : UnidocPathElement
+  export function copy (toCopy : null) : null
+  export function copy (toCopy : UnidocPathElement | null) : UnidocPathElement | null {
+    return toCopy == null ? toCopy : toCopy.clone()
   }
 
   export const ALLOCATOR : Allocator<UnidocPathElement> = {

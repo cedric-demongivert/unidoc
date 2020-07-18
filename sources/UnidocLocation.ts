@@ -104,6 +104,15 @@ export class UnidocLocation {
   }
 
   /**
+  * @return A copy of this location.
+  */
+  public clone () : UnidocLocation  {
+    const result : UnidocLocation = new UnidocLocation()
+    result.copy(this)
+    return result
+  }
+
+  /**
   * Copy another location.
   *
   * @param toCopy - Another instance to copy.
@@ -144,6 +153,8 @@ export class UnidocLocation {
              other.column === this.column &&
              other.index === this.index
     }
+
+    return false
   }
 }
 
@@ -155,10 +166,9 @@ export namespace UnidocLocation {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : UnidocLocation) : UnidocLocation {
-    const result : UnidocLocation = new UnidocLocation()
-    result.copy(toCopy)
-
-    return result
+  export function copy (toCopy : UnidocLocation) : UnidocLocation
+  export function copy (toCopy : null) : null
+  export function copy (toCopy : UnidocLocation | null) : UnidocLocation | null {
+    return toCopy == null ? toCopy : toCopy.clone()
   }
 }

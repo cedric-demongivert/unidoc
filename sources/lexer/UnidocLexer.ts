@@ -89,9 +89,10 @@ export class UnidocLexer {
   *
   * @param content - A string to explode into code point to give to this lexer.
   */
-  public nextString (content : String) : void {
+  public nextString (content : string) : void {
     for (let index = 0, size = content.length; index < size; ++index) {
-      this.nextCodePoint(content.codePointAt(index))
+      // no undefined code point for valid string instances due to boundaries limitation
+      this.nextCodePoint(content.codePointAt(index) as CodePoint)
     }
   }
 

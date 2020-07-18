@@ -1,12 +1,10 @@
 /** eslint-env jest */
 
-import { UnidocParser } from '../sources/typescript/parser/UnidocParser'
-import { UnidocParserState } from '../sources/typescript/parser/UnidocParserState'
-import { UnidocToken } from '../sources/typescript/token/UnidocToken'
-import { UnidocLocation } from '../sources/typescript/UnidocLocation'
-import { UnidocTokenBuffer } from '../sources/typescript/token/UnidocTokenBuffer'
-import { UnidocEventBuffer } from '../sources/typescript/event/UnidocEventBuffer'
-
+import { UnidocParser } from '../sources/parser/UnidocParser'
+import { UnidocToken } from '../sources/token/UnidocToken'
+import { UnidocLocation } from '../sources/UnidocLocation'
+import { UnidocTokenBuffer } from '../sources/token/UnidocTokenBuffer'
+import { UnidocEventBuffer } from '../sources/event/UnidocEventBuffer'
 
 describe('UnidocParser', function () {
   describe('document tag recognition', function () {
@@ -21,7 +19,7 @@ describe('UnidocParser', function () {
 
       expectation.pushTagStart(UnidocLocation.ZERO, UnidocLocation.ZERO, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('emit a document starting event when a class is discovered', function () {
@@ -35,7 +33,7 @@ describe('UnidocParser', function () {
 
       expectation.pushTagStart(UnidocLocation.ZERO, UnidocLocation.ZERO, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('emit a document starting event when an identifier is discovered', function () {
@@ -49,7 +47,7 @@ describe('UnidocParser', function () {
 
       expectation.pushTagStart(UnidocLocation.ZERO, UnidocLocation.ZERO, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('emit a document starting event when a tag is discovered', function () {
@@ -63,7 +61,7 @@ describe('UnidocParser', function () {
 
       expectation.pushTagStart(UnidocLocation.ZERO, UnidocLocation.ZERO, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('emit a document starting event when a block opening is discovered', function () {
@@ -78,7 +76,7 @@ describe('UnidocParser', function () {
       expectation.pushTagStart(UnidocLocation.ZERO, UnidocLocation.ZERO, 'document')
       expectation.pushTagStart(UnidocLocation.ZERO, UnidocToken.blockStart(UnidocLocation.ZERO).to, 'block')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('emit a document ending event at completion', function () {
@@ -100,7 +98,7 @@ describe('UnidocParser', function () {
       expectation.pushWord(input.from, 'test')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('emit a document tag starting and ending event at completion if empty', function () {
@@ -115,7 +113,7 @@ describe('UnidocParser', function () {
       expectation.pushTagStart(UnidocLocation.ZERO, UnidocLocation.ZERO, 'document')
       expectation.pushTagEnd(UnidocLocation.ZERO, UnidocLocation.ZERO, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize the root document tag', function () {
@@ -153,7 +151,7 @@ describe('UnidocParser', function () {
       expectation.pushWord(input.slice(0, 15).to, 'test')
       expectation.pushTagEnd(input.to, input.to, 'document#pwet.article.go.green.blue')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize the root document with a class and followed by a tag', function () {
@@ -194,7 +192,7 @@ describe('UnidocParser', function () {
       expectation.pushWhitespace(input.slice(13, 1).from, input.slice(13, 1).text)
       expectation.pushTagEnd(input.to, input.to, 'document.ruleset')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
   })
 
@@ -222,7 +220,7 @@ describe('UnidocParser', function () {
       expectation.pushWhitespace(input.from, input.text)
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize sequence of newline tokens', function () {
@@ -248,7 +246,7 @@ describe('UnidocParser', function () {
       expectation.pushWhitespace(input.from, input.text)
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize sequence of both newline and space tokens', function () {
@@ -275,7 +273,7 @@ describe('UnidocParser', function () {
       expectation.pushWhitespace(input.from, input.text)
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize whitespace when other type of tokens are discovered', function () {
@@ -299,7 +297,7 @@ describe('UnidocParser', function () {
       expectation.pushTagStart(UnidocLocation.ZERO, UnidocLocation.ZERO, 'document')
       expectation.pushWhitespace(input.from, input.slice(0, input.size - 1).text)
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize whitespace between words', function () {
@@ -325,7 +323,7 @@ describe('UnidocParser', function () {
       expectation.pushWord(input.from, 'zwrtyt')
       expectation.pushWhitespace(input.slice(0, 1).to, input.slice(1, input.size - 2).text)
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
   })
 
@@ -353,7 +351,7 @@ describe('UnidocParser', function () {
       expectation.pushWord(input.from, input.text)
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize word when other type of tokens are discovered', function () {
@@ -378,7 +376,7 @@ describe('UnidocParser', function () {
       expectation.pushWord(input.from, input.slice(0, input.size - 1).text)
       expectation.pushTagStart(input.last.from, input.last.to, 'block')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
   })
 
@@ -405,7 +403,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.last.from, input.last.to, 'block')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize singleton tags over text', function () {
@@ -432,7 +430,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.to, input.to, 'emphasize')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize singleton tags over tag', function () {
@@ -463,7 +461,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.to, input.to, 'emphasize')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize singleton tags with classes', function () {
@@ -494,7 +492,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.to, input.to, 'emphasize.yellow.green.blue')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize singleton tags with identifier', function () {
@@ -523,7 +521,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.to, input.to, 'emphasize#yellow')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize singleton tags with identifier and classes', function () {
@@ -556,7 +554,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.to, input.to, 'emphasize#yellow.green.blue.red.purple')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize block tags', function () {
@@ -585,7 +583,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.last.from, input.last.to, 'emphasize')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize block tags with classes', function () {
@@ -618,7 +616,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.last.from, input.last.to, 'emphasize.yellow.green.blue')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize block tags with identifier', function () {
@@ -649,7 +647,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.last.from, input.last.to, 'emphasize#yellow')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
 
     it('recognize singleton tags with identifier and classes', function () {
@@ -684,7 +682,7 @@ describe('UnidocParser', function () {
       expectation.pushTagEnd(input.last.from, input.last.to, 'emphasize#yellow.green.blue.red.purple')
       expectation.pushTagEnd(input.to, input.to, 'document')
 
-      expect(_ => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
+      expect(() => UnidocEventBuffer.assert(expectation, output)).not.toThrow()
     })
   })
 })

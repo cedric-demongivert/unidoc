@@ -4,8 +4,8 @@ const package = require('./package.json')
 
 const fileSystem = require('fs')
 
-for (const file of fileSystem.readdirSync('./sources/typescript/commands')) {
-  mix.ts('./sources/typescript/commands/' + file, 'distribution')
+for (const file of fileSystem.readdirSync('./sources/commands')) {
+  mix.ts('./sources/commands/' + file, 'distribution')
 }
 
 const externals = []
@@ -14,7 +14,7 @@ for (const name in package.dependencies) {
   externals.push(new RegExp(`^${name}(\\/.+)?$`))
 }
 
-mix.ts('./sources/typescript/index.ts', 'distribution')
+mix.ts('./sources/index.ts', 'distribution')
    .copy('LICENSE.md', 'distribution')
    .copy('package.json', 'distribution')
    .copy('README.md', 'distribution')
@@ -29,12 +29,6 @@ mix.ts('./sources/typescript/index.ts', 'distribution')
        'library': package.name,
        'libraryTarget': 'umd',
        'globalObject': 'this' // webpack bug
-     },
-     'resolve': {
-       'alias': {
-         '@library': path.resolve('./sources/typescript'),
-         '@grammar': path.resolve('./sources/generated')
-       }
      },
      'module': {
        'rules': [

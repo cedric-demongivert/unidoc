@@ -5,21 +5,21 @@
     "types": ["jest", "node"],
     "alwaysStrict": true,
     "moduleResolution": "node",
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "downlevelIteration": true,
+    "strict": true,
     "declaration": true,
     "declarationDir": "./distribution/types",
-    "outDir": "./distribution/src",
-    "baseUrl": ".",
-    "paths": {
-      "@grammar/*": ["sources/generated/*"],
-      "@library/*": ["sources/typescript/*"]
-    }
+    "outDir": "./distribution/sources",
+    "baseUrl": "."
   },
   "include": [
-      "sources/typescript/**/*",
-      "sources/generated/**/*"
+    "sources/**/*"
   ],
   "exclude": [
-      "node_modules",
-      "**/*.spec.ts"
+    "sources/next/**/*",
+    "node_modules",
+    "**/*.spec.ts"
   ]
 }

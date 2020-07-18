@@ -98,6 +98,38 @@ export class UnidocPath {
   }
 
   /**
+  * Replace an element of this path.
+  *
+  * @param index - The index of the element to replace.
+  * @param step - The element to set at the given index.
+  */
+  public set (index : number, step : UnidocPathElement) : void {
+    this._elements.set(index, step)
+  }
+
+  /**
+  * Replace an element of this path with a symbol element.
+  *
+  * @param index - The index of the element to replace.
+  * @param location - Location of the symbol in its parent document.
+  */
+  public setSymbol (index : number, location : UnidocLocation) : void {
+    this._elements.get(index).asSymbol(location)
+  }
+
+  /**
+  * Replace an element of this path with a tag element.
+  *
+  * @param index - The index of the element to replace.
+  * @param from - Starting location of the tag in its parent document.
+  * @param to - Ending location of the tag in its parent document, may be unknown.
+  * @param configuration - Type, identifier and classes of the tag to append.
+  */
+  public setTag (index : number, from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
+    this._elements.get(index).asTag(from, to, configuration)
+  }
+
+  /**
   * Concat the given path at the end of this path.
   *
   * All concatenated elements will be deep-copied.
@@ -139,7 +171,16 @@ export class UnidocPath {
   }
 
   /**
-  * Copy the given path.
+  * @return A deep copy of this path.
+  */
+  public clone () : UnidocPath {
+    const result : UnidocPath = new UnidocPath(this.size)
+    result.copy(this)
+    return result
+  }
+
+  /**
+  * Deeply copy the given path.
   *
   * @param toCopy - A path instance to copy.
   */
@@ -192,6 +233,8 @@ export class UnidocPath {
 
       return true
     }
+
+    return false
   }
 
   /**
@@ -202,7 +245,12 @@ export class UnidocPath {
   }
 }
 
-export namespace Path {
+export namespace UnidocPath {
+  /**
+  * Class of each instance of a path element.
+  */
+  export const Element = UnidocPathElement
+
   /**
   * Instantiate a deep copy of the given instance.
   *
@@ -210,11 +258,9 @@ export namespace Path {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : UnidocPath) : UnidocPath {
-    const result : UnidocPath = new UnidocPath()
-
-    result.copy(toCopy)
-
-    return result
+  export function copy (toCopy : UnidocPath) : UnidocPath
+  export function copy (toCopy : null) : null
+  export function copy (toCopy : UnidocPath | null) : UnidocPath | null {
+    return toCopy == null ? toCopy : toCopy.clone()
   }
 }

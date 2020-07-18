@@ -26,7 +26,7 @@ export namespace UnidocEventType {
   *
   * @param value - Unidoc event type to stringify.
   */
-  export function toString (value : UnidocEventType) : string {
+  export function toString (value : UnidocEventType) : string | undefined {
     switch (value) {
       case START_TAG      : return 'START_TAG'
       case END_TAG        : return 'END_TAG'

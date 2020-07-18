@@ -22,7 +22,7 @@ export namespace UnidocTokenType {
   *
   * @param value - Unidoc token type to stringify.
   */
-  export function toString (value : UnidocTokenType) : string {
+  export function toString (value : UnidocTokenType) : string | undefined {
     switch (value) {
       case IDENTIFIER : return 'IDENTIFIER'
       case CLASS      : return 'CLASS'

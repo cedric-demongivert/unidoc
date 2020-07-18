@@ -1,8 +1,8 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocLocation } from '@library/UnidocLocation'
-import { CodePoint } from '@library/CodePoint'
+import { UnidocLocation } from '../UnidocLocation'
+import { CodePoint } from '../CodePoint'
 
 import { UnidocTokenType } from './UnidocTokenType'
 
@@ -60,7 +60,8 @@ export class UnidocToken {
     this.symbols.clear()
 
     for (let index = 0; index < value.length; ++index) {
-      this.symbols.push(value.codePointAt(index))
+      // no undefined code point for valid string instances due to boundaries limitation
+      this.symbols.push(value.codePointAt(index) as CodePoint)
     }
   }
 
@@ -243,7 +244,9 @@ export class UnidocToken {
 
       for (let index = 1; index < this.symbols.size; ++index) {
         let origin : number = this.symbols.get(index)
-        let target : number = tag.codePointAt(index - 1)
+
+        // no undefined code point for valid string instances due to boundaries limitation
+        let target : number = tag.codePointAt(index - 1) as CodePoint
 
         if (origin >= 65 && origin <= 90) {
           origin += 32
@@ -330,8 +333,10 @@ export namespace UnidocToken {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : UnidocToken) : UnidocToken {
-    return toCopy == null ? null : toCopy.clone()
+  export function copy (toCopy : UnidocToken) : UnidocToken
+  export function copy (toCopy : null) : null
+  export function copy (toCopy : UnidocToken | null) : UnidocToken | null {
+    return toCopy == null ? toCopy : toCopy.clone()
   }
 
   /**

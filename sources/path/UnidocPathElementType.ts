@@ -9,7 +9,7 @@ export namespace UnidocPathElementType {
     SYMBOL
   ]
 
-  export function toString (value : UnidocPathElementType) : string {
+  export function toString (value : UnidocPathElementType) : string | undefined {
     switch (value)  {
       case TAG    : return 'TAG'
       case SYMBOL : return 'SYMBOL'

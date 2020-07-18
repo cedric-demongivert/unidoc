@@ -4,6 +4,8 @@ import { UnidocParserStateType } from './UnidocParserStateType'
 
 import { UnidocLocation } from '../UnidocLocation'
 
+const EMPTY_STRING : string = ''
+
 export class UnidocParserState {
   public type                : UnidocParserStateType
   public tag                 : string
@@ -16,8 +18,8 @@ export class UnidocParserState {
   */
   public constructor () {
     this.type       = UnidocParserStateType.START
-    this.tag        = undefined
-    this.identifier = undefined
+    this.tag        = EMPTY_STRING
+    this.identifier = EMPTY_STRING
     this.classes    = new Set()
     this.from       = new UnidocLocation()
   }
@@ -27,8 +29,8 @@ export class UnidocParserState {
   */
   public clear () : void {
     this.type       = UnidocParserStateType.START
-    this.tag        = undefined
-    this.identifier = undefined
+    this.tag        = EMPTY_STRING
+    this.identifier = EMPTY_STRING
     this.classes.clear()
     this.from.clear()
   }
@@ -74,6 +76,8 @@ export class UnidocParserState {
 
       return true
     }
+
+    return false
   }
 }
 

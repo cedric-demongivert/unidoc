@@ -18,7 +18,7 @@ export namespace UnidocLexerState {
     TAG, SPACE, CARRIAGE_RETURN, WORD, END
   ]
 
-  export function toString (state : UnidocLexerState) : string {
+  export function toString (state : UnidocLexerState) : string | undefined {
     switch (state) {
       case START: return 'START'
       case ANTISLASH: return 'ANTISLASH'

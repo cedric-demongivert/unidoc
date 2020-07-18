@@ -11,9 +11,7 @@ import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
 import { UnidocValidation } from '../validation/UnidocValidation'
-import { UnidocValidationType } from '../validation/UnidocValidationType'
 
-import { UnidocParserState } from './UnidocParserState'
 import { UnidocParserStateType } from './UnidocParserStateType'
 
 import { UnidocParserEventType } from './UnidocParserEventType'
@@ -89,6 +87,8 @@ export class UnidocParser {
     this._validationListeners = new Set<UnidocParser.ValidationListener>()
     this._completionListeners = new Set<UnidocParser.CompletionListener>()
     this._errorListeners      = new Set<UnidocParser.ErrorListener>()
+
+    this._validation = new UnidocValidation()
 
     this._states.push(UnidocParserStateType.START)
   }

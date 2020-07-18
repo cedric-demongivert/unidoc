@@ -40,7 +40,7 @@ export namespace UnidocParserStateType {
   *
   * @return A string representation of the given state.
   */
-  export function toString (state : UnidocParserStateType) : string {
+  export function toString (state : UnidocParserStateType) : string | undefined {
     switch (state) {
       case START                           : return 'START'
       case START_WHITESPACE                : return 'START_WHITESPACE'

@@ -19,7 +19,7 @@ export namespace UnidocValidationType {
   *
   * @return A text representation of the given type constant.
   */
-  export function toString (type : UnidocValidationType) : string {
+  export function toString (type : UnidocValidationType) : string | undefined {
     switch (type) {
       case ERROR       : return 'ERROR'
       case WARNING     : return 'WARNING'

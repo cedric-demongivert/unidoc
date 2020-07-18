@@ -9,6 +9,7 @@ import { CodePoint } from '../CodePoint'
 import { UnidocEventType } from './UnidocEventType'
 
 const TAG_EVENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?((?:\.[a-zA-Z0-9\-]+)+)?$/i
+const EMPTY_STRING : string = ''
 
 /**
 * A unidoc event.
@@ -68,8 +69,8 @@ export class UnidocEvent {
     this.type       = UnidocEventType.START_TAG
     this.from       = new UnidocLocation()
     this.to         = new UnidocLocation()
-    this.tag        = undefined
-    this.identifier = undefined
+    this.tag        = EMPTY_STRING
+    this.identifier = EMPTY_STRING
     this.classes    = new Set<string>()
     this.symbols    = Pack.uint32(128)
     this.path       = new UnidocPath(32)
@@ -92,7 +93,8 @@ export class UnidocEvent {
     this.symbols.size = content.length
 
     for (let index = 0; index < content.length; ++index) {
-      this.symbols.set(index, content.codePointAt(index))
+      // no undefined code point due to boundary limit
+      this.symbols.set(index, content.codePointAt(index) as CodePoint)
     }
   }
 
@@ -196,18 +198,23 @@ export class UnidocEvent {
   public asTagStart (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
     this.clear()
 
-    const tokens : RegExpExecArray = TAG_EVENT_CONFIGURATION.exec(configuration)
-
     this.type = UnidocEventType.START_TAG
     this.from.copy(from)
     this.to.copy(to)
 
-    this.tag = tokens[1]
-    this.identifier = tokens[2] == null ? undefined : tokens[2].substring(1)
+    this.tag = EMPTY_STRING
+    this.identifier = EMPTY_STRING
 
-    if (tokens[3] != null) {
-      for (const token of tokens[3].substring(1).split('.')) {
-        this.classes.add(token)
+    const tokens : RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
+
+    if (tokens != null) {
+      this.tag = tokens[1]
+      this.identifier = tokens[2] == null ? EMPTY_STRING : tokens[2].substring(1)
+
+      if (tokens[3] != null) {
+        for (const token of tokens[3].substring(1).split('.')) {
+          this.classes.add(token)
+        }
       }
     }
   }
@@ -222,18 +229,23 @@ export class UnidocEvent {
   public asTagEnd (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
     this.clear()
 
-    const tokens : RegExpExecArray = TAG_EVENT_CONFIGURATION.exec(configuration)
-
     this.type = UnidocEventType.END_TAG
     this.from.copy(from)
     this.to.copy(to)
 
-    this.tag = tokens[1]
-    this.identifier = tokens[2] == null ? undefined : tokens[2].substring(1)
+    this.tag = EMPTY_STRING
+    this.identifier = EMPTY_STRING
 
-    if (tokens[3] != null) {
-      for (const token of tokens[3].substring(1).split('.')) {
-        this.classes.add(token)
+    const tokens : RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
+
+    if (tokens != null) {
+      this.tag = tokens[1]
+      this.identifier = tokens[2] == null ? EMPTY_STRING : tokens[2].substring(1)
+
+      if (tokens[3] != null) {
+        for (const token of tokens[3].substring(1).split('.')) {
+          this.classes.add(token)
+        }
       }
     }
   }
@@ -282,8 +294,8 @@ export class UnidocEvent {
   */
   public clear () : void {
     this.timestamp  = Date.now()
-    this.tag        = undefined
-    this.identifier = undefined
+    this.tag        = EMPTY_STRING
+    this.identifier = EMPTY_STRING
     this.path.clear()
 
     this.from.clear()
@@ -395,8 +407,10 @@ export namespace UnidocEvent {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : UnidocEvent) : UnidocEvent {
-    return toCopy == null ? null : toCopy.clone()
+  export function copy (toCopy : UnidocEvent) : UnidocEvent
+  export function copy (toCopy : null) : null
+  export function copy (toCopy : UnidocEvent | null) : UnidocEvent | null {
+    return toCopy == null ? toCopy : toCopy.clone()
   }
 
   export const ALLOCATOR : Allocator<UnidocEvent> = {

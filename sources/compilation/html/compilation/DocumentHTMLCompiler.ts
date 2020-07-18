@@ -1,19 +1,11 @@
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
-
 import { UnidocEvent } from '../../../event/UnidocEvent'
 import { UnidocEventType } from '../../../event/UnidocEventType'
 
 import { Paragraph } from '../../../standard/Paragraph'
-import { Title } from '../../../standard/Title'
-import { Emphasize } from '../../../standard/Emphasize'
 
 import { ListenableHTMLCompiler } from './ListenableHTMLCompiler'
-import { HTMLTag } from '../event/HTMLTag'
 import { HTMLEvent } from '../event/HTMLEvent'
-import { HTMLEventType } from '../event/HTMLEventType'
-import { HTMLAttribute } from '../event/HTMLAttribute'
 
-import { HTMLCompilerEventType } from './HTMLCompilerEventType'
 import { ParagraphHTMLCompiler } from './ParagraphHTMLCompiler'
 
 export class DocumentHTMLCompiler extends ListenableHTMLCompiler {
@@ -85,7 +77,7 @@ export class DocumentHTMLCompiler extends ListenableHTMLCompiler {
   /**
   * @see HTMLCompiler.complete
   */
-  public complete () : void {    
+  public complete () : void {
     if (this._restream) {
       this._paragraph.complete()
     }
