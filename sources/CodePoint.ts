@@ -77,4 +77,15 @@ export namespace CodePoint {
   export const Z               : CodePoint = 'Z'.codePointAt(0) as CodePoint
   export const COLON           : CodePoint = ':'.codePointAt(0) as CodePoint
   export const SEMICOLON       : CodePoint = ';'.codePointAt(0) as CodePoint
+
+  export function toDebugString (symbol : CodePoint) : string {
+    switch (symbol) {
+      case CodePoint.CARRIAGE_RETURN : return ':r'
+      case CodePoint.NEW_LINE        : return ':n'
+      case CodePoint.FORM_FEED       : return ':f'
+      case CodePoint.TABULATION      : return' :t'
+      case CodePoint.SPACE           : return' :s'
+      default                        : return String.fromCodePoint(symbol)
+    }
+  }
 }

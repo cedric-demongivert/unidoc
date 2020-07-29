@@ -1,3 +1,5 @@
+import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+
 /**
 * The location of a symbol in a unidoc document.
 */
@@ -159,6 +161,24 @@ export class UnidocLocation {
 }
 
 export namespace UnidocLocation {
+  const STRING_MATCHER : RegExp = /\(?\s*(\d+)\s*,?\s*(\d+)\s*,?\s*(\d+)\s*\)?/i
+
+  export function fromString (value : string) : UnidocLocation {
+    const match : RegExpExecArray | null = STRING_MATCHER.exec(value)
+
+    if (match) {
+      return new UnidocLocation(
+        parseInt(match[1]),
+        parseInt(match[2]),
+        parseInt(match[3])
+      )
+    } else {
+      throw new Error(
+        'Unable to extract an unidoc location from "' + value + '".'
+      )
+    }
+  }
+
   /**
   * Return a deep copy of the given instance.
   *
@@ -168,7 +188,31 @@ export namespace UnidocLocation {
   */
   export function copy (toCopy : UnidocLocation) : UnidocLocation
   export function copy (toCopy : null) : null
-  export function copy (toCopy : UnidocLocation | null) : UnidocLocation | null {
+  export function copy (toCopy : undefined) : undefined
+  export function copy (toCopy : UnidocLocation | null | undefined) : UnidocLocation | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
+  }
+
+  export const ALLOCATOR : Allocator<UnidocLocation> = {
+    /**
+    * @see Allocator.copy
+    */
+    allocate () : UnidocLocation {
+      return new UnidocLocation()
+    },
+
+    /**
+    * @see Allocator.copy
+    */
+    copy (source : UnidocLocation, destination : UnidocLocation) : void {
+      destination.copy(source)
+    },
+
+    /**
+    * @see Allocator.clear
+    */
+    clear (instance : UnidocLocation) : void {
+      instance.clear()
+    }
   }
 }

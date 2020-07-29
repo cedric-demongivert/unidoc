@@ -24,9 +24,9 @@ export class UnidocPathElement {
   public readonly  to : UnidocLocation
 
   /**
-  * The tag, if any.
+  * The name of this element, if any.
   */
-  public tag : string
+  public name : string
 
   /**
   * Identifier associated to the block or the tag, if any.
@@ -45,9 +45,50 @@ export class UnidocPathElement {
     this.type = UnidocPathElementType.SYMBOL
     this.from = new UnidocLocation()
     this.to = new UnidocLocation()
-    this.tag = EMPTY_STRING
+    this.name = EMPTY_STRING
     this.identifier = EMPTY_STRING
     this.classes = new Set<string>()
+  }
+
+  /**
+  * Transform this path element as a file path element.
+  *
+  * @param url - URL of the file.
+  * @param from - Starting location of the tag, may be unknown.
+  * @param [to = from] - Ending location of the tag, may be unknown.
+  */
+  public asFile (url : string, from : UnidocLocation, to : UnidocLocation = from) : void {
+    this.clear()
+    this.type = UnidocPathElementType.FILE
+    this.name = url
+    this.from.copy(from)
+    this.to.copy(to)
+  }
+
+  /**
+  * Transform this path element as a stream path element.
+  *
+  * @param from - Starting location in the stream, may be unknown.
+  * @param [to = from] - Ending location in the stream, may be unknown.
+  */
+  public asStream (from : UnidocLocation, to : UnidocLocation = from) : void {
+    this.clear()
+    this.type = UnidocPathElementType.STREAM
+    this.from.copy(from)
+    this.to.copy(to)
+  }
+
+  /**
+  * Transform this path element as a memory path element.
+  *
+  * @param from - Starting location in memory, may be unknown.
+  * @param [to = from] - Ending location in memory, may be unknown.
+  */
+  public asMemory (from : UnidocLocation, to : UnidocLocation = from) : void {
+    this.clear()
+    this.type = UnidocPathElementType.MEMORY
+    this.from.copy(from)
+    this.to.copy(to)
   }
 
   /**
@@ -87,7 +128,7 @@ export class UnidocPathElement {
         } else if (token.startsWith('.')) {
           this.classes.add(token.substring(1))
         } else {
-          this.tag = token
+          this.name = token
         }
       }
     }
@@ -113,7 +154,7 @@ export class UnidocPathElement {
     this.type = other.type
     this.from.copy(other.from)
     this.to.copy(other.to)
-    this.tag = other.tag
+    this.name = other.name
     this.identifier = other.identifier
     this.classes.clear()
 
@@ -141,7 +182,7 @@ export class UnidocPathElement {
     this.type = UnidocPathElementType.SYMBOL
     this.from.clear()
     this.to.clear()
-    this.tag = EMPTY_STRING
+    this.name = EMPTY_STRING
     this.identifier = EMPTY_STRING
     this.classes.clear()
   }
@@ -156,12 +197,26 @@ export class UnidocPathElement {
       result += 'symbol'
     }
 
-    if (this.tag) {
-      result += '\\'
-      result += this.tag
+    if (this.type === UnidocPathElementType.STREAM) {
+      result += 'stream'
     }
 
-    if (this.identifier) {
+    if (this.type === UnidocPathElementType.MEMORY) {
+      result += 'memory'
+    }
+
+    if (this.type === UnidocPathElementType.FILE) {
+      result += 'file'
+    }
+
+    if (this.name.length > 0) {
+      if (this.type === UnidocPathElementType.TAG) {
+        result += '\\'
+      }
+      result += this.name
+    }
+
+    if (this.identifier.length > 0) {
       result += '#'
       result += this.identifier
     }
@@ -178,9 +233,9 @@ export class UnidocPathElement {
         result += ' between ' + this.from.toString() + ' and ' + this.to.toString()
       }
     } else if (!this.from.isUnknown()) {
-      result += ' at ' + this.from.toString()
+      result += ' from ' + this.from.toString()
     } else if (!this.to.isUnknown()) {
-      result += ' at ' + this.to.toString()
+      result += ' until ' + this.to.toString()
     }
 
     return result
@@ -198,7 +253,7 @@ export class UnidocPathElement {
         other.type         !== this.type         ||
         other.classes.size !== this.classes.size ||
         other.identifier   !== this.identifier   ||
-        other.tag          !== this.tag          ||
+        other.name         !== this.name         ||
         !other.from.equals(this.from)            ||
         !other.to.equals(this.to)
       ) { return false }

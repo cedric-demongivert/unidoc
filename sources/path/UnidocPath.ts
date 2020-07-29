@@ -70,19 +70,27 @@ export class UnidocPath {
   * Append the given element at the end of the path.
   *
   * @param step - New element to append at the end of the path.
+  *
+  * @return This path instance for chaining purpose.
   */
-  public push (step : UnidocPathElement) : void {
+  public push (step : UnidocPathElement) : UnidocPath {
     this._elements.push(step)
+
+    return this
   }
 
   /**
   * Push a new symbol at the end of this path.
   *
   * @param location - Location of the symbol in its parent document.
+  *
+  * @return This path instance for chaining purpose.
   */
-  public pushSymbol (location : UnidocLocation) : void {
+  public pushSymbol (location : UnidocLocation) : UnidocPath {
     this._elements.size += 1
     this._elements.last.asSymbol(location)
+
+    return this
   }
 
   /**
@@ -91,10 +99,60 @@ export class UnidocPath {
   * @param from - Starting location of the tag in its parent document.
   * @param to - Ending location of the tag in its parent document, may be unknown.
   * @param configuration - Type, identifier and classes of the tag to append.
+  *
+  * @return This path instance for chaining purpose.
   */
-  public pushTag (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
+  public pushTag (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : UnidocPath {
     this._elements.size += 1
     this._elements.last.asTag(from, to, configuration)
+
+    return this
+  }
+
+  /**
+  * Push a stream element into this path.
+  *
+  * @param from - Starting location in the stream, may be unknown.
+  * @param [to = from] - Ending location in the stream, may be unknown.
+  *
+  * @return This path instance for chaining purpose.
+  */
+  public pushStream (from : UnidocLocation, to : UnidocLocation = from) : UnidocPath {
+    this._elements.size += 1
+    this._elements.last.asStream(from, to)
+
+    return this
+  }
+
+  /**
+  * Push a memory element into this path.
+  *
+  * @param from - Starting location in memory, may be unknown.
+  * @param [to = from] - Ending location in memory, may be unknown.
+  *
+  * @return This path instance for chaining purpose.
+  */
+  public pushMemory (from : UnidocLocation, to : UnidocLocation = from) : UnidocPath {
+    this._elements.size += 1
+    this._elements.last.asMemory(from, to)
+
+    return this
+  }
+
+  /**
+  * Push a file element into this path.
+  *
+  * @param url - URL of the file.
+  * @param from - Starting location in the file, may be unknown.
+  * @param [to = from] - Ending location in the file, may be unknown.
+  *
+  * @return This path instance for chaining purpose.
+  */
+  public pushFile (url : string, from : UnidocLocation, to : UnidocLocation = from) : UnidocPath {
+    this._elements.size += 1
+    this._elements.last.asFile(url, from, to)
+
+    return this
   }
 
   /**
@@ -250,6 +308,22 @@ export namespace UnidocPath {
   * Class of each instance of a path element.
   */
   export const Element = UnidocPathElement
+
+  /**
+  * An empty unidoc path.
+  */
+  export const EMPTY : UnidocPath = new UnidocPath(0)
+
+  /**
+  * Instantiate a new unidoc path of the given capacity.
+  *
+  * @param capacity - Capacity of the path to instantiate.
+  *
+  * @return An instance of unidoc path of the given capacity.
+  */
+  export function create (capacity : number) : UnidocPath {
+    return new UnidocPath(capacity)
+  }
 
   /**
   * Instantiate a deep copy of the given instance.
