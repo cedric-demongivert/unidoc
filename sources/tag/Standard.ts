@@ -33,7 +33,7 @@ export namespace Standard {
   * @return A string representation of the given tag or undefined if the
   *         given tag is not a standard Unidoc tag.
   */
-  export function toString (tag : Standard) : string {
+  export function toString (tag : Standard) : string | undefined {
     switch (tag) {
       case DOCUMENT: return 'DOCUMENT'
       case SECTION: return 'SECTION'

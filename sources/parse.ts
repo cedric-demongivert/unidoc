@@ -15,12 +15,12 @@ class Parser {
   /**
   * The source of symbol of this tokenizer.
   */
-  private _input : Observable<UnidocToken>
+  private _input : Observable<UnidocToken> | null
 
   /**
   * The subscription to the source of symbol of this tokenizer.
   */
-  private _subscription : Subscription
+  private _subscription : Subscription | null
 
   /**
   * The subscription to the source of symbol of this tokenizer.

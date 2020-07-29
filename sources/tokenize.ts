@@ -17,12 +17,12 @@ class Tokenizer {
   /**
   * The source of symbol of this tokenizer.
   */
-  private _input : Observable<CodePoint>
+  private _input : Observable<CodePoint> | null
 
   /**
   * The subscription to the ource of symbol of this tokenizer.
   */
-  private _subscription : Subscription
+  private _subscription : Subscription | null
 
   /**
   * The subscription to the source of symbol of this tokenizer.

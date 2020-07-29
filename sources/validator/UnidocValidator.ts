@@ -56,7 +56,7 @@ export class UnidocValidator {
   */
   public next (event : UnidocEvent) : void {
     //console.log(event.toString())
-    this._context.event = event
+    this._context.event.copy(event)
     this._stack.last.resolve(this._context)
   }
 

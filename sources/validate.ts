@@ -16,12 +16,12 @@ class Validator {
   /**
   * The source of event of this validator.
   */
-  private _input : Observable<UnidocEvent>
+  private _input : Observable<UnidocEvent> | null
 
   /**
   * The subscription to the source of event of this validator.
   */
-  private _subscription : Subscription
+  private _subscription : Subscription | null
 
   /**
   * The subscription to the source of validation of this validator.
@@ -149,7 +149,7 @@ type Operator<In, Out> = (source : Observable<In>) => Observable<Out>
 export function validate (process : UnidocValidationProcess) : Operator<UnidocEvent, UnidocValidation> {
   const validator : UnidocValidator = new UnidocValidator()
   validator.start(process)
-  
+
   const result : Validator = new Validator(validator)
 
   return function (input : Observable<UnidocEvent>) : Observable<UnidocValidation> {

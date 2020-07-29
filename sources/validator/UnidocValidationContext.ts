@@ -13,7 +13,7 @@ export class UnidocValidationContext {
   /**
   * The next event to validate.
   */
-  public event : UnidocEvent
+  public readonly event : UnidocEvent
 
   /**
   * A validation message instance to use for emission.
@@ -27,7 +27,7 @@ export class UnidocValidationContext {
   */
   public constructor (validator : UnidocValidator) {
     this.validator = validator
-    this.event = null
+    this.event = new UnidocEvent()
     this.validation = new UnidocValidation()
   }
 
@@ -53,7 +53,7 @@ export class UnidocValidationContext {
   */
   public terminate () : void {
     this.validator.terminate()
-    
+
     if (this.validator.current) {
       this.validator.current.resolve(this)
     }

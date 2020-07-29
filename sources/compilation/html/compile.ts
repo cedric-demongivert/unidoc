@@ -10,9 +10,9 @@ import { HTMLEvent } from './event/HTMLEvent'
 class Compilator {
   private _compiler : HTMLCompiler
 
-  private _input : Observable<UnidocEvent>
+  private _input : Observable<UnidocEvent> | null
 
-  private _subscription : Subscription
+  private _subscription : Subscription | null
 
   private _outputs : Set<Subscriber<HTMLEvent>>
 

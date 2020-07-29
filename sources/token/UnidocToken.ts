@@ -302,7 +302,7 @@ export class UnidocToken {
   * @see Object#toString
   */
   public toString () : string {
-    return UnidocTokenType.toString(this.type).padEnd(15) + ' ' +
+    return (UnidocTokenType.toString(this.type) as string).padEnd(15) + ' ' +
            this.from.toString().padEnd(15, ' ') + ' - ' +
            this.to.toString().padEnd(15, ' ') + ' "' + this.debugText + '" '
   }

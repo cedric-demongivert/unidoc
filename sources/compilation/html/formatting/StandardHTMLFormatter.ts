@@ -89,7 +89,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
       this.publishInlineContent()
     }
 
-    this._buffer.push(event.content)
+    this._buffer.push(event.content as string)
     this._bufferWidth += tokenSize
   }
 
@@ -125,13 +125,13 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
     }
 
     this._buffer.push('<')
-    this._buffer.push(event.tag)
+    this._buffer.push(event.tag as string)
 
     for (const attribute of event.attributes.keys()) {
       this._buffer.push(' ')
       this._buffer.push(attribute)
       this._buffer.push('="')
-      this._buffer.push(event.attributes.get(attribute).toString())
+      this._buffer.push((event.attributes.get(attribute) as (string | boolean)).toString())
       this._buffer.push('"')
     }
 
@@ -158,7 +158,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
     }
 
     this._buffer.push('</')
-    this._buffer.push(event.tag)
+    this._buffer.push(event.tag as string)
     this._buffer.push('>')
     this._bufferWidth += tokenSize
   }
@@ -174,7 +174,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
     }
 
     this.publish('<!--')
-    this.publish(event.content)
+    this.publish(event.content as string)
     this.publish('-->')
     this._state = HTMLContentType.COMMENT
   }
@@ -187,7 +187,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
     this.publish(this.pad(this._depth))
 
     this.publish('</')
-    this.publish(event.tag)
+    this.publish(event.tag as string)
     this.publish('>')
     this._state = HTMLContentType.BLOCK_END
   }
@@ -201,13 +201,13 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
     this.publish(this.pad(this._depth))
 
     this.publish('<')
-    this.publish(event.tag)
+    this.publish(event.tag as string)
 
     for (const attribute of event.attributes.keys()) {
       this.publish(' ')
       this.publish(attribute)
       this.publish('="')
-      this.publish(event.attributes.get(attribute).toString())
+      this.publish((event.attributes.get(attribute) as (string | boolean)).toString())
       this.publish('"')
     }
 
@@ -224,14 +224,14 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
     this.publish(this.pad(this._depth))
 
     this.publish('<')
-    this.publish(event.tag)
+    this.publish(event.tag as string)
     this.publish(NEWLINE)
 
     for (const attribute of event.attributes.keys()) {
       this.publish(this.pad(this._depth + 1))
       this.publish(attribute)
       this.publish('="')
-      this.publish(event.attributes.get(attribute).toString())
+      this.publish((event.attributes.get(attribute) as (string | boolean)).toString())
       this.publish('"')
       this.publish(NEWLINE)
     }
@@ -273,7 +273,7 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
     )
   }
 
-  private sizeof (event : HTMLEvent) : number {
+  private sizeof (event : HTMLEvent) : number | undefined {
     switch (event.type) {
       case HTMLEventType.WHITESPACE:
         return this.sizeofWhitespace(event)
@@ -285,6 +285,8 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
         return this.sizeofTagEnd(event)
       case HTMLEventType.COMMENT:
         return this.sizeofComment(event)
+      default:
+        return undefined
     }
   }
 
@@ -293,17 +295,17 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   }
 
   private sizeofWord (event : HTMLEvent) : number {
-    return event.content.length
+    return (event.content as string).length
   }
 
   private sizeofTagStart (event : HTMLEvent) : number {
-    let result : number = 1 + event.tag.length
+    let result : number = 1 + (event.tag as string).length
 
     for (const attribute of event.attributes.keys()) {
       result += 1
       result += attribute.length
       result += 2
-      result += event.attributes.get(attribute).toString().length
+      result += (event.attributes.get(attribute) as (string | boolean)).toString().length
       result += 1
     }
 
@@ -311,11 +313,11 @@ export class StandardHTMLFormatter extends ListenableHTMLFormatter {
   }
 
   private sizeofTagEnd (event : HTMLEvent) : number {
-    return 2 + event.tag.length + 1
+    return 2 + (event.tag as string).length + 1
   }
 
   private sizeofComment (event : HTMLEvent) : number {
-    return 4 + event.content.length + 3
+    return 4 + (event.content as string).length + 3
   }
 
   /**

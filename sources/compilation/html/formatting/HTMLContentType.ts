@@ -15,7 +15,7 @@ export namespace HTMLContentType {
     COMMENT
   ]
 
-  export function toString (type : HTMLContentType) : string {
+  export function toString (type : HTMLContentType) : string | undefined {
     switch (type) {
       case DOCUMENT_START : return 'DOCUMENT_START'
       case BLOCK_START    : return 'BLOCK_START'

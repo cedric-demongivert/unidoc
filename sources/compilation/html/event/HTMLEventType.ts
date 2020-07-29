@@ -11,7 +11,7 @@ export namespace HTMLEventType {
     WHITESPACE, WORD, START_TAG, END_TAG, COMMENT
   ]
 
-  export function toString (type : HTMLEventType) : string {
+  export function toString (type : HTMLEventType) : string | undefined {
     switch (type) {
       case WHITESPACE : return 'WHITESPACE'
       case WORD       : return 'WORD'

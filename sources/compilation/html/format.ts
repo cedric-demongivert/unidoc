@@ -9,9 +9,9 @@ import { HTMLEvent } from './event/HTMLEvent'
 class Formatter {
   private _formatter : HTMLFormatter
 
-  private _input : Observable<HTMLEvent>
+  private _input : Observable<HTMLEvent> | null
 
-  private _subscription : Subscription
+  private _subscription : Subscription | null
 
   private _outputs : Set<Subscriber<string>>
 

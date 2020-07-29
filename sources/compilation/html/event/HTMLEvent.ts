@@ -5,8 +5,8 @@ import { HTMLTag } from './HTMLTag'
 import { HTMLAttribute } from './HTMLAttribute'
 
 export class HTMLEvent {
-  public tag                 : HTMLTag
-  public content             : string
+  public tag                 : HTMLTag | null
+  public content             : string | null
   public block               : boolean
   public type                : HTMLEventType
   public readonly attributes : Map<HTMLAttribute, string | boolean>
@@ -62,7 +62,7 @@ export class HTMLEvent {
     this.attributes.clear()
 
     for (const key of toCopy.attributes.keys()) {
-      this.attributes.set(key, toCopy.attributes.get(key))
+      this.attributes.set(key, toCopy.attributes.get(key) as (string | boolean))
     }
   }
 
@@ -99,7 +99,7 @@ export class HTMLEvent {
       case HTMLEventType.WHITESPACE :
         return ':s'
       case HTMLEventType.WORD       :
-        return this.content
+        return this.content as string
       case HTMLEventType.START_TAG  :
         let result : string = '<'
         result += this.tag
@@ -108,7 +108,7 @@ export class HTMLEvent {
           result += ' '
           result += key
           result += '="'
-          result += this.attributes.get(key).toString()
+          result += (this.attributes.get(key) as (string | boolean)).toString()
           result += '"'
         }
 

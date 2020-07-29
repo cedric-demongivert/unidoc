@@ -89,7 +89,7 @@ export class ParagraphHTMLCompiler extends ListenableHTMLCompiler {
     this._event.clear()
     this._event.type = HTMLEventType.START_TAG
 
-    if (event.identifier != null) {
+    if (event.identifier.length > 0) {
       this._event.attributes.set(HTMLAttribute.IDENTIFIER, event.identifier)
     }
 
@@ -150,10 +150,10 @@ export class ParagraphHTMLCompiler extends ListenableHTMLCompiler {
         throw new Error('Unhandled unidoc tag : ' + event.tag + '.')
     }
 
-    if (event.identifier != null || event.classes.size > 0) {
+    if (event.identifier.length > 0 || event.classes.size > 0) {
       let content : string = ' /'
 
-      if (event.identifier != null) {
+      if (event.identifier.length > 0) {
         content += '#' + event.identifier
       }
 
