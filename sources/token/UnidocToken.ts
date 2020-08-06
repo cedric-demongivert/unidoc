@@ -1,8 +1,8 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocLocation } from '../UnidocLocation'
 import { CodePoint } from '../CodePoint'
+import { UnidocPath } from '../path/UnidocPath'
 
 import { UnidocTokenType } from './UnidocTokenType'
 
@@ -19,13 +19,13 @@ export class UnidocToken {
   * The location of the starting symbol (included) of this token in its parent
   * document.
   */
-  public readonly from : UnidocLocation
+  public readonly from : UnidocPath
 
   /**
   * The location of the ending symbol (excluded) of this token in its parent
   * document.
   */
-  public readonly to : UnidocLocation
+  public readonly to : UnidocPath
 
   /**
   * Symbols that compose this unidoc token.
@@ -40,8 +40,8 @@ export class UnidocToken {
   public constructor (capacity : number = 16) {
     this.type = UnidocTokenType.DEFAULT_TYPE
     this.symbols = Pack.uint32(capacity)
-    this.from = new UnidocLocation()
-    this.to = new UnidocLocation()
+    this.from = new UnidocPath()
+    this.to = new UnidocPath()
   }
 
   /**
@@ -128,15 +128,15 @@ export class UnidocToken {
   *
   * @param type - New type of this token.
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   * @param value - New code points of this token.
   */
-  public configure (type : UnidocTokenType, from : UnidocLocation, value : string) : void {
+  public configure (type : UnidocTokenType, from : UnidocPath, to : UnidocPath, value : string) : void {
     this.clear()
     this.type = type
     this.text = value
     this.from.copy(from)
-    this.to.copy(from)
-    this.to.add(0, value.length, value.length)
+    this.to.copy(to)
   }
 
   /**
@@ -144,10 +144,11 @@ export class UnidocToken {
   * and contains the given code points.
   *
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   * @param value - New code points of this token.
   */
-  public asIdentifier (from : UnidocLocation, value : string) : void {
-    this.configure(UnidocTokenType.IDENTIFIER, from, value)
+  public asIdentifier (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this.configure(UnidocTokenType.IDENTIFIER, from, to, value)
   }
 
   /**
@@ -155,10 +156,11 @@ export class UnidocToken {
   * that contains the given code points.
   *
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   * @param value - New code points of this token.
   */
-  public asClass (from : UnidocLocation, value : string) : void {
-    this.configure(UnidocTokenType.CLASS, from, value)
+  public asClass (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this.configure(UnidocTokenType.CLASS, from, to, value)
   }
 
   /**
@@ -166,10 +168,11 @@ export class UnidocToken {
   * contains the given code points.
   *
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   * @param value - New code points of this token.
   */
-  public asTag (from : UnidocLocation, value : string) : void {
-    this.configure(UnidocTokenType.TAG, from, value)
+  public asTag (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this.configure(UnidocTokenType.TAG, from, to, value)
   }
 
   /**
@@ -177,9 +180,10 @@ export class UnidocToken {
   * location.
   *
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   */
-  public asBlockStart (from : UnidocLocation) : void {
-    this.configure(UnidocTokenType.BLOCK_START, from, '{')
+  public asBlockStart (from : UnidocPath, to : UnidocPath,) : void {
+    this.configure(UnidocTokenType.BLOCK_START, from, to, '{')
   }
 
   /**
@@ -187,9 +191,10 @@ export class UnidocToken {
   * location.
   *
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   */
-  public asBlockEnd (from : UnidocLocation) : void {
-    this.configure(UnidocTokenType.BLOCK_END, from, '}')
+  public asBlockEnd (from : UnidocPath, to : UnidocPath,) : void {
+    this.configure(UnidocTokenType.BLOCK_END, from, to, '}')
   }
 
   /**
@@ -197,10 +202,11 @@ export class UnidocToken {
   * that contains the given code points.
   *
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   * @param value - New code points of this token.
   */
-  public asSpace (from : UnidocLocation, value : string) : void {
-    this.configure(UnidocTokenType.SPACE, from, value)
+  public asSpace (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this.configure(UnidocTokenType.SPACE, from, to, value)
   }
 
   /**
@@ -208,16 +214,11 @@ export class UnidocToken {
   * that contains the given code points.
   *
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   * @param [type = '\r\n'] - Type of new line to configure.
   */
-  public asNewline (from : UnidocLocation, type : '\r\n' | '\r' | '\n' = '\r\n') : void {
-    this.clear()
-    this.type = UnidocTokenType.NEW_LINE
-    this.text = type
-    this.from.copy(from)
-    this.to.copy(from)
-    this.to.add(1, 0, type.length)
-    this.to.column = 0
+  public asNewline (from : UnidocPath, to : UnidocPath, type : '\r\n' | '\r' | '\n' = '\r\n') : void {
+    this.configure(UnidocTokenType.NEW_LINE, from, to, type)
   }
 
   /**
@@ -225,10 +226,11 @@ export class UnidocToken {
   * that contains the given code points.
   *
   * @param from - New starting location of this token.
+  * @param to - New ending location of this token.
   * @param value - New code points of this token.
   */
-  public asWord (from : UnidocLocation, value : string) : void {
-    this.configure(UnidocTokenType.WORD, from, value)
+  public asWord (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this.configure(UnidocTokenType.WORD, from, to, value)
   }
 
   /**
@@ -302,8 +304,8 @@ export class UnidocToken {
   * @see Object#toString
   */
   public toString () : string {
-    return (UnidocTokenType.toString(this.type) as string).padEnd(15) + ' ' +
-           this.from.toString().padEnd(15, ' ') + ' - ' +
+    return (UnidocTokenType.toString(this.type) as string).padEnd(15) + ' from ' +
+           this.from.toString().padEnd(15, ' ') + ' to ' +
            this.to.toString().padEnd(15, ' ') + ' "' + this.debugText + '" '
   }
 
@@ -342,10 +344,10 @@ export namespace UnidocToken {
   /**
   * @see UnidocToken.asIdentifier
   */
-  export function identifier (from : UnidocLocation, value : string) : UnidocToken {
+  export function identifier (from : UnidocPath, to : UnidocPath, value : string) : UnidocToken {
     const result : UnidocToken = new UnidocToken(value.length)
 
-    result.asIdentifier(from, value)
+    result.asIdentifier(from, to, value)
 
     return result
   }
@@ -353,10 +355,10 @@ export namespace UnidocToken {
   /**
   * @see UnidocToken.asClass
   */
-  export function clazz (from : UnidocLocation, value : string) : UnidocToken {
+  export function clazz (from : UnidocPath, to : UnidocPath, value : string) : UnidocToken {
     const result : UnidocToken = new UnidocToken(value.length)
 
-    result.asClass(from, value)
+    result.asClass(from, to, value)
 
     return result
   }
@@ -364,10 +366,10 @@ export namespace UnidocToken {
   /**
   * @see UnidocToken.asTag
   */
-  export function tag (from : UnidocLocation, value : string) : UnidocToken {
+  export function tag (from : UnidocPath, to : UnidocPath, value : string) : UnidocToken {
     const result : UnidocToken = new UnidocToken(value.length)
 
-    result.asTag(from, value)
+    result.asTag(from, to, value)
 
     return result
   }
@@ -375,10 +377,10 @@ export namespace UnidocToken {
   /**
   * @see UnidocToken.asBlockStart
   */
-  export function blockStart (from : UnidocLocation) : UnidocToken {
+  export function blockStart (from : UnidocPath, to : UnidocPath) : UnidocToken {
     const result : UnidocToken = new UnidocToken(1)
 
-    result.asBlockStart(from)
+    result.asBlockStart(from, to)
 
     return result
   }
@@ -386,10 +388,10 @@ export namespace UnidocToken {
   /**
   * @see UnidocToken.asBlockEnd
   */
-  export function blockEnd (from : UnidocLocation) : UnidocToken {
+  export function blockEnd (from : UnidocPath, to : UnidocPath) : UnidocToken {
     const result : UnidocToken = new UnidocToken(1)
 
-    result.asBlockEnd(from)
+    result.asBlockEnd(from, to)
 
     return result
   }
@@ -397,10 +399,10 @@ export namespace UnidocToken {
   /**
   * @see UnidocToken.asSpace
   */
-  export function space (from : UnidocLocation, value : string) : UnidocToken {
+  export function space (from : UnidocPath, to : UnidocPath, value : string) : UnidocToken {
     const result : UnidocToken = new UnidocToken(value.length)
 
-    result.asSpace(from, value)
+    result.asSpace(from, to, value)
 
     return result
   }
@@ -408,10 +410,10 @@ export namespace UnidocToken {
   /**
   * @see UnidocToken.asNewline
   */
-  export function newline (from : UnidocLocation, type : '\r\n' | '\r' | '\n' = '\r\n') : UnidocToken {
+  export function newline (from : UnidocPath, to : UnidocPath, type : '\r\n' | '\r' | '\n' = '\r\n') : UnidocToken {
     const result : UnidocToken = new UnidocToken(type.length)
 
-    result.asNewline(from, type)
+    result.asNewline(from, to, type)
 
     return result
   }
@@ -419,10 +421,10 @@ export namespace UnidocToken {
   /**
   * @see UnidocToken.asWord
   */
-  export function word (from : UnidocLocation, value : string) : UnidocToken {
+  export function word (from : UnidocPath, to : UnidocPath, value : string) : UnidocToken {
     const result : UnidocToken = new UnidocToken(value.length)
 
-    result.asWord(from, value)
+    result.asWord(from, to, value)
 
     return result
   }

@@ -2,7 +2,7 @@ import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocParserStateType } from './UnidocParserStateType'
 
-import { UnidocLocation } from '../UnidocLocation'
+import { UnidocPath } from '../path/UnidocPath'
 
 const EMPTY_STRING : string = ''
 
@@ -10,7 +10,7 @@ export class UnidocParserState {
   public type                : UnidocParserStateType
   public tag                 : string
   public identifier          : string
-  public readonly from       : UnidocLocation
+  public readonly from       : UnidocPath
   public readonly classes    : Set<string>
 
   /**
@@ -21,7 +21,7 @@ export class UnidocParserState {
     this.tag        = EMPTY_STRING
     this.identifier = EMPTY_STRING
     this.classes    = new Set()
-    this.from       = new UnidocLocation()
+    this.from       = new UnidocPath()
   }
 
   /**

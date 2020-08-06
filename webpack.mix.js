@@ -8,7 +8,7 @@ for (const file of fileSystem.readdirSync('./sources/commands')) {
   mix.ts('./sources/commands/' + file, 'distribution')
 }
 
-const externals = []
+const externals = ['fs']
 
 for (const name in package.dependencies) {
   externals.push(new RegExp(`^${name}(\\/.+)?$`))

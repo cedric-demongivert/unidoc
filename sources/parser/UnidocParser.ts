@@ -68,7 +68,7 @@ export class UnidocParser {
   /**
   * Current location of this parser in its parent document.
   */
-  public readonly location : UnidocLocation
+  public readonly location : UnidocPath
 
   /**
   * Instantiate a new unidoc parser with a given token buffer capacity.
@@ -76,8 +76,7 @@ export class UnidocParser {
   * @param [capacity = 32] - Initial token buffer capacity of the parser.
   */
   public constructor (capacity : number = 32) {
-    this.location             = new UnidocLocation()
-    this.location.asUnknown()
+    this.location             = new UnidocPath()
 
     this._states              = new UnidocParserStateBuffer(capacity)
     this._tokens              = new UnidocTokenBuffer(capacity)
@@ -150,13 +149,12 @@ export class UnidocParser {
   public complete () : void {
     switch (this._states.last.type) {
       case UnidocParserStateType.START:
-        this._states.last.from.copy(UnidocLocation.ZERO)
+        this._states.last.from.clear() //WAR
         this._states.last.tag = DOCUMENT_TAG
-        this.location.copy(UnidocLocation.ZERO)
         this.emitTagStart()
-        this.emitTagEnd(UnidocLocation.ZERO, UnidocLocation.ZERO)
+        this.emitTagEnd(UnidocPath.EMPTY, UnidocPath.EMPTY) //WAR
         this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.from.copy(UnidocLocation.ZERO)
+        this._states.last.from.copy(UnidocPath.EMPTY) //WAR
         this.complete()
         return
       case UnidocParserStateType.START_WHITESPACE:
@@ -166,7 +164,7 @@ export class UnidocParser {
         this.emitWhitespaceEvent()
         this.emitTagEnd(this._tokens.to, this._tokens.to)
         this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.from.copy(UnidocLocation.ZERO)
+        this._states.last.from.copy(UnidocPath.EMPTY) //WAR
         this.complete()
         return
       case UnidocParserStateType.START_CLASSES_BEFORE_IDENTIFIER:
@@ -174,7 +172,7 @@ export class UnidocParser {
         this.emitTagStart()
         this.emitTagEnd(this.location, this.location)
         this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.from.copy(UnidocLocation.ZERO)
+        this._states.last.from.copy(UnidocPath.EMPTY) //WAR
         this.complete()
         return
       case UnidocParserStateType.STREAM_CONTENT:
@@ -752,7 +750,7 @@ export class UnidocParser {
   /**
   * Emit a unidoc tag termination event.
   */
-  private emitTagEnd (from : UnidocLocation, to : UnidocLocation) : void {
+  private emitTagEnd (from : UnidocPath, to : UnidocPath) : void {
     this._event.clear()
     this._event.type = UnidocEventType.END_TAG
     this._event.from.copy(from)
@@ -807,10 +805,10 @@ export class UnidocParser {
         case UnidocParserStateType.BLOCK_CONTENT :
           path.size += 1
           path.last.type = UnidocPathElementType.TAG
-          path.last.tag = state.tag
+          path.last.name = state.tag
           path.last.identifier = state.identifier
           path.last.addClasses(state.classes)
-          path.last.from.copy(state.from)
+          //path.last.from.copy(state.from) //WAR
           path.last.to.asUnknown()
           break
         case UnidocParserStateType.TAG_CLASSES_BEFORE_IDENTIFIER :
@@ -820,7 +818,7 @@ export class UnidocParser {
         case UnidocParserStateType.ERROR :
           path.size += 1
           path.last.type = UnidocPathElementType.SYMBOL
-          path.last.from.copy(this.location)
+          //path.last.from.copy(this.location) //WAR
           path.last.to.asUnknown()
           break
       }
@@ -892,7 +890,6 @@ export class UnidocParser {
   */
   public clear () : void {
     this.location.clear()
-    this.location.asUnknown()
     this._tokens.clear()
     this._states.clear()
     this._eventListeneners.clear()

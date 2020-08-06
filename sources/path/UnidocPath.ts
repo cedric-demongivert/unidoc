@@ -127,14 +127,15 @@ export class UnidocPath {
   /**
   * Push a memory element into this path.
   *
+  * @param name - Name associated to the memory element.
   * @param from - Starting location in memory, may be unknown.
   * @param [to = from] - Ending location in memory, may be unknown.
   *
   * @return This path instance for chaining purpose.
   */
-  public pushMemory (from : UnidocLocation, to : UnidocLocation = from) : UnidocPath {
+  public pushMemory (name : string, from : UnidocLocation, to : UnidocLocation = from) : UnidocPath {
     this._elements.size += 1
-    this._elements.last.asMemory(from, to)
+    this._elements.last.asMemory(name, from, to)
 
     return this
   }
@@ -151,6 +152,22 @@ export class UnidocPath {
   public pushFile (url : string, from : UnidocLocation, to : UnidocLocation = from) : UnidocPath {
     this._elements.size += 1
     this._elements.last.asFile(url, from, to)
+
+    return this
+  }
+
+  public snapToEnd () : UnidocPath {
+    for (const element of this._elements) {
+      element.from.copy(element.to)
+    }
+
+    return this
+  }
+
+  public snapToStart () : UnidocPath {
+    for (const element of this._elements) {
+      element.to.copy(element.from)
+    }
 
     return this
   }
@@ -323,6 +340,15 @@ export namespace UnidocPath {
   */
   export function create (capacity : number) : UnidocPath {
     return new UnidocPath(capacity)
+  }
+
+  export function memory (name : string, from : UnidocLocation, to : UnidocLocation) : UnidocPath
+  export function memory (name : string, from : [number, number, number], to : [number, number, number]) : UnidocPath
+  export function memory (name : string, from : UnidocLocation | [number, number, number], to : UnidocLocation | [number, number, number] = from) : UnidocPath {
+    return UnidocPath.create(1).pushMemory(
+      name,
+      from instanceof UnidocLocation ? from : new UnidocLocation(...from),
+      to instanceof UnidocLocation ? to : new UnidocLocation(...to))
   }
 
   /**

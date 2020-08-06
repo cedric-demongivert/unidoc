@@ -3,7 +3,6 @@ import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocPath } from '../path/UnidocPath'
 
-import { UnidocLocation } from '../UnidocLocation'
 import { CodePoint } from '../CodePoint'
 
 import { UnidocEventType } from './UnidocEventType'
@@ -28,12 +27,12 @@ export class UnidocEvent {
   /**
   * Starting UnidocLocation of this event into the document stream.
   */
-  public from : UnidocLocation
+  public from : UnidocPath
 
   /**
   * Ending UnidocLocation of this event into the document stream.
   */
-  public to : UnidocLocation
+  public to : UnidocPath
 
   /**
   * The discovered tag, if any.
@@ -67,8 +66,8 @@ export class UnidocEvent {
   public constructor () {
     this.timestamp  = Date.now()
     this.type       = UnidocEventType.START_TAG
-    this.from       = new UnidocLocation()
-    this.to         = new UnidocLocation()
+    this.from       = new UnidocPath()
+    this.to         = new UnidocPath()
     this.tag        = EMPTY_STRING
     this.identifier = EMPTY_STRING
     this.classes    = new Set<string>()
@@ -160,15 +159,15 @@ export class UnidocEvent {
   * Configure this event as a new word event.
   *
   * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
   * @param content - Content of the resulting event.
   */
-  public asWord (from : UnidocLocation, content : string) : void {
+  public asWord (from : UnidocPath, to : UnidocPath, content : string) : void {
     this.clear()
 
     this.type = UnidocEventType.WORD
     this.from.copy(from)
-    this.to.copy(from)
-    this.to.add(0, content.length, content.length)
+    this.to.copy(to)
     this.text = content
   }
 
@@ -176,15 +175,15 @@ export class UnidocEvent {
   * Configure this event as a new whitespace event.
   *
   * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
   * @param content - Content of the resulting event.
   */
-  public asWhitespace (from : UnidocLocation, content : string) : void {
+  public asWhitespace (from : UnidocPath, to : UnidocPath, content : string) : void {
     this.clear()
 
     this.type = UnidocEventType.WHITESPACE
     this.from.copy(from)
-    this.to.copy(from)
-    this.to.add(0, content.length, content.length)
+    this.to.copy(to)
     this.text = content
   }
 
@@ -195,7 +194,7 @@ export class UnidocEvent {
   * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public asTagStart (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
+  public asTagStart (from : UnidocPath, to : UnidocPath, configuration : string) : void {
     this.clear()
 
     this.type = UnidocEventType.START_TAG
@@ -226,7 +225,7 @@ export class UnidocEvent {
   * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public asTagEnd (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
+  public asTagEnd (from : UnidocPath, to : UnidocPath, configuration : string) : void {
     this.clear()
 
     this.type = UnidocEventType.END_TAG
@@ -313,9 +312,9 @@ export class UnidocEvent {
     result += this.timestamp
     result += ' '
     result += UnidocEventType.toString(this.type)
-    result += ' '
+    result += ' from '
     result += this.from.toString()
-    result += ' - '
+    result += ' to '
     result += this.to.toString()
     result += ' ['
     result += this.path.toString()

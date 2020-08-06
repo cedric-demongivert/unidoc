@@ -82,7 +82,7 @@ export class TagWithTitleValidationPolicy implements ShallowValidationPolicy {
     context.validation.asWarning()
     context.validation.code = StandardWarningCode.TAG_PREFERRED_FIRST
     context.validation.path.copy(event.path)
-    context.validation.data.set('parent', event.path.elements.get(event.path.size - 1).tag)
+    context.validation.data.set('parent', event.path.elements.get(event.path.size - 1).name)
     context.validation.data.set('tag', Title.TAG)
     context.validation.data.set('event', event)
   }
@@ -94,7 +94,7 @@ export class TagWithTitleValidationPolicy implements ShallowValidationPolicy {
     context.validation.asError()
     context.validation.code = StandardErrorCode.TOO_MANY_TAG
     context.validation.path.copy(event.path)
-    context.validation.data.set('parent', event.path.elements.get(event.path.size - 1).tag)
+    context.validation.data.set('parent', event.path.elements.get(event.path.size - 1).name)
     context.validation.data.set('tag', Title.TAG)
     context.validation.data.set('allowedNumber', [0, 1])
     context.validation.data.set('event', event)

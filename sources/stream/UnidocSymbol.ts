@@ -2,13 +2,19 @@ import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocPath } from '../path/UnidocPath'
 import { CodePoint } from '../CodePoint'
-import { UnidocLocation } from '../UnidocLocation'
 
 /**
 * A symbol of a unidoc document.
 */
 export class UnidocSymbol {
+  /**
+  * Code point of the symbol.
+  */
   public symbol : CodePoint
+
+  /**
+  * Location of the symbol in the unidoc document.
+  */
   public readonly location : UnidocPath
 
   /**
@@ -17,6 +23,16 @@ export class UnidocSymbol {
   public constructor () {
     this.symbol = 0
     this.location = new UnidocPath(2)
+  }
+
+  public setSymbol (symbol : CodePoint) : UnidocSymbol {
+    this.symbol = symbol
+    return this
+  }
+
+  public setLocation (location : UnidocPath) : UnidocSymbol {
+    this.location.copy(location)
+    return this
   }
 
   /**
@@ -86,27 +102,6 @@ export namespace UnidocSymbol {
   */
   export function equals (left : UnidocSymbol | null, right : UnidocSymbol | null) : boolean {
     return left == null ? left === right : left.equals(right)
-  }
-
-  /**
-  * Create an instance of unidoc symbol extracted from memory by using the given
-  * configuration string.
-  *
-  * @param configuration - Configuration to map to an instance of unidoc symbol.
-  *
-  * @return An instance of unidoc symbol in accordance with the given configuration.
-  */
-  export function fromMemory (configuration : string) : UnidocSymbol {
-    const codePoint : CodePoint | undefined = configuration.codePointAt(0)
-    const location : UnidocLocation = (
-      UnidocLocation.fromString(configuration.substr(1))
-    )
-
-    if (codePoint == null) {
-      throw new Error('Unable to extract unidoc symbol from "' + configuration + '".')
-    } else {
-      return create(codePoint, UnidocPath.create(1).pushMemory(location))
-    }
   }
 
   /**

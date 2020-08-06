@@ -4,7 +4,9 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocSymbol } from '../../sources/stream/UnidocSymbol'
 import { UnidocStringReader } from '../../sources/stream/UnidocStringReader'
+import { UnidocPath } from '../../sources/path/UnidocPath'
 import { UnidocLocation } from '../../sources/UnidocLocation'
+import { CodePoint } from '../../sources/CodePoint'
 
 describe('UnidocStringReader', function () {
   describe('#constructor', function () {
@@ -46,10 +48,18 @@ describe('UnidocStringReader', function () {
         symbols.push(reader.next())
       }
 
-      expect(symbols.get(0).equals(UnidocSymbol.fromMemory('t (0, 0, 0)'))).toBeTruthy()
-      expect(symbols.get(1).equals(UnidocSymbol.fromMemory('e (0, 1, 1)'))).toBeTruthy()
-      expect(symbols.get(2).equals(UnidocSymbol.fromMemory('s (0, 2, 2)'))).toBeTruthy()
-      expect(symbols.get(3).equals(UnidocSymbol.fromMemory('t (0, 3, 3)'))).toBeTruthy()
+      expect(symbols.get(0).equals(UnidocSymbol.create(
+        CodePoint.t, UnidocPath.memory('string', [0, 0, 0], [0, 1, 1])
+      ))).toBeTruthy()
+      expect(symbols.get(1).equals(UnidocSymbol.create(
+        CodePoint.e, UnidocPath.memory('string', [0, 1, 1], [0, 2, 2])
+      ))).toBeTruthy()
+      expect(symbols.get(2).equals(UnidocSymbol.create(
+        CodePoint.s, UnidocPath.memory('string', [0, 2, 2], [0, 3, 3])
+      ))).toBeTruthy()
+      expect(symbols.get(3).equals(UnidocSymbol.create(
+        CodePoint.t, UnidocPath.memory('string', [0, 3, 3], [0, 4, 4])
+      ))).toBeTruthy()
     })
 
     it('handle newlines', function () {
@@ -60,13 +70,27 @@ describe('UnidocStringReader', function () {
         symbols.push(reader.next())
       }
 
-      expect(symbols.get(0).equals(UnidocSymbol.fromMemory('t (0, 0, 0)'))).toBeTruthy()
-      expect(symbols.get(1).equals(UnidocSymbol.fromMemory('e (0, 1, 1)'))).toBeTruthy()
-      expect(symbols.get(2).equals(UnidocSymbol.fromMemory('\n (0, 2, 2)'))).toBeTruthy()
-      expect(symbols.get(3).equals(UnidocSymbol.fromMemory('\n (1, 0, 3)'))).toBeTruthy()
-      expect(symbols.get(4).equals(UnidocSymbol.fromMemory('s (2, 0, 4)'))).toBeTruthy()
-      expect(symbols.get(5).equals(UnidocSymbol.fromMemory('\n (2, 1, 5)'))).toBeTruthy()
-      expect(symbols.get(6).equals(UnidocSymbol.fromMemory('t (3, 0, 6)'))).toBeTruthy()
+      expect(symbols.get(0).equals(UnidocSymbol.create(
+        CodePoint.t, UnidocPath.memory('string', [0, 0, 0], [0, 1, 1])
+      ))).toBeTruthy()
+      expect(symbols.get(1).equals(UnidocSymbol.create(
+        CodePoint.e, UnidocPath.memory('string', [0, 1, 1], [0, 2, 2])
+      ))).toBeTruthy()
+      expect(symbols.get(2).equals(UnidocSymbol.create(
+        CodePoint.NEW_LINE, UnidocPath.memory('string', [0, 2, 2], [1, 0, 3])
+      ))).toBeTruthy()
+      expect(symbols.get(3).equals(UnidocSymbol.create(
+        CodePoint.NEW_LINE, UnidocPath.memory('string', [1, 0, 3], [2, 0, 4])
+      ))).toBeTruthy()
+      expect(symbols.get(4).equals(UnidocSymbol.create(
+        CodePoint.s, UnidocPath.memory('string', [2, 0, 4], [2, 1, 5])
+      ))).toBeTruthy()
+      expect(symbols.get(5).equals(UnidocSymbol.create(
+        CodePoint.NEW_LINE, UnidocPath.memory('string', [2, 1, 5], [3, 0, 6])
+      ))).toBeTruthy()
+      expect(symbols.get(6).equals(UnidocSymbol.create(
+        CodePoint.t, UnidocPath.memory('string', [3, 0, 6], [3, 1, 7])
+      ))).toBeTruthy()
     })
 
     it('handle carriage returns', function () {
@@ -77,13 +101,27 @@ describe('UnidocStringReader', function () {
         symbols.push(reader.next())
       }
 
-      expect(symbols.get(0).equals(UnidocSymbol.fromMemory('t (0, 0, 0)'))).toBeTruthy()
-      expect(symbols.get(1).equals(UnidocSymbol.fromMemory('e (0, 1, 1)'))).toBeTruthy()
-      expect(symbols.get(2).equals(UnidocSymbol.fromMemory('\r (0, 2, 2)'))).toBeTruthy()
-      expect(symbols.get(3).equals(UnidocSymbol.fromMemory('\r (1, 0, 3)'))).toBeTruthy()
-      expect(symbols.get(4).equals(UnidocSymbol.fromMemory('s (2, 0, 4)'))).toBeTruthy()
-      expect(symbols.get(5).equals(UnidocSymbol.fromMemory('\r (2, 1, 5)'))).toBeTruthy()
-      expect(symbols.get(6).equals(UnidocSymbol.fromMemory('t (3, 0, 6)'))).toBeTruthy()
+      expect(symbols.get(0).equals(UnidocSymbol.create(
+        CodePoint.t, UnidocPath.memory('string', [0, 0, 0], [0, 1, 1])
+      ))).toBeTruthy()
+      expect(symbols.get(1).equals(UnidocSymbol.create(
+        CodePoint.e, UnidocPath.memory('string', [0, 1, 1], [0, 2, 2])
+      ))).toBeTruthy()
+      expect(symbols.get(2).equals(UnidocSymbol.create(
+        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [0, 2, 2], [1, 0, 3])
+      ))).toBeTruthy()
+      expect(symbols.get(3).equals(UnidocSymbol.create(
+        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [1, 0, 3], [2, 0, 4])
+      ))).toBeTruthy()
+      expect(symbols.get(4).equals(UnidocSymbol.create(
+        CodePoint.s, UnidocPath.memory('string', [2, 0, 4], [2, 1, 5])
+      ))).toBeTruthy()
+      expect(symbols.get(5).equals(UnidocSymbol.create(
+        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [2, 1, 5], [3, 0, 6])
+      ))).toBeTruthy()
+      expect(symbols.get(6).equals(UnidocSymbol.create(
+        CodePoint.t, UnidocPath.memory('string', [3, 0, 6], [3, 1, 7])
+      ))).toBeTruthy()
     })
 
     it('handle carriage returns and newline sequence', function () {
@@ -94,13 +132,27 @@ describe('UnidocStringReader', function () {
         symbols.push(reader.next())
       }
 
-      expect(symbols.get(0).equals(UnidocSymbol.fromMemory('t (0, 0, 0)'))).toBeTruthy()
-      expect(symbols.get(1).equals(UnidocSymbol.fromMemory('e (0, 1, 1)'))).toBeTruthy()
-      expect(symbols.get(2).equals(UnidocSymbol.fromMemory('\r (0, 2, 2)'))).toBeTruthy()
-      expect(symbols.get(3).equals(UnidocSymbol.fromMemory('\n (1, 0, 3)'))).toBeTruthy()
-      expect(symbols.get(4).equals(UnidocSymbol.fromMemory('s (1, 0, 4)'))).toBeTruthy()
-      expect(symbols.get(5).equals(UnidocSymbol.fromMemory('\r (1, 1, 5)'))).toBeTruthy()
-      expect(symbols.get(6).equals(UnidocSymbol.fromMemory('t (2, 0, 6)'))).toBeTruthy()
+      expect(symbols.get(0).equals(UnidocSymbol.create(
+        CodePoint.t, UnidocPath.memory('string', [0, 0, 0], [0, 1, 1])
+      ))).toBeTruthy()
+      expect(symbols.get(1).equals(UnidocSymbol.create(
+        CodePoint.e, UnidocPath.memory('string', [0, 1, 1], [0, 2, 2])
+      ))).toBeTruthy()
+      expect(symbols.get(2).equals(UnidocSymbol.create(
+        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [0, 2, 2], [1, 0, 3])
+      ))).toBeTruthy()
+      expect(symbols.get(3).equals(UnidocSymbol.create(
+        CodePoint.NEW_LINE, UnidocPath.memory('string', [1, 0, 3], [1, 0, 4])
+      ))).toBeTruthy()
+      expect(symbols.get(4).equals(UnidocSymbol.create(
+        CodePoint.s, UnidocPath.memory('string', [1, 0, 4], [1, 1, 5])
+      ))).toBeTruthy()
+      expect(symbols.get(5).equals(UnidocSymbol.create(
+        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [1, 1, 5], [2, 0, 6])
+      ))).toBeTruthy()
+      expect(symbols.get(6).equals(UnidocSymbol.create(
+        CodePoint.t, UnidocPath.memory('string', [2, 0, 6], [2, 1, 7])
+      ))).toBeTruthy()
     })
   })
 

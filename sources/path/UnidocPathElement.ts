@@ -81,12 +81,14 @@ export class UnidocPathElement {
   /**
   * Transform this path element as a memory path element.
   *
+  * @param name - Name associated to this memory element.
   * @param from - Starting location in memory, may be unknown.
-  * @param [to = from] - Ending location in memory, may be unknown.
+  * @param [to = from]- Ending location in memory, may be unknown.
   */
-  public asMemory (from : UnidocLocation, to : UnidocLocation = from) : void {
+  public asMemory (name : string, from : UnidocLocation, to : UnidocLocation = from) : void {
     this.clear()
     this.type = UnidocPathElementType.MEMORY
+    this.name = name
     this.from.copy(from)
     this.to.copy(to)
   }
@@ -202,11 +204,11 @@ export class UnidocPathElement {
     }
 
     if (this.type === UnidocPathElementType.MEMORY) {
-      result += 'memory'
+      result += 'memory:\\\\'
     }
 
     if (this.type === UnidocPathElementType.FILE) {
-      result += 'file'
+      result += 'file:\\\\'
     }
 
     if (this.name.length > 0) {

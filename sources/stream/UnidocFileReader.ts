@@ -1,19 +1,22 @@
+import { ReadStream } from 'fs'
+import { createReadStream } from 'fs'
+
 import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocSymbol } from './UnidocSymbol'
 import { UnidocSourceReader } from './UnidocSourceReader'
 import { UnidocLocationTracker } from './UnidocLocationTracker'
 
-export class UnidocStringReader  implements UnidocSourceReader {
+export class UnidocFileReader  implements UnidocSourceReader {
   /**
    * The content to read.
    */
   public readonly source : string
 
   /**
-   * Name of this source.
+   * The underlying stream.
    */
-  public readonly name : string
+  public readonly stream : ReadStream
 
   /**
    * A symbol instance for symbol emission.
@@ -25,28 +28,36 @@ export class UnidocStringReader  implements UnidocSourceReader {
    */
   private readonly _location : UnidocLocationTracker
 
-  public constructor (source : string, name : string = 'string') {
+  public constructor (source : string) {
     this.source = source
-    this.name = name
+    this.stream = createReadStream(source, {
+      flags: 'r',
+      encoding: 'utf32',
+      autoClose: true,
+      emitClose: false,
+      mode: 0o666,
+      start: 0,
+      end: Number.POSITIVE_INFINITY,
+      highWaterMark: 64 * 1024
+    })
+
     this._location = new UnidocLocationTracker()
     this._symbol = new UnidocSymbol()
-    this._symbol.location.pushMemory(this.name, UnidocLocation.ZERO, UnidocLocation.ZERO)
+    this._symbol.location.pushFile(source, UnidocLocation.ZERO)
   }
 
   /**
   * @see UnidocSourceReader.hasNext
   */
   public hasNext() : boolean {
-    return this._location.location.index < this.source.length
+    return this.stream.readable
   }
 
   /**
   * @see UnidocSourceReader.next
   */
   public next() : UnidocSymbol {
-    const nextCodePoint : number | undefined = (
-      this.source.codePointAt(this._location.location.index)
-    )
+    const nextCodePoint : number | undefined = this.stream.read(1)
 
     if (nextCodePoint == null) {
       throw new Error (
@@ -56,7 +67,7 @@ export class UnidocStringReader  implements UnidocSourceReader {
       )
     } else {
       this._symbol.symbol = nextCodePoint
-      this._symbol.location.first.asMemory(this.name, this._location.location)
+      this._symbol.location.first.asFile(this.source, this._location.location)
 
       this._location.next(nextCodePoint)
 

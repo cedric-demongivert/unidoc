@@ -43,15 +43,15 @@ export class UnidocEventBuffer {
   /**
   * @return The starting location of this buffer.
   */
-  public get from () : UnidocLocation {
-    return this._events.size === 0 ? UnidocLocation.ZERO : this._events.first.from
+  public get from () : UnidocPath {
+    return this._events.size === 0 ? UnidocPath.EMPTY : this._events.first.from
   }
 
   /**
   * @return The ending location of this buffer.
   */
-  public get to () : UnidocLocation {
-    return this._events.size === 0 ? UnidocLocation.ZERO : this._events.last.to
+  public get to () : UnidocPath {
+    return this._events.size === 0 ? UnidocPath.EMPTY : this._events.last.to
   }
 
   /**
@@ -79,22 +79,24 @@ export class UnidocEventBuffer {
   * Configure this event as a new word event.
   *
   * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
   * @param content - Content of the resulting event.
   */
-  public pushWord (from : UnidocLocation, content : string) : void {
+  public pushWord (from : UnidocPath, to : UnidocPath, content : string) : void {
     this._events.size += 1
-    this._events.last.asWord(from, content)
+    this._events.last.asWord(from, to, content)
   }
 
   /**
   * Configure this event as a new whitespace event.
   *
   * @param from - New starting location of this event into the parent document.
+  * @param to - New ending location of this event into the parent document.
   * @param content - Content of the resulting event.
   */
-  public pushWhitespace (from : UnidocLocation, content : string) : void {
+  public pushWhitespace (from : UnidocPath, to : UnidocPath, content : string) : void {
     this._events.size += 1
-    this._events.last.asWhitespace(from, content)
+    this._events.last.asWhitespace(from, to, content)
   }
 
   /**
@@ -104,7 +106,7 @@ export class UnidocEventBuffer {
   * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public pushTagStart (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
+  public pushTagStart (from : UnidocPath, to : UnidocPath, configuration : string) : void {
     this._events.size += 1
     this._events.last.asTagStart(from, to, configuration)
   }
@@ -116,7 +118,7 @@ export class UnidocEventBuffer {
   * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public pushTagEnd (from : UnidocLocation, to : UnidocLocation, configuration : string) : void {
+  public pushTagEnd (from : UnidocPath, to : UnidocPath, configuration : string) : void {
     this._events.size += 1
     this._events.last.asTagEnd(from, to, configuration)
   }

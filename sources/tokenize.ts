@@ -4,6 +4,8 @@ import { Subscription } from 'rxjs'
 
 import { CodePoint } from './CodePoint'
 
+import { UnidocSymbol } from './stream/UnidocSymbol'
+
 import { UnidocLexer } from './lexer/UnidocLexer'
 import { UnidocToken } from './token/UnidocToken'
 import { UnidocValidation } from './validation/UnidocValidation'
@@ -17,7 +19,7 @@ class Tokenizer {
   /**
   * The source of symbol of this tokenizer.
   */
-  private _input : Observable<CodePoint> | null
+  private _input : Observable<UnidocSymbol> | null
 
   /**
   * The subscription to the ource of symbol of this tokenizer.
@@ -78,7 +80,7 @@ class Tokenizer {
   *
   * @param input - A source of symbols.
   */
-  public subscribe (input : Observable<CodePoint>) : void {
+  public subscribe (input : Observable<UnidocSymbol>) : void {
     if (this._input !== input) {
       if (this._subscription) {
         this._subscription.unsubscribe()
@@ -103,8 +105,8 @@ class Tokenizer {
   *
   * @param symbol - The symbol to consume.
   */
-  public consumeNextSymbol (codePoint : CodePoint) : void {
-    this._lexer.nextCodePoint(codePoint)
+  public consumeNextSymbol (symbol : UnidocSymbol) : void {
+    this._lexer.next(symbol)
   }
 
   /**
@@ -164,10 +166,10 @@ type Operator<In, Out> = (source : Observable<In>) => Observable<Out>
 *
 * @return An operator that transform a stream of symbols to a stream of tokens.
 */
-export function tokenize () : Operator<CodePoint, UnidocToken> {
+export function tokenize () : Operator<UnidocSymbol, UnidocToken> {
   const tokenizer : Tokenizer = new Tokenizer()
 
-  return function (input : Observable<CodePoint>) : Observable<UnidocToken> {
+  return function (input : Observable<UnidocSymbol>) : Observable<UnidocToken> {
     return new Observable<UnidocToken>(
       function (subscriber : Subscriber<UnidocToken>) {
         tokenizer.addEventListener(subscriber)

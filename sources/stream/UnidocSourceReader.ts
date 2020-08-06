@@ -1,6 +1,8 @@
 import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocSymbol } from './UnidocSymbol'
+import { UnidocStringReader } from './UnidocStringReader'
+import { UnidocFileReader } from './UnidocFileReader'
 
 export interface UnidocSourceReader {
   /**
@@ -17,4 +19,14 @@ export interface UnidocSourceReader {
   * @return The location of this reader in it's underlying source.
   */
   location () : UnidocLocation
+}
+
+export namespace UnidocSourceReader {
+  export function fromString (source : string, name : string = 'string') : UnidocSourceReader {
+    return new UnidocStringReader(source, name)
+  }
+
+  export function fromFile (source : string) : UnidocSourceReader {
+    return new UnidocFileReader(source)
+  }
 }

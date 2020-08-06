@@ -1,27 +1,22 @@
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
-
 import { CodePoint } from '../CodePoint'
-import { UnidocLocation } from '../UnidocLocation'
+import { UnidocPath } from '../path/UnidocPath'
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
 import { UnidocValidation } from '../validation/UnidocValidation'
+import { UnidocSymbol } from '../stream/UnidocSymbol'
 
 import { UnidocLexerEventType } from './UnidocLexerEventType'
 import { UnidocLexerState } from './UnidocLexerState'
+import { UnidocSymbolBuffer } from './UnidocSymbolBuffer'
 
 /**
 * Unidoc lexer.
 */
 export class UnidocLexer {
   /**
-  * UnidocLocation of the first symbol of this buffer.
+  * Location of this lexer into it's parent stream.
   */
-  public readonly location : UnidocLocation
-
-  /**
-  * UnidocLocation of the first symbol of this buffer.
-  */
-  private readonly _from : UnidocLocation
+  public readonly location : UnidocPath
 
   /**
   * Current state of this lexer.
@@ -29,14 +24,14 @@ export class UnidocLexer {
   private _state : UnidocLexerState
 
   /**
-  * Buffer of symbols of this lexer.
+  * Token instance used to publish discovered tokens.
   */
-  private _symbols  : Pack<CodePoint>
+  private _symbols : UnidocSymbolBuffer
 
   /**
   * Token instance used to publish discovered tokens.
   */
-  private _token    : UnidocToken
+  private _token : UnidocToken
 
   /**
   * A set of listeners of the 'token' event.
@@ -64,11 +59,10 @@ export class UnidocLexer {
   * @param [capacity = 64] - Unidoc lexer internal symbol buffer capacity.
   */
   public constructor (capacity : number = 64) {
-    this.location             = new UnidocLocation()
-    this._from                = new UnidocLocation()
+    this.location             = new UnidocPath()
 
     this._state               = UnidocLexerState.START
-    this._symbols             = Pack.uint32(capacity)
+    this._symbols             = new UnidocSymbolBuffer(capacity)
     this._token               = new UnidocToken(capacity)
 
     this._tokenListeners      = new Set<UnidocLexer.TokenListener>()
@@ -85,55 +79,46 @@ export class UnidocLexer {
   }
 
   /**
-  * Feed this lexer with the given string.
+  * Feed this lexer with the given symbol.
   *
-  * @param content - A string to explode into code point to give to this lexer.
+  * @param codePoint - A symbol to give to this lexer.
   */
-  public nextString (content : string) : void {
-    for (let index = 0, size = content.length; index < size; ++index) {
-      // no undefined code point for valid string instances due to boundaries limitation
-      this.nextCodePoint(content.codePointAt(index) as CodePoint)
-    }
-  }
-
-  /**
-  * Feed this lexer with the given code point.
-  *
-  * @param codePoint - A code point to give to this lexer.
-  */
-  public nextCodePoint (codePoint : CodePoint) : void {
+  public next (symbol : UnidocSymbol) : void {
     switch (this._state) {
       case UnidocLexerState.SPACE:
-        this.handleAfterSpace(codePoint)
+        this.handleAfterSpace(symbol)
         break
       case UnidocLexerState.CARRIAGE_RETURN:
-        this.handleAfterCarriageReturn(codePoint)
+        this.handleAfterCarriageReturn(symbol)
         break
       case UnidocLexerState.SHARP:
-        this.handleAfterSharp(codePoint)
+        this.handleAfterSharp(symbol)
         break
       case UnidocLexerState.IDENTIFIER:
-        this.handleAfterIdentifier(codePoint)
+        this.handleAfterIdentifier(symbol)
         break
       case UnidocLexerState.DOT:
-        this.handleAfterDot(codePoint)
+        this.handleAfterDot(symbol)
         break
       case UnidocLexerState.CLASS:
-        this.handleAfterClass(codePoint)
+        this.handleAfterClass(symbol)
         break
       case UnidocLexerState.ANTISLASH:
-        this.handleAfterAntislash(codePoint)
+        this.handleAfterAntislash(symbol)
         break
       case UnidocLexerState.TAG:
-        this.handleAfterTag(codePoint)
+        this.handleAfterTag(symbol)
         break
       case UnidocLexerState.WORD:
-        this.handleAfterWord(codePoint)
+        this.handleAfterWord(symbol)
         break
       default:
-        this.handleAfterStart(codePoint)
+        this.handleAfterStart(symbol)
         break
     }
+
+    this.location.copy(symbol.location)
+    this.location.snapToEnd()
   }
 
   /**
@@ -147,25 +132,25 @@ export class UnidocLexer {
       case UnidocLexerState.SHARP:
       case UnidocLexerState.DOT:
       case UnidocLexerState.ANTISLASH:
-        this.emitWord()
+        this.emitBuffer(UnidocTokenType.WORD)
         break
       case UnidocLexerState.SPACE:
-        this.emitSpace()
+        this.emitBuffer(UnidocTokenType.SPACE)
         break
       case UnidocLexerState.CARRIAGE_RETURN:
-        this.emitNewLine()
+        this.emitBuffer(UnidocTokenType.NEW_LINE)
         break
       case UnidocLexerState.TAG:
-        this.emitTag()
+        this.emitBuffer(UnidocTokenType.TAG)
         break
       case UnidocLexerState.WORD:
-        this.emitWord()
+        this.emitBuffer(UnidocTokenType.WORD)
         break
       case UnidocLexerState.IDENTIFIER:
-        this.emitIdentifier()
+        this.emitBuffer(UnidocTokenType.IDENTIFIER)
         break
       case UnidocLexerState.CLASS:
-        this.emitClass()
+        this.emitBuffer(UnidocTokenType.CLASS)
         break
       case UnidocLexerState.START:
         break
@@ -178,18 +163,19 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after an antislash.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterAntislash (codePoint : CodePoint) : void {
+  private handleAfterAntislash (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     if (
       (codePoint >= CodePoint.a    && codePoint <= CodePoint.z)    ||
       (codePoint >= CodePoint.A    && codePoint <= CodePoint.Z)    ||
       (codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE) ||
       (codePoint === CodePoint.MINUS)
     ) {
-      this._symbols.push(codePoint)
+      this._symbols.bufferize(symbol)
       this._state = UnidocLexerState.TAG
-      this.location.add(0, 1, 1)
     } else {
       switch (codePoint) {
         case CodePoint.SPACE:
@@ -197,14 +183,13 @@ export class UnidocLexer {
         case CodePoint.FORM_FEED:
         case CodePoint.NEW_LINE:
         case CodePoint.CARRIAGE_RETURN:
-          this.emitWord()
+          this.emitBuffer(UnidocTokenType.WORD)
           this._state = UnidocLexerState.START
-          this.handleAfterStart(codePoint)
+          this.handleAfterStart(symbol)
           break
         default:
-          this._symbols.push(codePoint)
+          this._symbols.bufferize(symbol)
           this._state = UnidocLexerState.WORD
-          this.location.add(0, 1, 1)
           break
       }
     }
@@ -213,17 +198,18 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after a tag.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterTag (codePoint : CodePoint) : void {
+  private handleAfterTag (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     if (
       (codePoint >= CodePoint.a    && codePoint <= CodePoint.z)    ||
       (codePoint >= CodePoint.A    && codePoint <= CodePoint.Z)    ||
       (codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE) ||
       (codePoint === CodePoint.MINUS)
     ) {
-      this._symbols.push(codePoint)
-      this.location.add(0, 1, 1)
+      this._symbols.bufferize(symbol)
     } else {
       switch (codePoint) {
         case CodePoint.TABULATION:
@@ -236,14 +222,13 @@ export class UnidocLexer {
         case CodePoint.SHARP:
         case CodePoint.OPENING_BRACE:
         case CodePoint.CLOSING_BRACE:
-          this.emitTag()
+          this.emitBuffer(UnidocTokenType.TAG)
           this._state = UnidocLexerState.START
-          this.handleAfterStart(codePoint)
+          this.handleAfterStart(symbol)
           break
         default:
-          this._symbols.push(codePoint)
+          this._symbols.bufferize(symbol)
           this._state = UnidocLexerState.WORD
-          this.location.add(0, 1, 1)
           break
       }
     }
@@ -252,9 +237,11 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after a word.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterWord (codePoint : CodePoint) : void {
+  private handleAfterWord (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     switch (codePoint) {
       case CodePoint.TABULATION:
       case CodePoint.SPACE:
@@ -264,13 +251,12 @@ export class UnidocLexer {
       case CodePoint.CARRIAGE_RETURN:
       case CodePoint.OPENING_BRACE:
       case CodePoint.CLOSING_BRACE:
-        this.emitWord()
+        this.emitBuffer(UnidocTokenType.WORD)
         this._state = UnidocLexerState.START
-        this.handleAfterStart(codePoint)
+        this.handleAfterStart(symbol)
         break
       default:
-        this._symbols.push(codePoint)
-        this.location.add(0, 1, 1)
+        this._symbols.bufferize(symbol)
         break
     }
   }
@@ -278,20 +264,21 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after a carriage return.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterCarriageReturn (codePoint : CodePoint) : void {
+  private handleAfterCarriageReturn (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     switch (codePoint) {
       case CodePoint.NEW_LINE:
-        this._symbols.push(codePoint)
-        this.location.add(0, 0, 1)
-        this.emitNewLine()
+        this._symbols.bufferize(symbol)
+        this.emitBuffer(UnidocTokenType.NEW_LINE)
         this._state = UnidocLexerState.START
         break
       default:
-        this.emitNewLine()
+        this.emitBuffer(UnidocTokenType.NEW_LINE)
         this._state = UnidocLexerState.START
-        this.handleAfterStart(codePoint)
+        this.handleAfterStart(symbol)
         break
     }
   }
@@ -299,20 +286,21 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after a space.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterSpace (codePoint : CodePoint) : void {
+  private handleAfterSpace (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     switch (codePoint) {
       case CodePoint.SPACE:
       case CodePoint.TABULATION:
       case CodePoint.FORM_FEED:
-        this._symbols.push(codePoint)
-        this.location.add(0, 1, 1)
+        this._symbols.bufferize(symbol)
         break
       default:
-        this.emitSpace()
+        this.emitBuffer(UnidocTokenType.SPACE)
         this._state = UnidocLexerState.START
-        this.handleAfterStart(codePoint)
+        this.handleAfterStart(symbol)
         break
     }
   }
@@ -320,18 +308,19 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after a dot.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterDot (codePoint : CodePoint) : void {
+  private handleAfterDot (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     if (
       codePoint >= CodePoint.a && codePoint <= CodePoint.z       ||
       codePoint >= CodePoint.A && codePoint <= CodePoint.Z       ||
       codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
       codePoint === CodePoint.MINUS
     ) {
-      this._symbols.push(codePoint)
+      this._symbols.bufferize(symbol)
       this._state = UnidocLexerState.CLASS
-      this.location.add(0, 1, 1)
     } else {
       switch (codePoint) {
         case CodePoint.SPACE:
@@ -341,14 +330,13 @@ export class UnidocLexer {
         case CodePoint.CARRIAGE_RETURN:
         case CodePoint.OPENING_BRACE:
         case CodePoint.CLOSING_BRACE:
-          this.emitWord()
+          this.emitBuffer(UnidocTokenType.WORD)
           this._state = UnidocLexerState.START
-          this.handleAfterStart(codePoint)
+          this.handleAfterStart(symbol)
           break
         default:
-          this._symbols.push(codePoint)
+          this._symbols.bufferize(symbol)
           this._state = UnidocLexerState.WORD
-          this.location.add(0, 1, 1)
           break
       }
     }
@@ -356,17 +344,18 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after a class.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterClass (codePoint : CodePoint) : void {
+  private handleAfterClass (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     if (
       codePoint >= CodePoint.a    && codePoint <= CodePoint.z    ||
       codePoint >= CodePoint.A    && codePoint <= CodePoint.Z    ||
       codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
       codePoint === CodePoint.MINUS
     ) {
-      this._symbols.push(codePoint)
-      this.location.add(0, 1, 1)
+      this._symbols.bufferize(symbol)
     } else {
       switch (codePoint) {
         case CodePoint.TABULATION:
@@ -378,14 +367,13 @@ export class UnidocLexer {
         case CodePoint.SHARP:
         case CodePoint.OPENING_BRACE:
         case CodePoint.CLOSING_BRACE:
-          this.emitClass()
+          this.emitBuffer(UnidocTokenType.CLASS)
           this._state = UnidocLexerState.START
-          this.handleAfterStart(codePoint)
+          this.handleAfterStart(symbol)
           break
         default:
-          this._symbols.push(codePoint)
+          this._symbols.bufferize(symbol)
           this._state = UnidocLexerState.WORD
-          this.location.add(0, 1, 1)
           break
       }
     }
@@ -394,18 +382,19 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after a sharp.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterSharp (codePoint : CodePoint) : void {
+  private handleAfterSharp (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     if (
       codePoint >= CodePoint.a && codePoint <= CodePoint.z       ||
       codePoint >= CodePoint.A && codePoint <= CodePoint.Z       ||
       codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
       codePoint === CodePoint.MINUS
     ) {
-      this._symbols.push(codePoint)
+      this._symbols.bufferize(symbol)
       this._state = UnidocLexerState.IDENTIFIER
-      this.location.add(0, 1, 1)
     } else {
       switch (codePoint) {
         case CodePoint.SPACE:
@@ -415,14 +404,13 @@ export class UnidocLexer {
         case CodePoint.CARRIAGE_RETURN:
         case CodePoint.OPENING_BRACE:
         case CodePoint.CLOSING_BRACE:
-          this.emitWord()
+          this.emitBuffer(UnidocTokenType.WORD)
           this._state = UnidocLexerState.START
-          this.handleAfterStart(codePoint)
+          this.handleAfterStart(symbol)
           break
         default:
-          this._symbols.push(codePoint)
+          this._symbols.bufferize(symbol)
           this._state = UnidocLexerState.WORD
-          this.location.add(0, 1, 1)
           break
       }
     }
@@ -431,17 +419,18 @@ export class UnidocLexer {
   /**
   * Handle the given symbol after an identifier.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterIdentifier (codePoint : CodePoint) : void {
+  private handleAfterIdentifier (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     if (
       codePoint >= CodePoint.a    && codePoint <= CodePoint.z    ||
       codePoint >= CodePoint.A    && codePoint <= CodePoint.Z    ||
       codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
       codePoint === CodePoint.MINUS
     ) {
-      this._symbols.push(codePoint)
-      this.location.add(0, 1, 1)
+      this._symbols.bufferize(symbol)
     } else {
       switch (codePoint) {
         case CodePoint.TABULATION:
@@ -453,14 +442,13 @@ export class UnidocLexer {
         case CodePoint.SHARP:
         case CodePoint.OPENING_BRACE:
         case CodePoint.CLOSING_BRACE:
-          this.emitIdentifier()
+          this.emitBuffer(UnidocTokenType.IDENTIFIER)
           this._state = UnidocLexerState.START
-          this.handleAfterStart(codePoint)
+          this.handleAfterStart(symbol)
           break
         default:
-          this._symbols.push(codePoint)
+          this._symbols.bufferize(symbol)
           this._state = UnidocLexerState.WORD
-          this.location.add(0, 1, 1)
           break
       }
     }
@@ -469,174 +457,60 @@ export class UnidocLexer {
   /**
   * Handle the given symbol at the entry state of this lexer.
   *
-  * @param codePoint - The symbol to handle.
+  * @param symbol - The symbol to handle.
   */
-  private handleAfterStart (codePoint : CodePoint) : void {
+  private handleAfterStart (symbol : UnidocSymbol) : void {
+    const codePoint : CodePoint = symbol.symbol
+
     switch (codePoint) {
       case CodePoint.OPENING_BRACE:
-        this.location.add(0, 1, 1)
-        this.emitBlockStart()
+        this._symbols.bufferize(symbol)
+        this.emitBuffer(UnidocTokenType.BLOCK_START)
         break
       case CodePoint.CLOSING_BRACE:
-        this.location.add(0, 1, 1)
-        this.emitBlockEnd()
+        this._symbols.bufferize(symbol)
+        this.emitBuffer(UnidocTokenType.BLOCK_END)
         break
       case CodePoint.ANTISLASH:
-        this._symbols.push(codePoint)
+        this._symbols.bufferize(symbol)
         this._state = UnidocLexerState.ANTISLASH
-        this.location.add(0, 1, 1)
         break
       case CodePoint.SPACE:
       case CodePoint.TABULATION:
       case CodePoint.FORM_FEED:
         this._state = UnidocLexerState.SPACE
-        this.nextCodePoint(codePoint)
+        this.next(symbol)
         break
       case CodePoint.NEW_LINE:
-        this._symbols.push(codePoint)
-        this._from.copy(this.location)
-        this.location.add(1, 0, 1)
-        this.location.column = 0
-        this.emitNewLine()
+        this._symbols.bufferize(symbol)
+        this.emitBuffer(UnidocTokenType.NEW_LINE)
         break
       case CodePoint.CARRIAGE_RETURN:
-        this._symbols.push(codePoint)
+        this._symbols.bufferize(symbol)
         this._state = UnidocLexerState.CARRIAGE_RETURN
-        this._from.copy(this.location)
-        this.location.add(1, 0, 1)
-        this.location.column = 0
         break
       case CodePoint.SHARP:
-        this._symbols.push(codePoint)
+        this._symbols.bufferize(symbol)
         this._state = UnidocLexerState.SHARP
-        this.location.add(0, 1, 1)
         break
       case CodePoint.DOT:
-        this._symbols.push(codePoint)
+        this._symbols.bufferize(symbol)
         this._state = UnidocLexerState.DOT
-        this.location.add(0, 1, 1)
         break
       default:
-        this._symbols.push(codePoint)
+        this._symbols.bufferize(symbol)
         this._state = UnidocLexerState.WORD
-        this.location.add(0, 1, 1)
         break
     }
   }
 
-  /**
-  * Configure a WORD token instance and emit it.
-  */
-  private emitWord () : void {
+  private emitBuffer (type : UnidocTokenType) : void {
     this._token.clear()
-    this._token.from.copy(this.location)
-    this._token.from.subtract(0, this._symbols.size, this._symbols.size)
-    this._token.to.copy(this.location)
-    this._token.symbols.copy(this._symbols)
+    this._token.from.copy(this._symbols.from)
+    this._token.to.copy(this._symbols.to)
+    this._token.symbols.copy(this._symbols.symbols)
     this._symbols.clear()
-    this._token.type = UnidocTokenType.WORD
-
-    this.emitToken(this._token)
-  }
-
-  /**
-  * Configure a TAG token instance and emit it.
-  */
-  private emitTag () : void {
-    this._token.clear()
-    this._token.from.copy(this.location)
-    this._token.from.subtract(0, this._symbols.size, this._symbols.size)
-    this._token.to.copy(this.location)
-    this._token.symbols.copy(this._symbols)
-    this._symbols.clear()
-    this._token.type = UnidocTokenType.TAG
-
-    this.emitToken(this._token)
-  }
-
-  /**
-  * Configure a CLASS token instance and emit it.
-  */
-  private emitClass () : void {
-    this._token.clear()
-    this._token.from.copy(this.location)
-    this._token.from.subtract(0, this._symbols.size, this._symbols.size)
-    this._token.to.copy(this.location)
-    this._token.symbols.copy(this._symbols)
-    this._symbols.clear()
-    this._token.type = UnidocTokenType.CLASS
-
-    this.emitToken(this._token)
-  }
-
-  /**
-  * Configure a IDENTIFIER token instance and emit it.
-  */
-  private emitIdentifier () : void {
-    this._token.clear()
-    this._token.from.copy(this.location)
-    this._token.from.subtract(0, this._symbols.size, this._symbols.size)
-    this._token.to.copy(this.location)
-    this._token.symbols.copy(this._symbols)
-    this._symbols.clear()
-    this._token.type = UnidocTokenType.IDENTIFIER
-
-    this.emitToken(this._token)
-  }
-
-  /**
-  * Configure a SPACE token instance and emit it.
-  */
-  private emitSpace () : void {
-    this._token.clear()
-    this._token.from.copy(this.location)
-    this._token.from.subtract(0, this._symbols.size, this._symbols.size)
-    this._token.to.copy(this.location)
-    this._token.symbols.copy(this._symbols)
-    this._symbols.clear()
-    this._token.type = UnidocTokenType.SPACE
-
-    this.emitToken(this._token)
-  }
-
-  /**
-  * Configure a NEW_LINE token instance and emit it.
-  */
-  private emitNewLine () : void {
-    this._token.clear()
-    this._token.from.copy(this._from)
-    this._token.to.copy(this.location)
-    this._token.symbols.copy(this._symbols)
-    this._symbols.clear()
-    this._token.type = UnidocTokenType.NEW_LINE
-
-    this.emitToken(this._token)
-  }
-
-  /**
-  * Configure a BLOCK_START token instance and emit it.
-  */
-  private emitBlockStart () : void {
-    this._token.clear()
-    this._token.from.copy(this.location)
-    this._token.from.subtract(0, 1, 1)
-    this._token.to.copy(this.location)
-    this._token.symbols.push(CodePoint.OPENING_BRACE)
-    this._token.type = UnidocTokenType.BLOCK_START
-
-    this.emitToken(this._token)
-  }
-
-  /**
-  * Configure a BLOCK_END token instance and emit it.
-  */
-  private emitBlockEnd () : void {
-    this._token.clear()
-    this._token.from.copy(this.location)
-    this._token.from.subtract(0, 1, 1)
-    this._token.to.copy(this.location)
-    this._token.symbols.push(CodePoint.CLOSING_BRACE)
-    this._token.type = UnidocTokenType.BLOCK_END
+    this._token.type = type
 
     this.emitToken(this._token)
   }
