@@ -287,7 +287,7 @@ export class UnidocParser {
       case UnidocTokenType.CLASS       :
         if (token.isTag(DOCUMENT_TAG)) {
           this._states.last.type = UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER
-          this._states.last.append(token)
+          this._states.last.to.copy(token.to)
         } else {
           this.emitVirtualDocumentStart()
           this._states.last.type = UnidocParserStateType.STREAM_CONTENT
@@ -316,7 +316,7 @@ export class UnidocParser {
       case UnidocTokenType.CLASS       :
         if (token.isTag(DOCUMENT_TAG)) {
           this._states.last.type = UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER
-          this._states.last.append(token)
+          this._states.last.to.copy(token.to)
           this._states.last.content.clear()
         } else {
           this.emitVirtualDocumentStart()
