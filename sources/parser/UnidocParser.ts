@@ -109,16 +109,10 @@ export class UnidocParser {
         this.handleAfterStart(token)
         break
       case UnidocParserStateType.STREAM_CONTENT:
-        this.handleAfterStreamingContent(token)
+        this.handleAfterStreamContent(token)
         break
       case UnidocParserStateType.BLOCK_CONTENT:
         this.handleAfterBlockContent(token)
-        break
-      case UnidocParserStateType.SINGLETON_CONTENT:
-        this.handleAfterSingletonContent(token)
-        break
-      case UnidocParserStateType.SINGLETON_TERMINATION:
-        this.handleAfterSingletonTermination(token)
         break
       case UnidocParserStateType.WHITESPACE:
         this.handleAfterWhitespace(token)
@@ -126,35 +120,51 @@ export class UnidocParser {
       case UnidocParserStateType.WORD:
         this.handleAfterWord(token)
         break
-      case UnidocParserStateType.TAG_CLASSES_BEFORE_IDENTIFIER:
-        this.handleAfterTagClassesBeforeIdentifier(token)
+      case UnidocParserStateType.CLASS_OF_TAG_WITHOUT_IDENTIFIER:
+        this.handleAfterClassOfTagWithoutIdentifier(token)
         break
-      case UnidocParserStateType.TAG_CLASSES_AFTER_IDENTIFIER:
-        this.handleAfterTagClassesAfterIdentifier(token)
+      case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER:
+        this.handleAfterWhitespaceAfterClassOfTagWithoutIdentifier(token)
+        break
+      case UnidocParserStateType.CLASS_OF_TAG_WITH_IDENTIFIER:
+        this.handleAfterClassOfTagWithIdentifier(token)
+        break
+      case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER:
+        this.handleAfterWhitespaceAfterClassOfTagWithIdentifier(token)
         break
       case UnidocParserStateType.ERROR:
         this.handleAfterError(token)
         break
-      case UnidocParserStateType.START_WHITESPACE:
-        this.handleAfterStartingWhitespace(token)
+      case UnidocParserStateType.LEADING_WHITESPACE:
+        this.handleAfterLeadingWhitespace(token)
         break
-      case UnidocParserStateType.START_CLASSES_BEFORE_IDENTIFIER:
-        this.handleAfterStartClassesBeforeIdentifier(token)
+      case UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER:
+        this.handleAfterClassOfStreamWithoutIdentifier(token)
         break
-      case UnidocParserStateType.START_CLASSES_AFTER_IDENTIFIER:
-        this.handleAfterStartClassesAfterIdentifier(token)
+      case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER:
+        this.handleAfterWhitespaceAfterClassOfStreamWithoutIdentifier(token)
         break
-      case UnidocParserStateType.START_SPACE_BEFORE_IDENTIFIER:
-        this.handleAfterStartSpaceBeforeIdentifier(token)
+      case UnidocParserStateType.CLASS_OF_STREAM_WITH_IDENTIFIER:
+        this.handleAfterClassOfStreamWithIdentifier(token)
         break
-      case UnidocParserStateType.START_SPACE_AFTER_IDENTIFIER:
-        this.handleAfterStartSpaceAfterIdentifier(token)
+      case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_STREAM_WITH_IDENTIFIER:
+        this.handleAfterWhitespaceAfterClassOfStreamWithIdentifier(token)
         break
       default:
-        //this.emitError(token)
+        this.throwUhandledParserState(token)
     }
 
     this.location.copy(token.to)
+  }
+
+  private throwUhandledParserState (token : UnidocToken) : void {
+    throw new Error (
+      'Unable to handle token of type #' + token.type + ' "' +
+      UnidocTokenType.toString(token.type) + '" because this parser does not ' +
+      'define an execution process when it has to handle a token when it is ' +
+      'in #' + this._states.last.type + ' "' +
+      UnidocParserStateType.toString(this._states.last.type) + '" state'
+    )
   }
 
   /**
@@ -163,61 +173,96 @@ export class UnidocParser {
   public complete () : void {
     switch (this._states.last.type) {
       case UnidocParserStateType.START:
-        this._states.last.tag = DOCUMENT_TAG
-        this._states.last.at(UnidocPath.EMPTY) // ZEROSTREAM
         this.emitVirtualDocumentStart()
         this.emitVirtualDocumentEnd()
         this._states.last.type = UnidocParserStateType.TERMINATION
         this.complete()
-        return
-      case UnidocParserStateType.START_WHITESPACE:
-        this.emitVirtualDocumentStart()
-        this.emitWhitespaceEvent()
-        this.emitVirtualDocumentEnd()
-        this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.at(this._states.last.to)
-        this.complete()
-        return
+        break
       case UnidocParserStateType.STREAM_CONTENT:
         this.emitTagEnd()
         this._states.last.type = UnidocParserStateType.TERMINATION
         this._states.last.at(this._states.last.to)
         this.complete()
-        return
-      case UnidocParserStateType.SINGLETON_CONTENT:
-      case UnidocParserStateType.SINGLETON_TERMINATION:
-        this.emitTagEnd()
-        this._states.pop()
-        this.complete()
-        return
+        break
       case UnidocParserStateType.BLOCK_CONTENT:
-        // unclosed error
+        // ERROR & RECOVER
         this.emitTagEnd()
-        this._states.pop()
+        this._states.last.type = UnidocParserStateType.TERMINATION
+        this._states.last.at(this._states.last.to)
         this.complete()
-        return
+        break
       case UnidocParserStateType.WHITESPACE:
         this.emitWhitespaceEvent()
         this._states.pop()
         this.complete()
-        return
+        break
       case UnidocParserStateType.WORD:
         this.emitWordEvent()
         this._states.pop()
         this.complete()
-        return
-      case UnidocParserStateType.TAG_CLASSES_BEFORE_IDENTIFIER:
-      case UnidocParserStateType.TAG_CLASSES_AFTER_IDENTIFIER:
+        break
+      case UnidocParserStateType.CLASS_OF_TAG_WITHOUT_IDENTIFIER:
+      case UnidocParserStateType.CLASS_OF_TAG_WITH_IDENTIFIER:
         this.emitTagStart()
+        this._states.last.at(this._states.last.to)
         this.emitTagEnd()
+        this._states.pop()
         this.complete()
-        return
+        break
+      case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER:
+      case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER:
+        this.emitTagStart(this._states.get(this._states.size - 2))
+        this._states.get(this._states.size - 2).at(this._states.last.from)
+        this.emitTagEnd(this._states.get(this._states.size - 2))
+        this.emitWhitespaceEvent()
+        this._states.pop()
+        this._states.pop()
+        this.complete()
+        break
+      case UnidocParserStateType.ERROR:
+        this.throwUnhandledCompletionParserState()
+        break
+      case UnidocParserStateType.LEADING_WHITESPACE:
+        this.emitVirtualDocumentStart()
+        this.emitWhitespaceEvent()
+        this.emitVirtualDocumentEnd()
+        this._states.last.type = UnidocParserStateType.TERMINATION
+        this._states.last.at(this._states.last.to)
+        this.complete()
+        break
+      case UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER:
+      case UnidocParserStateType.CLASS_OF_STREAM_WITH_IDENTIFIER:
+        this.emitTagStart()
+        this.emitVirtualDocumentEnd()
+        this._states.last.type = UnidocParserStateType.TERMINATION
+        this._states.last.at(this._states.last.to)
+        this.complete()
+        break
+      case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER:
+        this.emitTagStart(this._states.get(this._states.size - 2))
+        this._states.get(this._states.size - 2).at(this._states.last.from)
+        this.emitWhitespaceEvent()
+        this._states.pop()
+        this.emitVirtualDocumentEnd()
+        this._states.last.type = UnidocParserStateType.TERMINATION
+        this._states.last.at(this._states.last.to)
+        this.complete()
+        break
       case UnidocParserStateType.TERMINATION:
         this.emitCompletion()
         return
-      case UnidocParserStateType.ERROR:
-        return
+      default:
+        this.throwUnhandledCompletionParserState()
     }
+  }
+
+  private throwUnhandledCompletionParserState () : void {
+    throw new Error (
+      'Unable to handle stream completion because this parser does not ' +
+      'define an execution process when it has to handle a completion when ' +
+      'it is in #' + this._states.last.type + ' "' +
+      UnidocParserStateType.toString(this._states.last.type) + '" state'
+    )
   }
 
   /**
@@ -227,11 +272,12 @@ export class UnidocParser {
   */
   private handleAfterStart (token : UnidocToken) : void {
     this._states.last.at(token.from)
+    this._states.last.tag = DOCUMENT_TAG
 
     switch (token.type) {
       case UnidocTokenType.NEW_LINE    :
       case UnidocTokenType.SPACE       :
-        this._states.last.type = UnidocParserStateType.START_WHITESPACE
+        this._states.last.type = UnidocParserStateType.LEADING_WHITESPACE
         this._states.last.append(token)
         return
       case UnidocTokenType.TAG         :
@@ -240,7 +286,7 @@ export class UnidocParser {
       case UnidocTokenType.IDENTIFIER  :
       case UnidocTokenType.CLASS       :
         if (token.isTag(DOCUMENT_TAG)) {
-          this._states.last.type = UnidocParserStateType.START_CLASSES_BEFORE_IDENTIFIER
+          this._states.last.type = UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER
           this._states.last.append(token)
         } else {
           this.emitVirtualDocumentStart()
@@ -252,15 +298,12 @@ export class UnidocParser {
         this.emitDocumentStartWithBlockEndingError()
         this.recoverFromDocumentStartWithBlockEndingError(token)
         return
+      default:
+        this.throwUnhandledTokenType(token)
     }
   }
 
-  /**
-  * Handle the given token after starting whitespaces.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterStartingWhitespace (token : UnidocToken) : void {
+  private handleAfterLeadingWhitespace (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.NEW_LINE    :
       case UnidocTokenType.SPACE       :
@@ -272,13 +315,14 @@ export class UnidocParser {
       case UnidocTokenType.IDENTIFIER  :
       case UnidocTokenType.CLASS       :
         if (token.isTag(DOCUMENT_TAG)) {
-          this._states.last.type = UnidocParserStateType.START_CLASSES_BEFORE_IDENTIFIER
+          this._states.last.type = UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER
           this._states.last.append(token)
           this._states.last.content.clear()
         } else {
           this.emitVirtualDocumentStart()
           this.emitWhitespaceEvent()
-          this._states.last.begin(UnidocParserStateType.STREAM_CONTENT, token.from)
+          this._states.last.type = UnidocParserStateType.STREAM_CONTENT
+          this._states.last.at(token.from)
           this.next(token)
         }
         return
@@ -286,25 +330,22 @@ export class UnidocParser {
         this.emitDocumentStartWithBlockEndingError()
         this.recoverFromDocumentStartWithBlockEndingError(token)
         return
+      default:
+        this.throwUnhandledTokenType(token)
     }
   }
 
-  /**
-  * Handle the given token after a tag type.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterStartClassesBeforeIdentifier (token : UnidocToken) : void {
+  private handleAfterClassOfStreamWithoutIdentifier (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.SPACE:
       case UnidocTokenType.NEW_LINE:
-        this._states.push(UnidocParserStateType.START_SPACE_BEFORE_IDENTIFIER)
+        this._states.push(UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER)
         this._states.last.at(token.from)
         this._states.last.append(token)
         return
       case UnidocTokenType.IDENTIFIER:
         this._states.last.append(token)
-        this._states.last.type = UnidocParserStateType.START_CLASSES_AFTER_IDENTIFIER
+        this._states.last.type = UnidocParserStateType.CLASS_OF_STREAM_WITH_IDENTIFIER
         return
       case UnidocTokenType.CLASS:
         this._states.last.append(token)
@@ -313,130 +354,97 @@ export class UnidocParser {
       case UnidocTokenType.WORD :
       case UnidocTokenType.BLOCK_START:
       case UnidocTokenType.BLOCK_END :
-        this.handleDocumentStreamBegining(token)
-        return
-    }
-  }
-
-  /**
-  * Handle the given token after a tag type.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterStartSpaceBeforeIdentifier (token : UnidocToken) : void {
-    switch (token.type) {
-      case UnidocTokenType.SPACE:
-      case UnidocTokenType.NEW_LINE:
-        this._states.last.append(token)
-        return
-      case UnidocTokenType.IDENTIFIER:
-      case UnidocTokenType.CLASS:
-        this._states.pop()
-        this.next(token)
-        return
-      case UnidocTokenType.TAG :
-      case UnidocTokenType.WORD :
-      case UnidocTokenType.BLOCK_START:
-        this.emitTagStart(this._states.get(0))
-        this.emitWhitespaceEvent()
-        this._states.pop()
-        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-        this._states.last.at(token.from)
-        this.next(token)
-        return
-      case UnidocTokenType.BLOCK_END :
-        this.handleDocumentStreamBegining(token)
-        return
-    }
-  }
-
-  /**
-  * Handle the given token after a tag type.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterStartClassesAfterIdentifier (token : UnidocToken) : void {
-    switch (token.type) {
-      case UnidocTokenType.SPACE:
-      case UnidocTokenType.NEW_LINE:
-        this._states.push(UnidocParserStateType.START_SPACE_AFTER_IDENTIFIER)
-        this._states.last.at(token.from)
-        this._states.last.append(token)
-        return
-      case UnidocTokenType.CLASS:
-        this._states.last.append(token)
-        return
-      case UnidocTokenType.TAG :
-      case UnidocTokenType.WORD :
-      case UnidocTokenType.BLOCK_START:
-      case UnidocTokenType.BLOCK_END :
-      case UnidocTokenType.IDENTIFIER:
-        this.handleDocumentStreamBegining(token)
-        return
-    }
-  }
-
-  /**
-  * Handle the given token after a tag type.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterStartSpaceAfterIdentifier (token : UnidocToken) : void {
-    switch (token.type) {
-      case UnidocTokenType.SPACE:
-      case UnidocTokenType.NEW_LINE:
-        this._states.last.append(token)
-        return
-      case UnidocTokenType.CLASS:
-        this._states.pop()
-        this.next(token)
-        return
-      case UnidocTokenType.IDENTIFIER:
-      case UnidocTokenType.TAG :
-      case UnidocTokenType.WORD :
-      case UnidocTokenType.BLOCK_START:
-        this.emitTagStart(this._states.get(0))
-        this.emitWhitespaceEvent()
-        this._states.pop()
-        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-        this._states.last.at(token.from)
-        this.next(token)
-        return
-      case UnidocTokenType.BLOCK_END :
-        this.handleDocumentStreamBegining(token)
-        return
-    }
-  }
-
-  private handleDocumentStreamBegining (token : UnidocToken) {
-    switch (token.type) {
-      case UnidocTokenType.TAG :
-      case UnidocTokenType.WORD :
-      case UnidocTokenType.IDENTIFIER:
-      case UnidocTokenType.CLASS:
-      case UnidocTokenType.BLOCK_START:
         this.emitTagStart()
         this._states.last.type = UnidocParserStateType.STREAM_CONTENT
         this._states.last.at(token.from)
         this.next(token)
         return
-      case UnidocTokenType.BLOCK_END:
-        throw 'Trying to terminate a streamed tag.'
       default:
-        throw new Error(
-          'The token type #' + token.type + ' "' +
-          UnidocTokenType.toString(token.type) + '" is an invalid document ' +
-          'stream begining token type.'
-        )
+        this.throwUnhandledTokenType(token)
     }
   }
 
-  /**
-  * Handle the given token into a stream of content.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterStreamingContent (token : UnidocToken) : void {
+  private handleAfterWhitespaceAfterClassOfStreamWithoutIdentifier (token : UnidocToken) : void {
+    switch (token.type) {
+      case UnidocTokenType.SPACE:
+      case UnidocTokenType.NEW_LINE:
+        this._states.last.append(token)
+        return
+      case UnidocTokenType.IDENTIFIER:
+      case UnidocTokenType.CLASS:
+        this._states.pop()
+        this.next(token)
+        return
+      case UnidocTokenType.TAG:
+      case UnidocTokenType.WORD:
+      case UnidocTokenType.BLOCK_START:
+      case UnidocTokenType.BLOCK_END:
+        this.emitTagStart(this._states.get(this._states.size - 2))
+        this.emitWhitespaceEvent()
+        this._states.pop()
+        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
+        this._states.last.at(token.from)
+        this.next(token)
+        return
+      default:
+        this.throwUnhandledTokenType(token)
+    }
+  }
+
+  private handleAfterClassOfStreamWithIdentifier (token : UnidocToken) : void {
+    switch (token.type) {
+      case UnidocTokenType.SPACE:
+      case UnidocTokenType.NEW_LINE:
+        this._states.push(UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_STREAM_WITH_IDENTIFIER)
+        this._states.last.at(token.from)
+        this._states.last.append(token)
+        return
+      case UnidocTokenType.CLASS:
+        this._states.last.append(token)
+        return
+      case UnidocTokenType.TAG :
+      case UnidocTokenType.WORD :
+      case UnidocTokenType.BLOCK_START:
+      case UnidocTokenType.BLOCK_END :
+      case UnidocTokenType.IDENTIFIER:
+        this.emitTagStart()
+        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
+        this._states.last.at(token.from)
+        this.next(token)
+        return
+      default:
+        this.throwUnhandledTokenType(token)
+    }
+  }
+
+  private handleAfterWhitespaceAfterClassOfStreamWithIdentifier (token : UnidocToken) : void {
+    switch (token.type) {
+      case UnidocTokenType.SPACE:
+      case UnidocTokenType.NEW_LINE:
+        this._states.last.append(token)
+        return
+      case UnidocTokenType.CLASS:
+        this._states.pop()
+        this.next(token)
+        return
+      case UnidocTokenType.IDENTIFIER:
+      case UnidocTokenType.TAG :
+      case UnidocTokenType.WORD :
+      case UnidocTokenType.BLOCK_START:
+      case UnidocTokenType.BLOCK_END :
+        this.emitTagStart(this._states.get(0))
+        this.emitWhitespaceEvent()
+        this._states.pop()
+        this._states.last.type = UnidocParserStateType.STREAM_CONTENT
+        this._states.last.at(token.from)
+        this.next(token)
+        return
+      default:
+        this.throwUnhandledTokenType(token)
+    }
+  }
+
+  private handleAfterStreamContent (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.TAG:
       case UnidocTokenType.NEW_LINE:
@@ -445,21 +453,15 @@ export class UnidocParser {
       case UnidocTokenType.IDENTIFIER:
       case UnidocTokenType.CLASS:
       case UnidocTokenType.BLOCK_START:
-        this.handleBasicContent(token)
+        this.handleAfterContent(token)
         return
       case UnidocTokenType.BLOCK_END:
-        throw new Error('Trying to terminate a stream.')
-        //this.emitUnstartedTagTermination()
-        //this.recoverFromUnstartedTagTermination(token)
-        //break
+        throw new Error('Trying to terminate a stream of content.')
+      default:
+        this.throwUnhandledTokenType(token)
     }
   }
 
-  /**
-  * Handle the given token into a block content.
-  *
-  * @param token - A unidock token to handle.
-  */
   private handleAfterBlockContent (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.TAG:
@@ -469,7 +471,7 @@ export class UnidocParser {
       case UnidocTokenType.IDENTIFIER:
       case UnidocTokenType.CLASS:
       case UnidocTokenType.BLOCK_START:
-        this.handleBasicContent(token)
+        this.handleAfterContent(token)
         return
       case UnidocTokenType.BLOCK_END:
         this._states.last.append(token)
@@ -477,49 +479,15 @@ export class UnidocParser {
         this._states.pop()
         this._states.last.at(token.to)
         break
+      default:
+        this.throwUnhandledTokenType(token)
     }
   }
 
-  /**
-  * Handle the given token into a singleton content.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterSingletonContent (token : UnidocToken) : void {
-    switch (token.type) {
-      case UnidocTokenType.NEW_LINE:
-      case UnidocTokenType.SPACE:
-        return
-      case UnidocTokenType.TAG:
-      case UnidocTokenType.WORD:
-      case UnidocTokenType.IDENTIFIER:
-      case UnidocTokenType.CLASS:
-        this._states.last.type = UnidocParserStateType.SINGLETON_TERMINATION
-        this.handleBasicContent(token)
-        return
-      case UnidocTokenType.BLOCK_START:
-        throw new Error('Unhandled uncommon case.')
-      case UnidocTokenType.BLOCK_END:
-        throw new Error('Trying to terminate a singleton content with a block end.')
-    }
-  }
-
-  /**
-  * Handle the given token after a singleton content.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterSingletonTermination (token : UnidocToken) : void {
-    this.emitTagEnd()
-    this._states.pop()
-    this._states.last.at(token.from)
-    this.next(token)
-  }
-
-  private handleBasicContent (token : UnidocToken) : void {
+  private handleAfterContent (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.TAG:
-        this._states.push(UnidocParserStateType.TAG_CLASSES_BEFORE_IDENTIFIER)
+        this._states.push(UnidocParserStateType.CLASS_OF_TAG_WITHOUT_IDENTIFIER)
         this._states.last.at(token.from)
         this._states.last.append(token)
         break
@@ -535,13 +503,13 @@ export class UnidocParser {
         this._states.last.append(token)
         break
       case UnidocTokenType.IDENTIFIER:
-        this._states.push(UnidocParserStateType.TAG_CLASSES_AFTER_IDENTIFIER)
+        this._states.push(UnidocParserStateType.CLASS_OF_TAG_WITH_IDENTIFIER)
         this._states.last.at(token.from)
         this._states.last.append(token)
         this._states.last.tag = BLOCK_TAG
         break
       case UnidocTokenType.CLASS:
-        this._states.push(UnidocParserStateType.TAG_CLASSES_BEFORE_IDENTIFIER)
+        this._states.push(UnidocParserStateType.CLASS_OF_TAG_WITHOUT_IDENTIFIER)
         this._states.last.at(token.from)
         this._states.last.append(token)
         this._states.last.tag = BLOCK_TAG
@@ -552,16 +520,13 @@ export class UnidocParser {
         this._states.last.append(token)
         this._states.last.tag = BLOCK_TAG
         this.emitTagStart()
-        this._states.last.from.copy(token.to) // WILD
+        this._states.last.from.copy(token.to)
         break
+      default:
+        this.throwUnhandledTokenType(token)
     }
   }
 
-  /**
-  * Handle the given token after a whitespace.
-  *
-  * @param token - A unidock token to handle.
-  */
   private handleAfterWhitespace (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.SPACE:
@@ -577,11 +542,6 @@ export class UnidocParser {
     }
   }
 
-  /**
-  * Handle the given token after a word.
-  *
-  * @param token - A unidock token to handle.
-  */
   private handleAfterWord (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.WORD:
@@ -596,28 +556,28 @@ export class UnidocParser {
     }
   }
 
-  /**
-  * Handle the given token after a tag type.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterTagClassesBeforeIdentifier (token : UnidocToken) : void {
+  private handleAfterClassOfTagWithoutIdentifier (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.SPACE:
       case UnidocTokenType.NEW_LINE:
+        this._states.push(UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER)
+        this._states.last.at(token.from)
+        this._states.last.append(token)
         return
       case UnidocTokenType.IDENTIFIER:
         this._states.last.append(token)
-        this._states.last.type = UnidocParserStateType.TAG_CLASSES_AFTER_IDENTIFIER
+        this._states.last.type = UnidocParserStateType.CLASS_OF_TAG_WITH_IDENTIFIER
         return
       case UnidocTokenType.CLASS:
         this._states.last.append(token)
         return
       case UnidocTokenType.TAG :
       case UnidocTokenType.WORD :
+      case UnidocTokenType.BLOCK_END :
         this.emitTagStart()
-        this._states.last.type = UnidocParserStateType.SINGLETON_CONTENT
-        this._states.last.at(token.from)
+        this._states.last.at(this._states.last.to)
+        this.emitTagEnd()
+        this._states.pop()
         this.next(token)
         return
       case UnidocTokenType.BLOCK_START:
@@ -626,35 +586,60 @@ export class UnidocParser {
         this._states.last.type = UnidocParserStateType.BLOCK_CONTENT
         this._states.last.at(token.to)
         return
-      case UnidocTokenType.BLOCK_END :
-        this.emitTagStart()
-        this._states.last.at(this._states.last.to)
-        this.emitTagEnd()
-
-        this._states.pop()
-        this.next(token)
-        return
+      default:
+        this.throwUnhandledTokenType(token)
     }
   }
 
-  /**
-  * Handle the given token after a tag type.
-  *
-  * @param token - A unidock token to handle.
-  */
-  private handleAfterTagClassesAfterIdentifier (token : UnidocToken) : void {
+  private handleAfterWhitespaceAfterClassOfTagWithoutIdentifier (token : UnidocToken) : void {
     switch (token.type) {
       case UnidocTokenType.SPACE:
       case UnidocTokenType.NEW_LINE:
+        this._states.last.append(token)
+        return
+      case UnidocTokenType.IDENTIFIER:
+      case UnidocTokenType.CLASS:
+      case UnidocTokenType.BLOCK_START:
+        this._states.pop()
+        this._states.last.to.copy(token.from)
+        this.next(token)
+        return
+      case UnidocTokenType.TAG :
+      case UnidocTokenType.WORD :
+      case UnidocTokenType.BLOCK_END :
+        this.emitTagStart(this._states.get(this._states.size - 2))
+        this._states.get(this._states.size - 2).at(this._states.last.from)
+        this.emitTagEnd(this._states.get(this._states.size - 2))
+        this.emitWhitespaceEvent()
+        this._states.pop()
+        this._states.pop()
+        this.next(token)
+        return
+      default:
+        this.throwUnhandledTokenType(token)
+    }
+  }
+
+  private handleAfterClassOfTagWithIdentifier (token : UnidocToken) : void {
+    switch (token.type) {
+      case UnidocTokenType.SPACE:
+      case UnidocTokenType.NEW_LINE:
+        this._states.push(UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER)
+        this._states.last.at(token.from)
+        this._states.last.append(token)
         return
       case UnidocTokenType.CLASS:
         this._states.last.append(token)
         return
-      case UnidocTokenType.TAG :
-      case UnidocTokenType.WORD :
-        this._states.last.type = UnidocParserStateType.SINGLETON_CONTENT
+      case UnidocTokenType.TAG:
+      case UnidocTokenType.WORD:
+      case UnidocTokenType.BLOCK_END:
+      case UnidocTokenType.IDENTIFIER:
         this.emitTagStart()
-        this._states.last.at(token.from)
+        this._states.last.at(this._states.last.to)
+        this.emitTagEnd()
+
+        this._states.pop()
         this.next(token)
         return
       case UnidocTokenType.BLOCK_START:
@@ -663,25 +648,37 @@ export class UnidocParser {
         this._states.last.type = UnidocParserStateType.BLOCK_CONTENT
         this._states.last.at(token.to)
         return
-      case UnidocTokenType.BLOCK_END :
-        this._states.last.type = UnidocParserStateType.SINGLETON_CONTENT
+      default:
+        this.throwUnhandledTokenType(token)
+    }
+  }
 
-        this.emitTagStart()
-        this._states.last.at(this._states.last.to)
-        this.emitTagEnd()
-
+  private handleAfterWhitespaceAfterClassOfTagWithIdentifier (token : UnidocToken) : void {
+    switch (token.type) {
+      case UnidocTokenType.SPACE:
+      case UnidocTokenType.NEW_LINE:
+        this._states.last.append(token)
+        return
+      case UnidocTokenType.CLASS:
+      case UnidocTokenType.BLOCK_START:
         this._states.pop()
+        this._states.last.to.copy(token.from)
         this.next(token)
         return
       case UnidocTokenType.IDENTIFIER:
-        this._states.last.type = UnidocParserStateType.SINGLETON_TERMINATION
-        this.emitTagStart()
-
-        this._states.push(UnidocParserStateType.TAG_CLASSES_AFTER_IDENTIFIER)
-        this._states.last.at(token.from)
-        this._states.last.append(token)
-        this._states.last.tag = BLOCK_TAG
+      case UnidocTokenType.TAG :
+      case UnidocTokenType.WORD :
+      case UnidocTokenType.BLOCK_END :
+        this.emitTagStart(this._states.get(this._states.size - 2))
+        this._states.get(this._states.size - 2).at(this._states.last.from)
+        this.emitTagEnd(this._states.get(this._states.size - 2))
+        this.emitWhitespaceEvent()
+        this._states.pop()
+        this._states.pop()
+        this.next(token)
         return
+      default:
+        this.throwUnhandledTokenType(token)
     }
   }
 
@@ -691,17 +688,22 @@ export class UnidocParser {
   * @param token - A unidock token to handle.
   */
   private handleAfterError (token : UnidocToken) : void {
-    //this.emitError(token)
+    this.throwUnhandledTokenType(token)
+  }
+
+  private throwUnhandledTokenType (token : UnidocToken) : void {
+    throw new Error(
+      'The token type #' + token.type + ' "' +
+      UnidocTokenType.toString(token.type) + '" is currently not handled by ' +
+      'this parser when it is in state #' + this._states.last.type + ' "' +
+      UnidocParserStateType.toString(this._states.last.type) + '".'
+    )
   }
 
   private recoverFromDocumentStartWithBlockEndingError (token : UnidocToken) : void {
     this._states.last.from.copy(token.to)
   }
 
-  /**
-  * Emit an error
-  *
-  */
   private emitDocumentStartWithBlockEndingError () {
     this._validation.clear()
     //this._validation.asError('An unidoc document cannot start with a block ending character.')

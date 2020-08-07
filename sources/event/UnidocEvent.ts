@@ -303,6 +303,77 @@ export class UnidocEvent {
     this.symbols.clear()
   }
 
+  public toCoreString () : string {
+    let result : string = ''
+
+    result += this.timestamp
+    result += ' '
+    result += UnidocEventType.toString(this.type)
+
+    if (this.tag.length > 0) {
+      result += ' \\'
+      result += this.tag
+    }
+
+    if (this.identifier.length > 0) {
+      result += ' #'
+      result += this.identifier
+    }
+
+    if (this.classes.size > 0) {
+      result += ' '
+      for (const clazz of this.classes) {
+        result += '.'
+        result += clazz
+      }
+    }
+
+    if (this.symbols.size > 0) {
+      result += ' "'
+      result += this.debugText
+      result += '"'
+    }
+
+    return result
+  }
+
+  public toSimplifiedString () : string {
+    let result : string = ''
+
+    result += this.timestamp
+    result += ' '
+    result += UnidocEventType.toString(this.type)
+    result += ' ['
+    result += this.path.toString()
+    result += ']'
+
+    if (this.tag.length > 0) {
+      result += ' \\'
+      result += this.tag
+    }
+
+    if (this.identifier.length > 0) {
+      result += ' #'
+      result += this.identifier
+    }
+
+    if (this.classes.size > 0) {
+      result += ' '
+      for (const clazz of this.classes) {
+        result += '.'
+        result += clazz
+      }
+    }
+
+    if (this.symbols.size > 0) {
+      result += ' "'
+      result += this.debugText
+      result += '"'
+    }
+
+    return result
+  }
+
   /**
   * @see Object#toString
   */
