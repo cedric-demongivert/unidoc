@@ -15,10 +15,16 @@ export interface UnidocSourceReader {
   */
   next () : UnidocSymbol
 
+  current () : UnidocSymbol
+
+  skip (count : number) : UnidocSourceReader
+
   /**
   * @return The location of this reader in it's underlying source.
   */
   location () : UnidocLocation
+
+  [Symbol.iterator] () : Iterator<UnidocSymbol>
 }
 
 export namespace UnidocSourceReader {

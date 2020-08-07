@@ -99,97 +99,55 @@ export class UnidocTokenBuffer {
     return this._tokens.get(index)
   }
 
-  // /**
-  // * Append an identifier token at the end of this buffer.
-  // *
-  // * @param value - Code points of the token to append.
-  // */
-  // public pushIdentifier (value : string) : void {
-  //   const ending : UnidocLocation = this.to
-  //
-  //   this._tokens.size += 1
-  //   this._tokens.last.asIdentifier(ending, value)
-  // }
-  //
-  // /**
-  // * Append a class token at the end of this buffer.
-  // *
-  // * @param value - Code points of the token to append.
-  // */
-  // public pushClass (value : string) : void {
-  //   const ending : UnidocLocation = this.to
-  //
-  //   this._tokens.size += 1
-  //   this._tokens.last.asClass(ending, value)
-  // }
-  //
-  // /**
-  // * Append a tag token at the end of this buffer.
-  // *
-  // * @param value - Code points of the token to append.
-  // */
-  // public pushTag (value : string) : void {
-  //   const ending : UnidocLocation = this.to
-  //
-  //   this._tokens.size += 1
-  //   this._tokens.last.asTag(ending, value)
-  // }
-  //
-  // /**
-  // * Append a block start token at the end of this buffer.
-  // */
-  // public pushBlockStart () : void {
-  //   const ending : UnidocLocation = this.to
-  //
-  //   this._tokens.size += 1
-  //   this._tokens.last.asBlockStart(ending)
-  // }
-  //
-  // /**
-  // * Append a block end token at the end of this buffer.
-  // */
-  // public pushBlockEnd () : void  {
-  //   const ending : UnidocLocation = this.to
-  //
-  //   this._tokens.size += 1
-  //   this._tokens.last.asBlockEnd(ending)
-  // }
-  //
-  // /**
-  // * Append a space token at the end of this buffer.
-  // *
-  // * @param value - Code points of the token to append.
-  // */
-  // public pushSpace (value : string) : void {
-  //   const ending : UnidocLocation = this.to
-  //
-  //   this._tokens.size += 1
-  //   this._tokens.last.asSpace(ending, value)
-  // }
-  //
-  // /**
-  // * Append a newline token at the end of this buffer.
-  // *
-  // * @param type - Type of newline token to add.
-  // */
-  // public pushNewline (type : '\r\n' | '\r' | '\n' = '\r\n') : void {
-  //   const ending : UnidocLocation = this.to
-  //
-  //   this._tokens.size += 1
-  //   this._tokens.last.asNewline(ending, type)
-  // }
-  //
-  // /**
-  // * Append a word token at the end of this buffer.
-  // *
-  // * @param value - Code points of the token to append.
-  // */
-  // public pushWord (value : string) : void {
-  //   const ending : UnidocLocation = this.to
-  //
-  //   this._tokens.size += 1
-  //   this._tokens.last.asWord(ending, value)
-  // }
+  public pushIdentifier (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this._tokens.size += 1
+    this._tokens.last.asIdentifier(from, to, value)
+  }
+
+  public pushClass (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this._tokens.size += 1
+    this._tokens.last.asClass(from, to, value)
+  }
+
+  public pushTag (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this._tokens.size += 1
+    this._tokens.last.asTag(from, to, value)
+  }
+
+  public pushBlockStart (from : UnidocPath, to : UnidocPath) : void {
+    this._tokens.size += 1
+    this._tokens.last.asBlockStart(from, to)
+  }
+
+  public pushBlockEnd (from : UnidocPath, to : UnidocPath) : void  {
+    this._tokens.size += 1
+    this._tokens.last.asBlockEnd(from, to)
+  }
+
+  public pushSpace (from : UnidocPath, to : UnidocPath, value : string) : void {
+    this._tokens.size += 1
+    this._tokens.last.asSpace(from, to, value)
+  }
+
+  /**
+  * Append a newline token at the end of this buffer.
+  *
+  * @param type - Type of newline token to add.
+  */
+  public pushNewline (from : UnidocPath, to : UnidocPath, type : '\r\n' | '\r' | '\n' = '\r\n') : void {
+    this._tokens.size += 1
+    this._tokens.last.asNewline(from, to, type)
+  }
+
+  /**
+  * Append a word token at the end of this buffer.
+  *
+  * @param value - Code points of the token to append.
+  */
+  public pushWord (from : UnidocPath, to : UnidocPath,value : string) : void {
+    this._tokens.size += 1
+    this._tokens.last.asWord(from, to, value)
+  }
 
   /**
   * Append a copy of the given token at the end of this buffer.

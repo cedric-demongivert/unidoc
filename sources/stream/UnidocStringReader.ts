@@ -41,6 +41,29 @@ export class UnidocStringReader  implements UnidocSourceReader {
   }
 
   /**
+  * @see UnidocSourceReader.skip
+  */
+  public skip (count : number) : UnidocStringReader {
+    while (this.hasNext() && count > 0) {
+      this.next()
+      count -= 1
+    }
+
+    return this
+  }
+
+  /**
+  * @see UnidocSourceReader.current
+  */
+  public current () : UnidocSymbol {
+    if (this._location.location.index === 0) {
+      throw new Error('No current symbol.')
+    }
+
+    return this._symbol
+  }
+
+  /**
   * @see UnidocSourceReader.next
   */
   public next() : UnidocSymbol {
@@ -71,5 +94,11 @@ export class UnidocStringReader  implements UnidocSourceReader {
   */
   public location () : UnidocLocation {
     return this._location.location
+  }
+
+  public * [Symbol.iterator] () : Iterator<UnidocSymbol> {
+    while (this.hasNext()) {
+      yield this.next()
+    }
   }
 }

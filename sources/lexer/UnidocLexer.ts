@@ -1,4 +1,5 @@
 import { CodePoint } from '../CodePoint'
+import { UnidocLocation } from '../UnidocLocation'
 import { UnidocPath } from '../path/UnidocPath'
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
@@ -8,6 +9,10 @@ import { UnidocSymbol } from '../stream/UnidocSymbol'
 import { UnidocLexerEventType } from './UnidocLexerEventType'
 import { UnidocLexerState } from './UnidocLexerState'
 import { UnidocSymbolBuffer } from './UnidocSymbolBuffer'
+
+const ZERO_PATH : UnidocPath = (
+  UnidocPath.create(1).pushStream(UnidocLocation.ZERO)
+)
 
 /**
 * Unidoc lexer.
@@ -69,6 +74,8 @@ export class UnidocLexer {
     this._validationListeners = new Set<UnidocLexer.ValidationListener>()
     this._completionListeners = new Set<UnidocLexer.CompletionListener>()
     this._errorListeners      = new Set<UnidocLexer.ErrorListener>()
+
+    this.location.copy(ZERO_PATH)
   }
 
   /**
@@ -599,7 +606,7 @@ export class UnidocLexer {
   public clear () : void {
     this._token.clear()
     this._state = UnidocLexerState.START
-    this.location.clear()
+    this.location.copy(ZERO_PATH)
     this._symbols.clear()
 
     this._tokenListeners.clear()

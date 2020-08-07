@@ -2,7 +2,6 @@
 
 import { UnidocSymbol } from '../../sources/stream/UnidocSymbol'
 import { UnidocPath } from '../../sources/path/UnidocPath'
-import { UnidocLocation } from '../../sources/UnidocLocation'
 import { CodePoint } from '../../sources/CodePoint'
 
 describe('UnidocSymbol', function () {
@@ -125,7 +124,7 @@ describe('UnidocSymbol', function () {
         CodePoint.b,
         UnidocPath.memory('string', [5, 10, 254], [5, 11, 255])
       )
-      
+
       const other : UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocPath.memory('string', [5, 10, 3], [5, 11, 4])
