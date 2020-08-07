@@ -320,12 +320,12 @@ export class UnidocEvent {
     result += this.path.toString()
     result += ']'
 
-    if (this.tag) {
+    if (this.tag.length > 0) {
       result += ' \\'
       result += this.tag
     }
 
-    if (this.identifier != null) {
+    if (this.identifier.length > 0) {
       result += ' #'
       result += this.identifier
     }
