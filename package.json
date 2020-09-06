@@ -27,7 +27,7 @@
     "typescript": "~3.5.0"
   },
   "dependencies": {
-    "@cedric-demongivert/gl-tool-collection": "^0.22.1",
+    "@cedric-demongivert/gl-tool-collection": "^0.23.1",
     "antlr4ts": "^0.5.0-alpha.3",
     "rxjs": "^6.5.4"
   }

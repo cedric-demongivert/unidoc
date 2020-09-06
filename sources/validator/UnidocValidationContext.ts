@@ -1,77 +1,19 @@
-import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocValidation } from '../validation/UnidocValidation'
+import { UnidocEvent } from '../event/UnidocEvent'
 
-import { UnidocValidator } from './UnidocValidator'
-import { UnidocValidationProcess } from './UnidocValidationProcess'
-
-export class UnidocValidationContext {
+export interface UnidocValidationContext {
   /**
-  * The parent validator instance.
+  * The current event to validate if any.
   */
-  public readonly validator : UnidocValidator
+  readonly event : UnidocEvent
 
   /**
-  * The next event to validate.
+  * A validation instance to use for publishing.
   */
-  public readonly event : UnidocEvent
+  readonly validation : UnidocValidation
 
   /**
-  * A validation message instance to use for emission.
+  * Publish the validation instance associated with this context.
   */
-  public readonly validation : UnidocValidation
-
-  /**
-  * Instantiate a new validation context for the given validator.
-  *
-  * @param validator - The parent validator that hold this context.
-  */
-  public constructor (validator : UnidocValidator) {
-    this.validator = validator
-    this.event = new UnidocEvent()
-    this.validation = new UnidocValidation()
-  }
-
-  /**
-  * Start the given validation process and add it to the stack.
-  *
-  * @param process - A validation process to start.
-  */
-  public start (process : UnidocValidationProcess) : void {
-    this.validator.start(process)
-    process.resolve(this)
-  }
-
-  /**
-  * Emit the validation message hold by this context.
-  */
-  public emit () : void {
-    this.validator.emit(this.validation)
-  }
-
-  /**
-  * Terminate the current validation process and remove it from the stack.
-  */
-  public terminate () : void {
-    this.validator.terminate()
-
-    if (this.validator.current) {
-      this.validator.current.resolve(this)
-    }
-  }
-
-  /**
-  *
-  */
-  public replace (process : UnidocValidationProcess) : void {
-    this.validator.terminate()
-    this.validator.start(process)
-    process.resolve(this)
-  }
-
-  /**
-  * @see Object.equals
-  */
-  public equals (other : any) : boolean {
-    return other === this
-  }
+  publish () : void
 }

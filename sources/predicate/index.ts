@@ -1,0 +1,5 @@
+export { AnyPredicate } from './AnyPredicate'
+export { AnythingPredicate } from './AnythingPredicate'
+export { MatchPredicate } from './MatchPredicate'
+export { OnlyPredicate } from './OnlyPredicate'
+export { Predicate } from './Predicate'

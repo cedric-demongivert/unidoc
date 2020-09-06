@@ -66,6 +66,11 @@ export class UnidocParser {
   private _errorListeners : Set<UnidocParser.ErrorListener>
 
   /**
+  * Index of the next event to publish.
+  */
+  private _index : number
+
+  /**
   * Current location of this parser in its parent document.
   */
   public readonly location : UnidocPath
@@ -91,6 +96,7 @@ export class UnidocParser {
     this._validationListeners = new Set<UnidocParser.ValidationListener>()
     this._completionListeners = new Set<UnidocParser.CompletionListener>()
     this._errorListeners      = new Set<UnidocParser.ErrorListener>()
+    this._index               = 0
 
     this._validation = new UnidocValidation()
 
@@ -763,24 +769,25 @@ export class UnidocParser {
     this.path.last.from.copy(this._event.from.last.from)
     this.path.last.to.asUnknown()
   }
-    /**
-    * Emit a unidoc tag termination event.
-    */
-    private emitTagEnd (state : UnidocParserState = this._states.last) : void {
-      this._event.clear()
-      this._event.type = UnidocEventType.END_TAG
-      this._event.from.copy(state.from)
-      this._event.to.copy(state.to)
-      this._event.addClasses(state.classes)
-      this._event.identifier = state.identifier
-      this._event.tag = state.tag
-      this._event.path.copy(this.path)
-      this._event.path.size -= 1
 
-      this.emit(this._event)
+  /**
+  * Emit a unidoc tag termination event.
+  */
+  private emitTagEnd (state : UnidocParserState = this._states.last) : void {
+    this._event.clear()
+    this._event.type = UnidocEventType.END_TAG
+    this._event.from.copy(state.from)
+    this._event.to.copy(state.to)
+    this._event.addClasses(state.classes)
+    this._event.identifier = state.identifier
+    this._event.tag = state.tag
+    this._event.path.copy(this.path)
+    this._event.path.size -= 1
 
-      this.path.size -= 1
-    }
+    this.emit(this._event)
+
+    this.path.size -= 1
+  }
 
   /**
   * Emit a unidoc whitespace event.
@@ -816,6 +823,9 @@ export class UnidocParser {
   * @param event - An event to publish.
   */
   private emit (event : UnidocEvent) : void {
+    event.index = this._index
+    this._index += 1
+    
     for (const callback of this._eventListeneners) {
       callback(event)
     }
@@ -899,11 +909,14 @@ export class UnidocParser {
   */
   public clear () : void {
     this.location.clear()
+    this._event.clear()
     this._states.clear()
     this._eventListeneners.clear()
     this._validationListeners.clear()
     this._completionListeners.clear()
     this._errorListeners.clear()
+
+    this._index = 0
 
     this._states.push(UnidocParserStateType.START)
   }

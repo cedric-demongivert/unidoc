@@ -5,7 +5,6 @@ import { Subscription } from 'rxjs'
 import { UnidocEvent } from './event/UnidocEvent'
 import { UnidocValidation } from './validation/UnidocValidation'
 import { UnidocValidator } from './validator/UnidocValidator'
-import { UnidocValidationProcess } from './validator/UnidocValidationProcess'
 
 class Validator {
   /**

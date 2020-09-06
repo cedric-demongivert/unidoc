@@ -1,11 +1,15 @@
 /** eslint-env jest */
 
-import { UnidocLexer } from '../sources/lexer/UnidocLexer'
-import { UnidocSourceReader } from '../sources/stream/UnidocSourceReader'
-import { UnidocLexerState } from '../sources/lexer/UnidocLexerState'
-import { UnidocPath } from '../sources/path/UnidocPath'
-import { UnidocLocation } from '../sources/UnidocLocation'
-import { UnidocTokenBuffer } from '../sources/token/UnidocTokenBuffer'
+import { UnidocLexer } from '../../sources/lexer/UnidocLexer'
+import { UnidocSourceReader } from '../../sources/stream/UnidocSourceReader'
+import { UnidocLexerState } from '../../sources/lexer/UnidocLexerState'
+import { UnidocPath } from '../../sources/path/UnidocPath'
+import { UnidocLocation } from '../../sources/UnidocLocation'
+import { UnidocTokenBuffer } from '../../sources/token/UnidocTokenBuffer'
+
+/**
+* Requires a valid and functional UnidocSourceReader.
+*/
 
 describe('UnidocLexer', function () {
   describe('#constructor', function () {

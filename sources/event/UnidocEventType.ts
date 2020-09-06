@@ -4,15 +4,14 @@
 export type UnidocEventType = number
 
 export namespace UnidocEventType {
-  export const TAG              : number = 0b0010
-  export const WHITESPACE       : number = 0b0100
-  export const WORD             : number = 0b0110
-  export const DOCUMENT         : number = 0b1000
+  export const TAG              : number = 0b000
+  export const WHITESPACE       : number = 0b100
+  export const WORD             : number = 0b110
 
-  export const START            : number = 0b0000
-  export const END              : number = 0b0001
+  export const START            : number = 0b000
+  export const END              : number = 0b001
 
-  export const DEFAULT_TYPE     : UnidocEventType = 0b0000
+  export const DEFAULT_TYPE     : UnidocEventType = 0b000
 
   export const START_TAG        : UnidocEventType = START | TAG
   export const END_TAG          : UnidocEventType = END   | TAG

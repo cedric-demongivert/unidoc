@@ -220,13 +220,13 @@ export namespace UnidocEventBuffer {
     const oldPath : UnidocPath = new UnidocPath()
 
     for (let index = 0, size = right.events.size; index < size; ++index) {
-      const oldTimestamp : number = right.events.get(index).timestamp
+      const oldindex : number = right.events.get(index).index
       oldPath.copy(right.events.get(index).path)
-      right.events.get(index).timestamp = left.events.get(index).timestamp
+      right.events.get(index).index = left.events.get(index).index
       right.events.get(index).path.copy(left.events.get(index).path)
 
-      if (!left.events.get(index).similar(right.events.get(index))) {
-        right.events.get(index).timestamp = oldTimestamp
+      if (!left.events.get(index).equals(right.events.get(index))) {
+        right.events.get(index).index = oldindex
         right.events.get(index).path.copy(oldPath)
 
         throw new Error(
@@ -236,7 +236,7 @@ export namespace UnidocEventBuffer {
           right.events.get(index).toString() + '.'
         )
       } else {
-        right.events.get(index).timestamp = oldTimestamp
+        right.events.get(index).index = oldindex
         right.events.get(index).path.copy(oldPath)
       }
     }

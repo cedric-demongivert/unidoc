@@ -15,9 +15,9 @@ const EMPTY_STRING : string = ''
 */
 export class UnidocEvent {
   /**
-  * Event emission timestamp.
+  * Event index.
   */
-  public timestamp : number
+  public index : number
 
   /**
   * Type of this event.
@@ -64,7 +64,7 @@ export class UnidocEvent {
   * Instantiate a new tag event.
   */
   public constructor () {
-    this.timestamp  = Date.now()
+    this.index      = 0
     this.type       = UnidocEventType.START_TAG
     this.from       = new UnidocPath()
     this.to         = new UnidocPath()
@@ -261,7 +261,7 @@ export class UnidocEvent {
   * @param toCopy - An instance to copy.
   */
   public copy (toCopy : UnidocEvent) : void {
-    this.timestamp  = toCopy.timestamp
+    this.index      = toCopy.index
     this.type       = toCopy.type
     this.tag        = toCopy.tag
     this.identifier = toCopy.identifier
@@ -292,7 +292,7 @@ export class UnidocEvent {
   * Reset this event instance in order to reuse it.
   */
   public clear () : void {
-    this.timestamp  = Date.now()
+    this.index      = 0
     this.tag        = EMPTY_STRING
     this.identifier = EMPTY_STRING
     this.path.clear()
@@ -306,7 +306,7 @@ export class UnidocEvent {
   public toCoreString () : string {
     let result : string = ''
 
-    result += this.timestamp
+    result += this.index
     result += ' '
     result += UnidocEventType.toString(this.type)
 
@@ -340,7 +340,7 @@ export class UnidocEvent {
   public toSimplifiedString () : string {
     let result : string = ''
 
-    result += this.timestamp
+    result += this.index
     result += ' '
     result += UnidocEventType.toString(this.type)
     result += ' ['
@@ -380,7 +380,7 @@ export class UnidocEvent {
   public toString () : string {
     let result : string = ''
 
-    result += this.timestamp
+    result += this.index
     result += ' '
     result += UnidocEventType.toString(this.type)
     result += ' from '
@@ -419,27 +419,6 @@ export class UnidocEvent {
   }
 
   /**
-  * Like equals, but ignore the timestamp field.
-  */
-  public similar (other : UnidocEvent) : boolean {
-    if (
-      other.type         !== this.type         ||
-      other.classes.size !== this.classes.size ||
-      other.identifier   !== this.identifier   ||
-      other.tag          !== this.tag          ||
-      !other.path.equals(this.path)
-    ) { return false }
-
-    for (const clazz of other.classes) {
-      if (!this.classes.has(clazz)) {
-        return false
-      }
-    }
-
-    return this.symbols.equals(other.symbols)
-  }
-
-  /**
   * @see Object#equals
   */
   public equals (other : any) : boolean {
@@ -448,7 +427,7 @@ export class UnidocEvent {
 
     if (other instanceof UnidocEvent) {
       if (
-        other.timestamp    !== this.timestamp    ||
+        other.index        !== this.index    ||
         other.type         !== this.type         ||
         other.classes.size !== this.classes.size ||
         other.identifier   !== this.identifier   ||
