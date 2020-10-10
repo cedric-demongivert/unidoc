@@ -28,5 +28,5 @@ export interface NativeCompiler<T> {
   clear () : void
 }
 
-export namespace JSONCompiler {
+export namespace NativeCompiler {
 }

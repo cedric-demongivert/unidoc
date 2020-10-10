@@ -5,6 +5,7 @@ export namespace SchemaType {
   export const OBJECT : SchemaType = 1
   export const STREAM : SchemaType = 2
   export const SWITCH : SchemaType = 3
+  export const ANY    : SchemaType = 4
 
   export const DEFAULT : SchemaType = SCALAR
 
@@ -12,7 +13,8 @@ export namespace SchemaType {
     SCALAR,
     OBJECT,
     STREAM,
-    SWITCH
+    SWITCH,
+    ANY
   ]
 
   export function toString (value : SchemaType) : string | undefined {
@@ -21,22 +23,20 @@ export namespace SchemaType {
       case OBJECT : return 'OBJECT'
       case STREAM : return 'STREAM'
       case SWITCH : return 'SWITCH'
+      case ANY    : return 'ANY'
       default     : return undefined
     }
   }
 
-  export function make (value : SchemaType) : any {
-    switch (value) {
-      case SCALAR : return null
-      case SWITCH : return null
-      case OBJECT : return {}
-      case STREAM : return []
-      default     :
-        throw new Error(
-          'Unable to instantiate value of type #' + value + ' (' +
-          toString(value) + ') because this factory does not declare any ' +
-          'function for making a value of the given type.'
-        )
+  export function only (value : SchemaType) : (x : string) => SchemaType {
+    const str : any = toString(value)
+
+    return function (x : string) : SchemaType {
+      if (x.toUpperCase() === str) {
+        return value
+      } else {
+        throw new Error('Invalid schema type, ' + str + ' was expected.')
+      }
     }
   }
 }

@@ -78,6 +78,20 @@ export namespace CodePoint {
   export const COLON           : CodePoint = ':'.codePointAt(0) as CodePoint
   export const SEMICOLON       : CodePoint = ';'.codePointAt(0) as CodePoint
 
+  export function isDecimalDigit (symbol : CodePoint) : boolean {
+    return symbol >= ZERO && symbol <= NINE
+  }
+
+  export function isBinaryDigit (symbol : CodePoint) : boolean {
+    return symbol === ZERO || symbol === ONE
+  }
+
+  export function isHexadecimalDigit (symbol : CodePoint) : boolean {
+    return symbol >= ZERO && symbol <= NINE ||
+           symbol >= A && symbol <= F ||
+           symbol >= a && symbol <= f
+  }
+
   export function toDebugString (symbol : CodePoint) : string {
     switch (symbol) {
       case CodePoint.CARRIAGE_RETURN : return ':r'

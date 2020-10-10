@@ -132,7 +132,7 @@ describe('StringScalarCompiler', function () {
       .pipe(parse())
       .pipe(compile(
         new SchemaCompiler(
-          Schema.stream(Schema.tags({
+          Schema.stream(Schema.any({
             string: Schema.string(),
             number: Schema.number()
           }))
