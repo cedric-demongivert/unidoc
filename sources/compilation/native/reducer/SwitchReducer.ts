@@ -73,6 +73,7 @@ export class SwitchReducer<T> extends BaseEventStreamReducer<SwitchReducer.State
           )
         } else {
           state.reducer = reducer
+          state.depth += 1
           state.value = state.reducer.start()
           state.reducer.reduce(state.value, event)
         }
@@ -118,7 +119,7 @@ export class SwitchReducer<T> extends BaseEventStreamReducer<SwitchReducer.State
   * @see EventStreamReducer.restart
   */
   public restart (state : SwitchReducer.State) : void {
-    state.state = ContentReducerState.DEFAULT
+    state.state = ContentReducerState.BEFORE_CONTENT
     state.value = null
     state.reducer = NullReducer.INSTANCE
     state.depth = 0

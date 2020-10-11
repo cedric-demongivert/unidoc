@@ -16,7 +16,8 @@ export namespace AnySchema {
     }
   }
 
-  const REDUCER : EventStreamReducer<any, AnySchema<any>> = (
+  /*
+  export const REDUCER : EventStreamReducer<any, AnySchema<any>> = (
     EventStreamReducer.object({
       type: EventStreamReducer.token().map(SchemaType.only(SchemaType.ANY)),
       description: EventStreamReducer.stream(Schema.reducer())
@@ -25,5 +26,5 @@ export namespace AnySchema {
 
   export function reducer () : EventStreamReducer<any, AnySchema<any>> {
     return REDUCER
-  }
+  }*/
 }

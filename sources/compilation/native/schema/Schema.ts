@@ -25,6 +25,7 @@ export namespace Schema {
   export const stream = StreamSchema.create
   export const tags = SwitchSchema.create
 
+  /*
   const REDUCER : AnyReducer<Schema<any>> = EventStreamReducer.any()
 
   REDUCER.reducers.push(ScalarSchema.reducer())
@@ -36,4 +37,5 @@ export namespace Schema {
   export function reducer () : EventStreamReducer<any, Schema<any>> {
     return REDUCER
   }
+  */
 }

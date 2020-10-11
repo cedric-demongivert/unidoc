@@ -88,11 +88,11 @@ export namespace EventStreamReducer {
     return TEXT
   }
 
-  export function stream <T> (valueReducer : EventStreamReducer<any, T>) : EventStreamReducer<any, T[]> {
+  export function stream <T> (valueReducer? : EventStreamReducer<any, T>) : StreamReducer<T> {
     return new StreamReducer<T>(valueReducer)
   }
 
-  export function object <T> (descriptor : any) : ObjectReducer<T> {
+  export function object <T> (descriptor? : any) : ObjectReducer<T> {
     const result : ObjectReducer<T> = new ObjectReducer()
 
     if (descriptor) {
@@ -108,7 +108,7 @@ export namespace EventStreamReducer {
     return new AnyReducer(reducers)
   }
 
-  export function tags <T> (descriptor : any) : SwitchReducer<T> {
+  export function tags <T> (descriptor? : any) : SwitchReducer<T> {
     const result : SwitchReducer<T> = new SwitchReducer()
 
     if (descriptor) {

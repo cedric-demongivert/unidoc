@@ -18,6 +18,7 @@ export namespace SwitchSchema {
     }
   }
 
+  /*
   const REDUCER : EventStreamReducer<any, SwitchSchema<any>> = (
     EventStreamReducer.object({
       type: EventStreamReducer.token().map(SchemaType.only(SchemaType.SWITCH)),
@@ -28,4 +29,5 @@ export namespace SwitchSchema {
   export function reducer () : EventStreamReducer<any, SwitchSchema<any>> {
     return REDUCER
   }
+  */
 }

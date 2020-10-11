@@ -30,6 +30,7 @@ export namespace ScalarSchema {
     return TEXT
   }
 
+  /*
   const REDUCER : EventStreamReducer<any, ScalarSchema<any>> = (
     EventStreamReducer.object({
       type: EventStreamReducer.token().map(SchemaType.only(SchemaType.SCALAR)),
@@ -39,5 +40,5 @@ export namespace ScalarSchema {
 
   export function reducer () : EventStreamReducer<any, ScalarSchema<any>> {
     return REDUCER
-  }
+  }*/
 }

@@ -18,6 +18,7 @@ export namespace ObjectSchema {
     }
   }
 
+  /*
   const REDUCER : EventStreamReducer<any, ObjectSchema<any>> = (
     EventStreamReducer.object({
       type: EventStreamReducer.token().map(SchemaType.only(SchemaType.OBJECT)),
@@ -27,5 +28,5 @@ export namespace ObjectSchema {
 
   export function reducer () : EventStreamReducer<any, ObjectSchema<any>> {
     return REDUCER
-  }
+  }*/
 }

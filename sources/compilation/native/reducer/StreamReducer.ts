@@ -4,14 +4,15 @@ import { UnidocEventType } from '../../../event/UnidocEventType'
 import { EventStreamReducer } from './EventStreamReducer'
 import { BaseEventStreamReducer } from './BaseEventStreamReducer'
 import { StreamReducerState } from './StreamReducerState'
+import { NullReducer } from './NullReducer'
 
 export class StreamReducer<T> extends BaseEventStreamReducer<StreamReducer.State, T[]>
 {
-  public readonly elementReducer : EventStreamReducer<any, T>
+  public elementReducer : EventStreamReducer<any, T>
 
-  public constructor (elementReducer : EventStreamReducer<any, T>) {
+  public constructor (elementReducer? : EventStreamReducer<any, T>) {
     super()
-    this.elementReducer = elementReducer
+    this.elementReducer = elementReducer || NullReducer.INSTANCE
   }
 
   /**
@@ -21,7 +22,7 @@ export class StreamReducer<T> extends BaseEventStreamReducer<StreamReducer.State
     return {
       value: [],
       state: StreamReducerState.DEFAULT,
-      element: this.elementReducer.start(),
+      element: null,
       depth: 0
     }
   }
@@ -94,7 +95,7 @@ export class StreamReducer<T> extends BaseEventStreamReducer<StreamReducer.State
       case UnidocEventType.START_TAG:
         state.state = StreamReducerState.WITHIN_ELEMENT
         state.depth += 1
-        this.elementReducer.restart(state.element)
+        state.element = this.elementReducer.bootstrap(state.element)
         this.elementReducer.reduce(state.element, event)
         return
       case UnidocEventType.END_TAG:

@@ -16,6 +16,7 @@ export namespace StreamSchema {
     }
   }
 
+  /*
   const REDUCER : EventStreamReducer<any, StreamSchema<any>> = (
     EventStreamReducer.object({
       type: EventStreamReducer.token().map(SchemaType.only(SchemaType.STREAM)),
@@ -25,5 +26,5 @@ export namespace StreamSchema {
 
   export function reducer () : EventStreamReducer<any, StreamSchema<any>> {
     return REDUCER
-  }
+  }*/
 }
