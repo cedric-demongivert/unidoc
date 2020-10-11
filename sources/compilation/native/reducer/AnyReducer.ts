@@ -8,6 +8,8 @@ import { EventStreamReducer } from './EventStreamReducer'
 import { BaseEventStreamReducer } from './BaseEventStreamReducer'
 import { ContentReducerState } from './ContentReducerState'
 
+const EMPTY_STRING : string = ''
+
 function errorReducer (base : string, error : Error | null, index : number) : string {
   let result : string = base
   if (index > 0) {
@@ -23,6 +25,8 @@ function errorReducer (base : string, error : Error | null, index : number) : st
     result += error.name
     result += ' : '
     result += error.message
+    result += '\r\n\t'
+    result += (error.stack || EMPTY_STRING).split('\n').slice(1).map(x => '    - ' + x.trim()).join('\n').trim()
   }
 
   return result
@@ -49,8 +53,7 @@ export class AnyReducer<T> extends BaseEventStreamReducer<AnyReducer.State, T>
     const result : AnyReducer.State = {
       errors: [],
       states: [],
-      state: ContentReducerState.DEFAULT,
-      depth: 0
+      state: ContentReducerState.DEFAULT
     }
 
     for (const reducer of this.reducers) {
@@ -65,64 +68,6 @@ export class AnyReducer<T> extends BaseEventStreamReducer<AnyReducer.State, T>
   * @see EventStreamReducer.reduce
   */
   public reduce (state : AnyReducer.State, event : UnidocEvent) : void {
-    switch (state.state) {
-      case ContentReducerState.BEFORE_CONTENT:
-        return this.reduceBeforeContent(state, event)
-      case ContentReducerState.WITHIN_CONTENT:
-        return this.reduceWithinContent(state, event)
-      case ContentReducerState.AFTER_CONTENT:
-        throw new Error(
-          'Unable to reduce the event ' + event.toString() + ' in state #' +
-          state.state + ' (' + ContentReducerState.toString(state.state) +
-          ') because this reducer does not expect to receive new events ' +
-          'after the last closing tag event.'
-        )
-      default:
-        throw new Error(
-          'Unable to reduce the event ' + event.toString() + ' in state #' +
-          state.state + ' (' + ContentReducerState.toString(state.state) +
-          ') because this reducer does not declare a procedure for this.'
-        )
-    }
-  }
-
-  public reduceBeforeContent (state : AnyReducer.State, event : UnidocEvent) : void {
-    switch (event.type) {
-      case UnidocEventType.START_TAG:
-        state.state = ContentReducerState.WITHIN_CONTENT
-        this.anyReduce(state, event)
-        return
-      default:
-        throw new Error(
-          'Unable to reduce the event ' + event.toString() + ' in state #' +
-          state.state + ' (' + ContentReducerState.toString(state.state) +
-          ') because an any reducer expects to receive the root tag ' +
-          'opening and ending events.'
-        )
-    }
-  }
-
-  public reduceWithinContent (state : AnyReducer.State, event : UnidocEvent) : void {
-    this.anyReduce(state, event)
-
-    switch (event.type) {
-      case UnidocEventType.START_TAG:
-        state.depth += 1
-        break
-      case UnidocEventType.END_TAG:
-        state.depth -= 1
-
-        if (state.depth === 0) {
-          state.state = ContentReducerState.AFTER_CONTENT
-        }
-
-        break
-      default:
-        break
-    }
-  }
-
-  public anyReduce (state : AnyReducer.State, event : UnidocEvent) : void {
     let allErrors : boolean = true
 
     for (let index = 0, size = this.reducers.size; index < size; ++index) {
@@ -142,22 +87,6 @@ export class AnyReducer<T> extends BaseEventStreamReducer<AnyReducer.State, T>
         'alternative ended by an error : \r\n' +
         state.errors.reduce(errorReducer, '')
       )
-    }
-
-    switch (event.type) {
-      case UnidocEventType.START_TAG:
-        state.depth += 1
-        break
-      case UnidocEventType.END_TAG:
-        state.depth -= 1
-
-        if (state.depth === 0) {
-          state.state = ContentReducerState.AFTER_CONTENT
-        }
-
-        break
-      default:
-        break
     }
   }
 
@@ -190,7 +119,6 @@ export class AnyReducer<T> extends BaseEventStreamReducer<AnyReducer.State, T>
       this.reducers.get(index).restart(state.states[index])
     }
 
-    state.depth = 0
     state.state = ContentReducerState.DEFAULT
   }
 }
@@ -199,7 +127,6 @@ export namespace AnyReducer {
   export type State = {
     errors : (Error|null)[],
     states : any[],
-    state  : ContentReducerState,
-    depth  : number
+    state  : ContentReducerState
   }
 }

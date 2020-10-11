@@ -120,6 +120,10 @@ export namespace EventStreamReducer {
     return result
   }
 
+  export function unwrap <T> (reducer : EventStreamReducer<any, T>) : EventStreamReducer<any, T> {
+    return new ContentReducer(reducer)
+  }
+
   export function enumeration <T> (reducer : EventStreamReducer<any, T>, ...enumeration : T[]) : EventStreamReducer<any, T> {
     const values : Set<T> = new Set<T>(enumeration)
 

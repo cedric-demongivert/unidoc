@@ -35,6 +35,10 @@ export class ContentReducer<T> extends BaseEventStreamReducer<ContentReducer.Sta
       case ContentReducerState.WITHIN_CONTENT:
         return this.reduceWithinContent(state, event)
       case ContentReducerState.AFTER_CONTENT:
+        if (event.type === UnidocEventType.WHITESPACE) {
+          return
+        }
+
         throw new Error(
           'Unable to reduce the event ' + event.toString() + ' in state #' +
           state.state + ' (' + ContentReducerState.toString(state.state) +
@@ -55,6 +59,8 @@ export class ContentReducer<T> extends BaseEventStreamReducer<ContentReducer.Sta
       case UnidocEventType.START_TAG:
         state.state = ContentReducerState.WITHIN_CONTENT
         state.depth = 1
+        return
+      case UnidocEventType.WHITESPACE:
         return
       default:
         throw new Error(

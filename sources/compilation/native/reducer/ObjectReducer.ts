@@ -45,6 +45,10 @@ export class ObjectReducer<T> extends BaseEventStreamReducer<ObjectReducer.State
       case ObjectReducerState.WITHIN_ELEMENT:
         return this.reduceWithinElement(state, event)
       case ObjectReducerState.AFTER_OBJECT:
+        if (event.type === UnidocEventType.WHITESPACE) {
+          return
+        }
+
         throw new Error(
           'Unable to reduce the event ' + event.toString() + ' in state #' +
           state.state + ' (' + ObjectReducerState.toString(state.state) +
@@ -62,6 +66,8 @@ export class ObjectReducer<T> extends BaseEventStreamReducer<ObjectReducer.State
 
   public reduceBeforeContent (state : ObjectReducer.State, event : UnidocEvent) : void {
     switch (event.type) {
+      case UnidocEventType.WHITESPACE:
+        return
       case UnidocEventType.START_TAG:
         state.state = ObjectReducerState.WITHIN_OBJECT
         return
@@ -150,7 +156,11 @@ export class ObjectReducer<T> extends BaseEventStreamReducer<ObjectReducer.State
 
   private notifyTermination (state : ObjectReducer.State) : void {
     for (const [key, value] of state.values) {
-      (this.reducers.get(key) as EventStreamReducer<any, any>).reduce(
+      const reducer : EventStreamReducer<any, any> = (
+        this.reducers.get(key) || this.reducers.get('*')
+      ) as EventStreamReducer<any, any>
+
+      reducer.reduce(
         value,
         state.ends.get(key) as UnidocEvent
       )
@@ -166,9 +176,11 @@ export class ObjectReducer<T> extends BaseEventStreamReducer<ObjectReducer.State
     const result : any = {}
 
     for (const [key, value] of state.values) {
-      result[key] = (
-        this.reducers.get(key) as EventStreamReducer<any, any>
-      ).complete(value)
+      const reducer : EventStreamReducer<any, any> = (
+        this.reducers.get(key) || this.reducers.get('*')
+      ) as EventStreamReducer<any, any>
+
+      result[key] = reducer.complete(value)
     }
 
     return result

@@ -41,6 +41,10 @@ export class SwitchReducer<T> extends BaseEventStreamReducer<SwitchReducer.State
       case ContentReducerState.WITHIN_CONTENT:
         return this.reduceWithinContent(state, event)
       case ContentReducerState.AFTER_CONTENT:
+        if (event.type === UnidocEventType.WHITESPACE) {
+          return
+        }
+        
         throw new Error(
           'Unable to reduce the event ' + event.toString() + ' in state #' +
           state.state + ' (' + ContentReducerState.toString(state.state) +
@@ -58,6 +62,8 @@ export class SwitchReducer<T> extends BaseEventStreamReducer<SwitchReducer.State
 
   public reduceBeforeContent (state : SwitchReducer.State, event : UnidocEvent) : void {
     switch (event.type) {
+      case UnidocEventType.WHITESPACE:
+        return
       case UnidocEventType.START_TAG:
         state.state = ContentReducerState.WITHIN_CONTENT
 

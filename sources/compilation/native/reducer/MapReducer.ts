@@ -1,10 +1,8 @@
 import { UnidocEvent } from '../../../event/UnidocEvent'
-import { UnidocEventType } from '../../../event/UnidocEventType'
 
 import { EventStreamReducer } from './EventStreamReducer'
-import { ContentReducerState } from './ContentReducerState'
 
-export class MapReducer<From, To> implements EventStreamReducer<MapReducer.State, To>
+export class MapReducer<From, To> implements EventStreamReducer<any, To>
 {
   public readonly innerReducer : EventStreamReducer<any, From>
   public readonly mapper : (value : From) => To
@@ -18,89 +16,28 @@ export class MapReducer<From, To> implements EventStreamReducer<MapReducer.State
   * @see EventStreamReducer.start
   */
   public start () : MapReducer.State {
-    return {
-      value: this.innerReducer.start(),
-      state: ContentReducerState.BEFORE_CONTENT,
-      depth: 0
-    }
+    return this.innerReducer.start()
   }
 
   /**
   * @see EventStreamReducer.reduce
   */
   public reduce (state : MapReducer.State, event : UnidocEvent) : void {
-    switch (state.state) {
-      case ContentReducerState.BEFORE_CONTENT:
-        return this.reduceBeforeContent(state, event)
-      case ContentReducerState.WITHIN_CONTENT:
-        return this.reduceWithinContent(state, event)
-      case ContentReducerState.AFTER_CONTENT:
-        throw new Error(
-          'Unable to reduce the event ' + event.toString() + ' in state #' +
-          state.state + ' (' + ContentReducerState.toString(state.state) +
-          ') because this reducer does not expect to receive new events ' +
-          'after the last closing tag event.'
-        )
-      default:
-        throw new Error(
-          'Unable to reduce the event ' + event.toString() + ' in state #' +
-          state.state + ' (' + ContentReducerState.toString(state.state) +
-          ') because this reducer does not declare a procedure for this.'
-        )
-    }
+    this.innerReducer.reduce(state, event)
   }
-
-  public reduceBeforeContent (state : MapReducer.State, event : UnidocEvent) : void {
-    switch (event.type) {
-      case UnidocEventType.START_TAG:
-        state.state = ContentReducerState.WITHIN_CONTENT
-        this.innerReducer.reduce(state.value, event)
-        return
-      default:
-        throw new Error(
-          'Unable to reduce the event ' + event.toString() + ' in state #' +
-          state.state + ' (' + ContentReducerState.toString(state.state) +
-          ') because a content reducer expects to receive the root tag ' +
-          'opening and ending events.'
-        )
-    }
-  }
-
-  public reduceWithinContent (state : MapReducer.State, event : UnidocEvent) : void {
-    this.innerReducer.reduce(state.value, event)
-
-    switch (event.type) {
-      case UnidocEventType.START_TAG:
-        state.depth += 1
-        break
-      case UnidocEventType.END_TAG:
-        state.depth -= 1
-
-        if (state.depth === 0) {
-          state.state = ContentReducerState.AFTER_CONTENT
-        }
-
-        break
-      default:
-        break
-    }
-  }
-
 
   /**
   * @see EventStreamReducer.complete
   */
   public complete (state : MapReducer.State) : To {
-    return this.mapper(this.innerReducer.complete(state.value))
+    return this.mapper(this.innerReducer.complete(state))
   }
 
   /**
   * @see EventStreamReducer.restart
   */
   public restart (state : MapReducer.State) : void {
-    this.innerReducer.restart(state.value)
-    state.state = ContentReducerState.DEFAULT
-    state.depth = 0
+    this.innerReducer.restart(state)
   }
 
   /**
@@ -130,9 +67,5 @@ export class MapReducer<From, To> implements EventStreamReducer<MapReducer.State
 }
 
 export namespace MapReducer {
-  export type State = {
-    value : any,
-    state : ContentReducerState,
-    depth : number
-  }
+  export type State = any
 }

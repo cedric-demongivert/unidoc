@@ -1,5 +1,3 @@
-import { EventStreamReducer } from '../reducer/EventStreamReducer'
-
 import { SchemaType } from './SchemaType'
 import { ScalarType } from './ScalarType'
 
@@ -13,6 +11,29 @@ export namespace ScalarSchema {
   export const INTEGER : ScalarSchema<number> = { type: SchemaType.SCALAR, description: ScalarType.INTEGER }
   export const TOKEN : ScalarSchema<string> = { type: SchemaType.SCALAR, description: ScalarType.TOKEN }
   export const TEXT : ScalarSchema<string> = { type: SchemaType.SCALAR, description: ScalarType.TEXT }
+
+  export function create <T> (type : ScalarType) : ScalarSchema<T> {
+    switch (type) {
+      case ScalarType.TOKEN:
+        return TOKEN
+      case ScalarType.TEXT:
+        return TEXT
+      case ScalarType.FLOAT:
+        return FLOAT
+      case ScalarType.INTEGER:
+        return INTEGER
+      case ScalarType.DOUBLE:
+      case ScalarType.BYTE:
+      case ScalarType.SHORT:
+      case ScalarType.LONG:
+      default:
+        throw new Error(
+          'Unable to create a scalar schema for scalar type #' + type + ' (' +
+          ScalarType.toString(type) + ') because the given type is not ' +
+          'supported at this time.'
+        )
+    }
+  }
 
   export function float () : ScalarSchema<number> {
     return FLOAT
@@ -29,16 +50,4 @@ export namespace ScalarSchema {
   export function text () : ScalarSchema<string> {
     return TEXT
   }
-
-  /*
-  const REDUCER : EventStreamReducer<any, ScalarSchema<any>> = (
-    EventStreamReducer.object({
-      type: EventStreamReducer.token().map(SchemaType.only(SchemaType.SCALAR)),
-      description: EventStreamReducer.token().map(ScalarType.fromString)
-    })
-  )
-
-  export function reducer () : EventStreamReducer<any, ScalarSchema<any>> {
-    return REDUCER
-  }*/
 }

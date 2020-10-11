@@ -1,5 +1,3 @@
-import { EventStreamReducer } from '../reducer/EventStreamReducer'
-
 import { SchemaType } from './SchemaType'
 import { Schema } from './Schema'
 
@@ -15,16 +13,4 @@ export namespace StreamSchema {
       description
     }
   }
-
-  /*
-  const REDUCER : EventStreamReducer<any, StreamSchema<any>> = (
-    EventStreamReducer.object({
-      type: EventStreamReducer.token().map(SchemaType.only(SchemaType.STREAM)),
-      description: Schema.reducer()
-    })
-  )
-
-  export function reducer () : EventStreamReducer<any, StreamSchema<any>> {
-    return REDUCER
-  }*/
 }
