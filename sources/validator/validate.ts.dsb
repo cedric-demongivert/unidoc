@@ -2,15 +2,15 @@ import { Observable } from 'rxjs'
 import { Subscriber } from 'rxjs'
 import { Subscription } from 'rxjs'
 
-import { UnidocEvent } from './event/UnidocEvent'
-import { UnidocValidation } from './validation/UnidocValidation'
-import { UnidocValidator } from './validator/UnidocValidator'
+import { UnidocEvent } from '../event/UnidocEvent'
+import { UnidocValidation } from '../validation/UnidocValidation'
+import { ValidationReducer } from './ValidationReducer'
 
-class Validator {
+class Validator<T> {
   /**
   * The validator to use.
   */
-  private _validator : UnidocValidator
+  private _validator : ValidationReducer<T>
 
   /**
   * The source of event of this validator.
@@ -32,7 +32,7 @@ class Validator {
   *
   * @param lexer - The lexer to use for tokenization.
   */
-  public constructor (validator : UnidocValidator) {
+  public constructor (validator : ValidationReducer<T>) {
     this._validator           = validator
     this._input               = null
     this._subscription        = null

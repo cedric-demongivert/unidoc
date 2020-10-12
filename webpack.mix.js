@@ -3,11 +3,6 @@ const TypedocWebpackPlugin = require('typedoc-webpack-plugin')
 const package = require('./package.json')
 
 const fileSystem = require('fs')
-
-for (const file of fileSystem.readdirSync('./sources/commands')) {
-  mix.ts('./sources/commands/' + file, 'distribution')
-}
-
 const externals = ['fs']
 
 for (const name in package.dependencies) {
@@ -36,9 +31,9 @@ mix.ts('./sources/index.ts', 'distribution')
        ]
      },
      'plugins': [
-       /*new TypedocWebpackPlugin(
+       new TypedocWebpackPlugin(
          { 'target': 'es6', 'mode': 'file' },
-         './sources/typescript'
-       )*/
+         './sources'
+       )
      ]
    })

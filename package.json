@@ -12,6 +12,9 @@
     "watch": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
     "hot": "cross-env NODE_ENV=development webpack-dev-server --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
     "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "preversion": "npm install && npm test",
+    "version": "npm run production && git add --all",
+    "postversion": "git push && git push --tags",
     "test": "jest --coverage"
   },
   "devDependencies": {
@@ -28,7 +31,6 @@
   },
   "dependencies": {
     "@cedric-demongivert/gl-tool-collection": "^0.23.1",
-    "antlr4ts": "^0.5.0-alpha.3",
     "rxjs": "^6.5.4"
   }
 }

@@ -1,1 +1,1 @@
-export { UnidocValidator } from './UnidocValidator'
+export { ValidationReducer } from './ValidationReducer'
