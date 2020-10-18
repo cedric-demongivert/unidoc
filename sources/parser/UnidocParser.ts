@@ -2,9 +2,8 @@ import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
 
 import { UnidocPath } from '../path/UnidocPath'
-import { UnidocPathElementType } from '../path/UnidocPathElementType'
 
-import { UnidocEvent } from '../event/UnidocEvent'
+import { ParsedUnidocEvent } from '../event/ParsedUnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
 import { UnidocValidation } from '../validation/UnidocValidation'
@@ -38,7 +37,7 @@ export class UnidocParser {
   /**
   * Unidoc event instance for publication.
   */
-  private _event : UnidocEvent
+  private _event : ParsedUnidocEvent
 
   /**
   * Unidoc validation instance for publication.
@@ -76,21 +75,15 @@ export class UnidocParser {
   public readonly location : UnidocPath
 
   /**
-  * Current path of this parser in its parent document.
-  */
-  public readonly path : UnidocPath
-
-  /**
   * Instantiate a new unidoc parser with a given token buffer capacity.
   *
   * @param [capacity = 32] - Initial state buffer capacity of the parser.
   */
   public constructor (capacity : number = 32) {
     this.location             = new UnidocPath()
-    this.path                 = new UnidocPath()
 
     this._states              = new UnidocParserStateBuffer(capacity)
-    this._event               = new UnidocEvent()
+    this._event               = new ParsedUnidocEvent()
 
     this._eventListeneners    = new Set<UnidocParser.EventListener>()
     this._validationListeners = new Set<UnidocParser.ValidationListener>()
@@ -718,56 +711,37 @@ export class UnidocParser {
 
   private emitVirtualDocumentStart (state : UnidocParserState = this._states.last) {
     this._event.clear()
-    this._event.type = UnidocEventType.START_TAG
     this._event.from.copy(state.from)
     this._event.to.copy(state.from)
-    this._event.tag = DOCUMENT_TAG
-    this._event.path.copy(this.path)
+
+    this._event.event.type = UnidocEventType.START_TAG
+    this._event.event.tag = DOCUMENT_TAG
 
     this.emit(this._event)
-
-    this.path.size += 1
-    this.path.last.type = UnidocPathElementType.TAG
-    this.path.last.name = this._event.tag
-    this.path.last.identifier = this._event.identifier
-    this.path.last.addClasses(this._event.classes)
-    this.path.last.from.copy(this._event.from.last.from)
-    this.path.last.to.asUnknown()
   }
 
   private emitVirtualDocumentEnd (state : UnidocParserState = this._states.last) {
     this._event.clear()
-    this._event.type = UnidocEventType.END_TAG
     this._event.from.copy(state.to)
     this._event.to.copy(state.to)
-    this._event.tag = DOCUMENT_TAG
-    this._event.path.copy(this.path)
-    this._event.path.size -= 1
+
+    this._event.event.type = UnidocEventType.END_TAG
+    this._event.event.tag = DOCUMENT_TAG
 
     this.emit(this._event)
-
-    this.path.size -= 1
   }
 
   private emitTagStart (state : UnidocParserState = this._states.last) : void {
     this._event.clear()
-    this._event.type = UnidocEventType.START_TAG
     this._event.from.copy(state.from)
     this._event.to.copy(state.to)
-    this._event.addClasses(state.classes)
-    this._event.identifier = state.identifier
-    this._event.tag = state.tag
-    this._event.path.copy(this.path)
+
+    this._event.event.type = UnidocEventType.START_TAG
+    this._event.event.addClasses(state.classes)
+    this._event.event.identifier = state.identifier
+    this._event.event.tag = state.tag
 
     this.emit(this._event)
-
-    this.path.size += 1
-    this.path.last.type = UnidocPathElementType.TAG
-    this.path.last.name = this._event.tag
-    this.path.last.identifier = this._event.identifier
-    this.path.last.addClasses(this._event.classes)
-    this.path.last.from.copy(this._event.from.last.from)
-    this.path.last.to.asUnknown()
   }
 
   /**
@@ -775,18 +749,15 @@ export class UnidocParser {
   */
   private emitTagEnd (state : UnidocParserState = this._states.last) : void {
     this._event.clear()
-    this._event.type = UnidocEventType.END_TAG
     this._event.from.copy(state.from)
     this._event.to.copy(state.to)
-    this._event.addClasses(state.classes)
-    this._event.identifier = state.identifier
-    this._event.tag = state.tag
-    this._event.path.copy(this.path)
-    this._event.path.size -= 1
+
+    this._event.event.type = UnidocEventType.END_TAG
+    this._event.event.addClasses(state.classes)
+    this._event.event.identifier = state.identifier
+    this._event.event.tag = state.tag
 
     this.emit(this._event)
-
-    this.path.size -= 1
   }
 
   /**
@@ -794,11 +765,11 @@ export class UnidocParser {
   */
   private emitWhitespaceEvent (state : UnidocParserState = this._states.last) : void {
     this._event.clear()
-    this._event.type = UnidocEventType.WHITESPACE
     this._event.from.copy(state.from)
     this._event.to.copy(state.to)
-    this._event.symbols.concat(state.content)
-    this._event.path.copy(this.path)
+
+    this._event.event.type = UnidocEventType.WHITESPACE
+    this._event.event.symbols.concat(state.content)
 
     this.emit(this._event)
   }
@@ -808,11 +779,11 @@ export class UnidocParser {
   */
   private emitWordEvent (state : UnidocParserState = this._states.last) : void {
     this._event.clear()
-    this._event.type = UnidocEventType.WORD
     this._event.from.copy(state.from)
     this._event.to.copy(state.to)
-    this._event.symbols.concat(state.content)
-    this._event.path.copy(this.path)
+
+    this._event.event.type = UnidocEventType.WORD
+    this._event.event.symbols.concat(state.content)
 
     this.emit(this._event)
   }
@@ -822,10 +793,10 @@ export class UnidocParser {
   *
   * @param event - An event to publish.
   */
-  private emit (event : UnidocEvent) : void {
-    event.index = this._index
+  private emit (event : ParsedUnidocEvent) : void {
+    event.event.index = this._index
     this._index += 1
-    
+
     for (const callback of this._eventListeneners) {
       callback(event)
     }
@@ -923,7 +894,7 @@ export class UnidocParser {
 }
 
 export namespace UnidocParser {
-  export type EventListener      = (token : UnidocEvent) => void
+  export type EventListener      = (token : ParsedUnidocEvent) => void
   export type ValidationListener = (validation : UnidocValidation) => void
   export type CompletionListener = () => void
   export type ErrorListener      = (error : Error) => void

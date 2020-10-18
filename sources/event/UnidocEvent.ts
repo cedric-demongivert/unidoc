@@ -1,8 +1,6 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocPath } from '../path/UnidocPath'
-
 import { CodePoint } from '../CodePoint'
 
 import { UnidocEventType } from './UnidocEventType'
@@ -25,16 +23,6 @@ export class UnidocEvent {
   public type : UnidocEventType
 
   /**
-  * Starting UnidocLocation of this event into the document stream.
-  */
-  public from : UnidocPath
-
-  /**
-  * Ending UnidocLocation of this event into the document stream.
-  */
-  public to : UnidocPath
-
-  /**
   * The discovered tag, if any.
   */
   public tag : string
@@ -55,24 +43,15 @@ export class UnidocEvent {
   public readonly symbols : Pack<CodePoint>
 
   /**
-  * Content associated to this event.
-  */
-  public readonly path : UnidocPath
-
-
-  /**
   * Instantiate a new tag event.
   */
   public constructor () {
     this.index      = 0
     this.type       = UnidocEventType.START_TAG
-    this.from       = new UnidocPath()
-    this.to         = new UnidocPath()
     this.tag        = EMPTY_STRING
     this.identifier = EMPTY_STRING
     this.classes    = new Set<string>()
     this.symbols    = Pack.uint32(128)
-    this.path       = new UnidocPath(32)
   }
 
   /**
@@ -158,48 +137,36 @@ export class UnidocEvent {
   /**
   * Configure this event as a new word event.
   *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
   * @param content - Content of the resulting event.
   */
-  public asWord (from : UnidocPath, to : UnidocPath, content : string) : void {
+  public asWord (content : string) : void {
     this.clear()
 
     this.type = UnidocEventType.WORD
-    this.from.copy(from)
-    this.to.copy(to)
     this.text = content
   }
 
   /**
   * Configure this event as a new whitespace event.
   *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
   * @param content - Content of the resulting event.
   */
-  public asWhitespace (from : UnidocPath, to : UnidocPath, content : string) : void {
+  public asWhitespace (content : string) : void {
     this.clear()
 
     this.type = UnidocEventType.WHITESPACE
-    this.from.copy(from)
-    this.to.copy(to)
     this.text = content
   }
 
   /**
   * Configure this event as a new starting tag event.
   *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public asTagStart (from : UnidocPath, to : UnidocPath, configuration : string) : void {
+  public asTagStart (configuration : string) : void {
     this.clear()
 
     this.type = UnidocEventType.START_TAG
-    this.from.copy(from)
-    this.to.copy(to)
 
     this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
@@ -225,12 +192,10 @@ export class UnidocEvent {
   * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public asTagEnd (from : UnidocPath, to : UnidocPath, configuration : string) : void {
+  public asTagEnd (configuration : string) : void {
     this.clear()
 
     this.type = UnidocEventType.END_TAG
-    this.from.copy(from)
-    this.to.copy(to)
 
     this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
@@ -265,10 +230,6 @@ export class UnidocEvent {
     this.type       = toCopy.type
     this.tag        = toCopy.tag
     this.identifier = toCopy.identifier
-    this.path.copy(toCopy.path)
-
-    this.from.copy(toCopy.from)
-    this.to.copy(toCopy.to)
 
     this.symbols.copy(toCopy.symbols)
 
@@ -295,83 +256,9 @@ export class UnidocEvent {
     this.index      = 0
     this.tag        = EMPTY_STRING
     this.identifier = EMPTY_STRING
-    this.path.clear()
 
-    this.from.clear()
-    this.to.clear()
     this.classes.clear()
     this.symbols.clear()
-  }
-
-  public toCoreString () : string {
-    let result : string = ''
-
-    result += this.index
-    result += ' '
-    result += UnidocEventType.toString(this.type)
-
-    if (this.tag.length > 0) {
-      result += ' \\'
-      result += this.tag
-    }
-
-    if (this.identifier.length > 0) {
-      result += ' #'
-      result += this.identifier
-    }
-
-    if (this.classes.size > 0) {
-      result += ' '
-      for (const clazz of this.classes) {
-        result += '.'
-        result += clazz
-      }
-    }
-
-    if (this.symbols.size > 0) {
-      result += ' "'
-      result += this.debugText
-      result += '"'
-    }
-
-    return result
-  }
-
-  public toSimplifiedString () : string {
-    let result : string = ''
-
-    result += this.index
-    result += ' '
-    result += UnidocEventType.toString(this.type)
-    result += ' ['
-    result += this.path.toString()
-    result += ']'
-
-    if (this.tag.length > 0) {
-      result += ' \\'
-      result += this.tag
-    }
-
-    if (this.identifier.length > 0) {
-      result += ' #'
-      result += this.identifier
-    }
-
-    if (this.classes.size > 0) {
-      result += ' '
-      for (const clazz of this.classes) {
-        result += '.'
-        result += clazz
-      }
-    }
-
-    if (this.symbols.size > 0) {
-      result += ' "'
-      result += this.debugText
-      result += '"'
-    }
-
-    return result
   }
 
   /**
@@ -383,13 +270,6 @@ export class UnidocEvent {
     result += this.index
     result += ' '
     result += UnidocEventType.toString(this.type)
-    result += ' from '
-    result += this.from.toString()
-    result += ' to '
-    result += this.to.toString()
-    result += ' ['
-    result += this.path.toString()
-    result += ']'
 
     if (this.tag.length > 0) {
       result += ' \\'
@@ -427,12 +307,11 @@ export class UnidocEvent {
 
     if (other instanceof UnidocEvent) {
       if (
-        other.index        !== this.index    ||
+        other.index        !== this.index        ||
         other.type         !== this.type         ||
         other.classes.size !== this.classes.size ||
         other.identifier   !== this.identifier   ||
-        other.tag          !== this.tag          ||
-        !other.path.equals(this.path)
+        other.tag          !== this.tag
       ) { return false }
 
       for (const clazz of other.classes) {
@@ -458,7 +337,8 @@ export namespace UnidocEvent {
   */
   export function copy (toCopy : UnidocEvent) : UnidocEvent
   export function copy (toCopy : null) : null
-  export function copy (toCopy : UnidocEvent | null) : UnidocEvent | null {
+  export function copy (toCopy : undefined) : undefined
+  export function copy (toCopy : UnidocEvent | null | undefined) : UnidocEvent | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
@@ -485,7 +365,7 @@ export namespace UnidocEvent {
     }
   }
 
-  export function equals (left : UnidocEvent, right : UnidocEvent) : boolean {
+  export function equals (left? : UnidocEvent, right? : UnidocEvent) : boolean {
     return left == null ? left == right : left.equals(right)
   }
 }

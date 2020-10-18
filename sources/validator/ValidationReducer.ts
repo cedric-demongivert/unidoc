@@ -1,7 +1,8 @@
 import { UnidocEvent } from '../event/UnidocEvent'
-import { UnidocValidation } from '../validation/UnidocValidation'
 
-export interface EventStreamReducer<State> {
+import { ValidationState } from './ValidationState'
+
+export interface ValidationReducer<State> {
   /**
   * Notify the begining of the stream of event to reduce.
   *
@@ -25,18 +26,20 @@ export interface EventStreamReducer<State> {
   complete (state : State) : void
 
   /**
+  * Return the current validation state from the given reducer state.
+  *
+  * @param state - The current state of the reducer.
+  *
+  * @return A validation state.
+  */
+  state (state : State) : ValidationState
+
+  /**
   * Reset the given state to it's starting value.
   *
   * @param sate - The current state of the reducer.
   */
   restart (state : State) : void
-
-  /**
-  * Start or restart the given state.
-  *
-  * @param state - The state to bootstrap, or nothing for creating a new state.
-  */
-  bootstrap (state? : State) : State
 }
 
 export namespace ValidationReducer {

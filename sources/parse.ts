@@ -3,7 +3,7 @@ import { Subscriber } from 'rxjs'
 import { Subscription } from 'rxjs'
 
 import { UnidocParser } from './parser/UnidocParser'
-import { UnidocEvent } from './event/UnidocEvent'
+import { ParsedUnidocEvent } from './event/ParsedUnidocEvent'
 import { UnidocToken } from './token/UnidocToken'
 
 class Parser {
@@ -25,7 +25,7 @@ class Parser {
   /**
   * The subscription to the source of symbol of this tokenizer.
   */
-  private _outputs : Set<Subscriber<UnidocEvent>>
+  private _outputs : Set<Subscriber<ParsedUnidocEvent>>
 
   /**
   * Instantiate a new tokenizer.
@@ -36,7 +36,7 @@ class Parser {
     this._parser           = new UnidocParser()
     this._input            = null
     this._subscription     = null
-    this._outputs          = new Set<Subscriber<UnidocEvent>>()
+    this._outputs          = new Set<Subscriber<ParsedUnidocEvent>>()
 
     this.consumeNextToken = this.consumeNextToken.bind(this)
     this.consumeNextError  = this.consumeNextError.bind(this)
@@ -56,7 +56,7 @@ class Parser {
   *
   * @param output - An output to fill with recognized events.
   */
-  public stream (output : Subscriber<UnidocEvent>) : void {
+  public stream (output : Subscriber<ParsedUnidocEvent>) : void {
     this._outputs.add(output)
   }
 
@@ -65,7 +65,7 @@ class Parser {
   *
   * @param output - An output to stop to fill with recognized events.
   */
-  public unstream (output : Subscriber<UnidocEvent>) : void {
+  public unstream (output : Subscriber<ParsedUnidocEvent>) : void {
     this._outputs.delete(output)
   }
 
@@ -99,7 +99,7 @@ class Parser {
   *
   * @param event - The token to consume.
   */
-  public handleNextEvent (event : UnidocEvent) : void {
+  public handleNextEvent (event : ParsedUnidocEvent) : void {
     for (const output of this._outputs) {
       output.next(event)
     }
@@ -156,12 +156,12 @@ type Operator<In, Out> = (source : Observable<In>) => Observable<Out>
 *
 * @return An operator that transform a stream of symbols to a stream of tokens.
 */
-export function parse () : Operator<UnidocToken, UnidocEvent> {
+export function parse () : Operator<UnidocToken, ParsedUnidocEvent> {
   const tokenizer : Parser = new Parser()
 
-  return function (input : Observable<UnidocToken>) : Observable<UnidocEvent> {
-    return new Observable<UnidocEvent>(
-      function (subscriber : Subscriber<UnidocEvent>) {
+  return function (input : Observable<UnidocToken>) : Observable<ParsedUnidocEvent> {
+    return new Observable<ParsedUnidocEvent>(
+      function (subscriber : Subscriber<ParsedUnidocEvent>) {
         tokenizer.stream(subscriber)
         tokenizer.subscribe(input)
       }

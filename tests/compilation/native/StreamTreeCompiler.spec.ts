@@ -1,4 +1,4 @@
-import { toArray } from 'rxjs/operators'
+import { toArray, map } from 'rxjs/operators'
 
 import { stream } from '../../../sources/stream'
 import { tokenize } from '../../../sources/tokenize'
@@ -20,6 +20,7 @@ describe('StreamTreeCompiler', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
+      .pipe(map(x => x.event))
       .pipe(compile(new StreamTreeCompiler()))
       .pipe(toArray())
       .forEach(function (value : any[]) : void {

@@ -1,4 +1,4 @@
-import { toArray } from 'rxjs/operators'
+import { toArray, map } from 'rxjs/operators'
 
 import { stream } from '../../../sources/stream'
 import { tokenize } from '../../../sources/tokenize'
@@ -19,6 +19,7 @@ describe('EventStreamReducer', function () {
         semet.
       `).pipe(tokenize())
         .pipe(parse())
+        .pipe(map(x => x.event))
         .pipe(reduce(EventStreamReducer.text()))
         .pipe(toArray())
         .subscribe(function (value : string[]) : void {
@@ -37,6 +38,7 @@ describe('EventStreamReducer', function () {
         3030.1569
       `).pipe(tokenize())
         .pipe(parse())
+        .pipe(map(x => x.event))
         .pipe(reduce(EventStreamReducer.token()))
         .pipe(toArray())
         .subscribe(function (value : string[]) : void {
@@ -58,6 +60,7 @@ describe('EventStreamReducer', function () {
         \\element { -6 }
       `).pipe(tokenize())
         .pipe(parse())
+        .pipe(map(x => x.event))
         .pipe(reduce(EventStreamReducer.stream(EventStreamReducer.token().map(parseInt))))
         .pipe(toArray())
         .subscribe(function (value : number[][]) : void {
@@ -89,6 +92,7 @@ describe('EventStreamReducer', function () {
         }
       `).pipe(tokenize())
         .pipe(parse())
+        .pipe(map(x => x.event))
         .pipe(
           reduce(
             EventStreamReducer.object({
@@ -133,6 +137,7 @@ describe('EventStreamReducer', function () {
         }
       `).pipe(tokenize())
         .pipe(parse())
+        .pipe(map(x => x.event))
         .pipe(
           reduce(EventStreamReducer.stream(EventStreamReducer.any(
               EventStreamReducer.object({
@@ -176,6 +181,7 @@ describe('EventStreamReducer', function () {
         \\integer { 18 }
       `).pipe(tokenize())
         .pipe(parse())
+        .pipe(map(x => x.event))
         .pipe(
           reduce(EventStreamReducer.stream(EventStreamReducer.tags({
             string: EventStreamReducer.text(),

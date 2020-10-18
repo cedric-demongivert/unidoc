@@ -1,12 +1,11 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocPath } from '../path/UnidocPath'
-import { UnidocLocation } from '../UnidocLocation'
 import { UnidocEvent } from './UnidocEvent'
 
 export class UnidocEventBuffer {
   private readonly _events : Pack<UnidocEvent>
+
   public readonly events   : Sequence<UnidocEvent>
 
   /**
@@ -41,20 +40,6 @@ export class UnidocEventBuffer {
   }
 
   /**
-  * @return The starting location of this buffer.
-  */
-  public get from () : UnidocPath {
-    return this._events.size === 0 ? UnidocPath.EMPTY : this._events.first.from
-  }
-
-  /**
-  * @return The ending location of this buffer.
-  */
-  public get to () : UnidocPath {
-    return this._events.size === 0 ? UnidocPath.EMPTY : this._events.last.to
-  }
-
-  /**
   * @see Pack.reallocate
   */
   public reallocate (capacity : number) : void {
@@ -78,49 +63,45 @@ export class UnidocEventBuffer {
   /**
   * Configure this event as a new word event.
   *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
   * @param content - Content of the resulting event.
   */
-  public pushWord (from : UnidocPath, to : UnidocPath, content : string) : void {
+  public pushWord (content : string) : void {
     this._events.size += 1
-    this._events.last.asWord(from, to, content)
+    this._events.last.asWord(content)
+    this._events.last.index = this.size - 1
   }
 
   /**
   * Configure this event as a new whitespace event.
   *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
   * @param content - Content of the resulting event.
   */
-  public pushWhitespace (from : UnidocPath, to : UnidocPath, content : string) : void {
+  public pushWhitespace (content : string) : void {
     this._events.size += 1
-    this._events.last.asWhitespace(from, to, content)
+    this._events.last.asWhitespace(content)
+    this._events.last.index = this.size - 1
   }
 
   /**
   * Configure this event as a new starting tag event.
   *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public pushTagStart (from : UnidocPath, to : UnidocPath, configuration : string) : void {
+  public pushTagStart (configuration : string) : void {
     this._events.size += 1
-    this._events.last.asTagStart(from, to, configuration)
+    this._events.last.asTagStart(configuration)
+    this._events.last.index = this.size - 1
   }
 
   /**
   * Configure this event as a new ending tag event.
   *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public pushTagEnd (from : UnidocPath, to : UnidocPath, configuration : string) : void {
+  public pushTagEnd (configuration : string) : void {
     this._events.size += 1
-    this._events.last.asTagEnd(from, to, configuration)
+    this._events.last.asTagEnd(configuration)
+    this._events.last.index = this.size - 1
   }
 
   /**
@@ -199,46 +180,40 @@ export class UnidocEventBuffer {
 
     return false
   }
+
+  public expect (other : any) : boolean {
+    if (other == null) {
+      throw "Comparing with null."
+    }
+
+    if (other === this) {
+      return true
+    }
+
+    if (other instanceof UnidocEventBuffer) {
+      if (other.events.size !== this._events.size) {
+        throw (
+          "Different number of vents " +  other.events.size + " != " +
+          this.events.size + "."
+        )
+      }
+
+      for (let index = 0, size = this._events.size; index < size; ++index) {
+        if (!other.events.get(index).equals(this._events.get(index))) {
+          throw (
+            "Event #" + index + ' (' + other.events.get(index) + ') is not ' +
+            'equal to event #' + index + ' (' + this._events.get(index) + ').'
+          )
+        }
+      }
+
+      return true
+    }
+
+    throw "Different type of buffers."
+  }
 }
 
 export namespace UnidocEventBuffer {
-  /**
-  * Assert that both buffers are equals.
-  *
-  * @param left - Buffer to use as a left operand.
-  * @param right - Buffer to use as a right operand.
-  */
-  export function assert (left : UnidocEventBuffer, right : UnidocEventBuffer) : void {
-    if (left.events.size !== right.events.size) {
-      throw new Error(
-        'Buffers ' + left.toString() + ' and ' + right.toString() + ' are ' +
-        'not equals because thay contains a different amount of.events ' +
-        left.events.size + ' !== ' + right.events.size + '.'
-      )
-    }
 
-    const oldPath : UnidocPath = new UnidocPath()
-
-    for (let index = 0, size = right.events.size; index < size; ++index) {
-      const oldindex : number = right.events.get(index).index
-      oldPath.copy(right.events.get(index).path)
-      right.events.get(index).index = left.events.get(index).index
-      right.events.get(index).path.copy(left.events.get(index).path)
-
-      if (!left.events.get(index).equals(right.events.get(index))) {
-        right.events.get(index).index = oldindex
-        right.events.get(index).path.copy(oldPath)
-
-        throw new Error(
-          'Buffers ' + left.toString() + ' and ' + right.toString() + ' are ' +
-          'not equals because their #' + index + ' token are not similar ' +
-          left.events.get(index).toString() + ' !== ' +
-          right.events.get(index).toString() + '.'
-        )
-      } else {
-        right.events.get(index).index = oldindex
-        right.events.get(index).path.copy(oldPath)
-      }
-    }
-  }
 }

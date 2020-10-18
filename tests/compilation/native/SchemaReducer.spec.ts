@@ -1,4 +1,4 @@
-import { toArray } from 'rxjs/operators'
+import { toArray, map } from 'rxjs/operators'
 
 import { stream } from '../../../sources/stream'
 import { tokenize } from '../../../sources/tokenize'
@@ -16,6 +16,7 @@ describe('SchemaReducer', function () {
       \\scalar { text }
     `).pipe(tokenize())
       .pipe(parse())
+      .pipe(map(x => x.event))
       .pipe(reduce(SchemaReducer.document()))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -46,6 +47,7 @@ describe('SchemaReducer', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
+      .pipe(map(x => x.event))
       .pipe(reduce(SchemaReducer.document()))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -80,6 +82,7 @@ describe('SchemaReducer', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
+      .pipe(map(x => x.event))
       .pipe(reduce(SchemaReducer.document()))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -104,6 +107,7 @@ describe('SchemaReducer', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
+      .pipe(map(x => x.event))
       .pipe(reduce(SchemaReducer.document()))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -137,6 +141,7 @@ describe('SchemaReducer', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
+      .pipe(map(x => x.event))
       .pipe(reduce(SchemaReducer.document()))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -176,6 +181,7 @@ describe('SchemaReducer', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
+      .pipe(map(x => x.event))
       .pipe(reduce(SchemaReducer.document()))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
