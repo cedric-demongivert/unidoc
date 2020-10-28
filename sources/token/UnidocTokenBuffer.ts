@@ -1,7 +1,8 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocPath } from '../path/UnidocPath'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
+import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 import { UnidocToken } from './UnidocToken'
 
 export class UnidocTokenBuffer {
@@ -53,15 +54,15 @@ export class UnidocTokenBuffer {
   /**
   * @return The starting location of this buffer.
   */
-  public get from () : UnidocPath {
-    return this._tokens.size === 0 ? UnidocPath.EMPTY : this._tokens.first.from
+  public get from () : UnidocOrigin {
+    return this._tokens.size === 0 ? UnidocOrigin.runtime() : this._tokens.first.origin.from
   }
 
   /**
   * @return The ending location of this buffer.
   */
-  public get to () : UnidocPath {
-    return this._tokens.size === 0 ? UnidocPath.EMPTY : this._tokens.last.to
+  public get to () : UnidocOrigin {
+    return this._tokens.size === 0 ? UnidocOrigin.runtime() : this._tokens.last.origin.to
   }
 
   /**
@@ -99,34 +100,34 @@ export class UnidocTokenBuffer {
     return this._tokens.get(index)
   }
 
-  public pushIdentifier (from : UnidocPath, to : UnidocPath, value : string) : void {
+  public pushIdentifier (origin : UnidocRangeOrigin, value : string) : void {
     this._tokens.size += 1
-    this._tokens.last.asIdentifier(from, to, value)
+    this._tokens.last.asIdentifier(origin, value)
   }
 
-  public pushClass (from : UnidocPath, to : UnidocPath, value : string) : void {
+  public pushClass (origin : UnidocRangeOrigin, value : string) : void {
     this._tokens.size += 1
-    this._tokens.last.asClass(from, to, value)
+    this._tokens.last.asClass(origin, value)
   }
 
-  public pushTag (from : UnidocPath, to : UnidocPath, value : string) : void {
+  public pushTag (origin : UnidocRangeOrigin, value : string) : void {
     this._tokens.size += 1
-    this._tokens.last.asTag(from, to, value)
+    this._tokens.last.asTag(origin, value)
   }
 
-  public pushBlockStart (from : UnidocPath, to : UnidocPath) : void {
+  public pushBlockStart (origin : UnidocRangeOrigin) : void {
     this._tokens.size += 1
-    this._tokens.last.asBlockStart(from, to)
+    this._tokens.last.asBlockStart(origin)
   }
 
-  public pushBlockEnd (from : UnidocPath, to : UnidocPath) : void  {
+  public pushBlockEnd (origin : UnidocRangeOrigin) : void  {
     this._tokens.size += 1
-    this._tokens.last.asBlockEnd(from, to)
+    this._tokens.last.asBlockEnd(origin)
   }
 
-  public pushSpace (from : UnidocPath, to : UnidocPath, value : string) : void {
+  public pushSpace (origin : UnidocRangeOrigin, value : string) : void {
     this._tokens.size += 1
-    this._tokens.last.asSpace(from, to, value)
+    this._tokens.last.asSpace(origin, value)
   }
 
   /**
@@ -134,9 +135,9 @@ export class UnidocTokenBuffer {
   *
   * @param type - Type of newline token to add.
   */
-  public pushNewline (from : UnidocPath, to : UnidocPath, type : '\r\n' | '\r' | '\n' = '\r\n') : void {
+  public pushNewline (origin : UnidocRangeOrigin, type : '\r\n' | '\r' | '\n' = '\r\n') : void {
     this._tokens.size += 1
-    this._tokens.last.asNewline(from, to, type)
+    this._tokens.last.asNewline(origin, type)
   }
 
   /**
@@ -144,9 +145,9 @@ export class UnidocTokenBuffer {
   *
   * @param value - Code points of the token to append.
   */
-  public pushWord (from : UnidocPath, to : UnidocPath,value : string) : void {
+  public pushWord (origin : UnidocRangeOrigin,value : string) : void {
     this._tokens.size += 1
-    this._tokens.last.asWord(from, to, value)
+    this._tokens.last.asWord(origin, value)
   }
 
   /**

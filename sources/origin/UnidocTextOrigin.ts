@@ -1,19 +1,16 @@
-import { UnidocOriginType } from './UnidocOriginType'
-import { UnidocOrigin } from './UnidocOrigin'
+import { UnidocLocation } from '../UnidocLocation'
+
+import { UnidocOriginElementType } from './UnidocOriginElementType'
+import { UnidocOriginElement } from './UnidocOriginElement'
 
 /**
 * An object that define a text at the origin of a unidoc value.
 */
-export class UnidocTextOrigin implements UnidocOrigin {
+export class UnidocTextOrigin implements UnidocOriginElement {
   /**
-  * @see UnidocOrigin.type
+  * @see UnidocOriginElement.type
   */
-  public readonly type : UnidocOriginType
-
-  /**
-  * @see UnidocOrigin.origin
-  */
-  public readonly origin : UnidocOrigin | null
+  public readonly type : UnidocOriginElementType
 
   /**
   * The location in the text at the origin of the unidoc value.
@@ -28,46 +25,41 @@ export class UnidocTextOrigin implements UnidocOrigin {
   /**
   * The location in the text at the origin of the unidoc value.
   */
-  public readonly character : number
+  public readonly index : number
 
   /**
   * Instantiate a new buffer origin.
   *
   * @param line - The location in the text at the origin of the unidoc value.
   * @param column - The location in the text at the origin of the unidoc value.
-  * @param character - The location in the text at the origin of the unidoc value.
-  * @param [origin = null] - An origin in the resource.
+  * @param index - The location in the text at the origin of the unidoc value.
   */
-  public constructor (
-    line : number,
-    column : number,
-    character : number,
-    origin : UnidocOrigin | null = null
-  ) {
-    this.type = UnidocOriginType.TEXT
-    this.origin = origin
-    this.line = line
-    this.column = column
-    this.character = character
+  public constructor (line : number, column : number, index : number)
+  public constructor (location : UnidocLocation)
+  public constructor (...parameters : any[]) {
+    this.type = UnidocOriginElementType.TEXT
+
+    if (parameters.length === 1) {
+      this.line = parameters[0].line
+      this.column = parameters[0].column
+      this.index = parameters[0].index
+    } else {
+      this.line = parameters[0]
+      this.column = parameters[1]
+      this.index = parameters[2]
+    }
   }
 
   /**
-  * @see UnidocOrigin.toElementString
+  * @see UnidocOriginElement.toString
   */
-  public toElementString () : string {
-    return 'character ' + this.character + ' at line ' + this.line +
+  public toString () : string {
+    return 'index ' + this.index + ' at line ' + this.line +
            ' and column ' + this.column
   }
 
   /**
-  * @see UnidocOrigin.toString
-  */
-  public toString () : string {
-    return UnidocOrigin.toString(this)
-  }
-
-  /**
-  * @see UnidocOrigin.equals
+  * @see UnidocOriginElement.equals
   */
   public equals (other : any) : boolean {
     if (other == null) return false
@@ -75,10 +67,9 @@ export class UnidocTextOrigin implements UnidocOrigin {
 
     if (other instanceof UnidocTextOrigin) {
       return this.type === other.type &&
-             this.character === other.character &&
+             this.index === other.index &&
              this.line === other.line &&
-             this.column === other.column &&
-             UnidocOrigin.equals(this.origin, other.origin)
+             this.column === other.column
     }
 
     return false
@@ -91,15 +82,11 @@ export namespace UnidocTextOrigin {
   *
   * @param line - The location in the text at the origin of the unidoc value.
   * @param column - The location in the text at the origin of the unidoc value.
-  * @param character - The location in the text at the origin of the unidoc value.
-  * @param [origin = null] - An origin in the resource.
+  * @param index - The location in the text at the origin of the unidoc value.
   */
-  export function create (
-    line : number,
-    column : number,
-    character : number,
-    origin : UnidocOrigin | null = null
-  ) : UnidocTextOrigin {
-    return new UnidocTextOrigin(line, column, character, origin)
+  export function create (line : number, column : number, index : number) : UnidocTextOrigin
+  export function create (location : UnidocLocation) : UnidocTextOrigin
+  export function create (a : any, b? : any, c? : any) : UnidocTextOrigin {
+    return new UnidocTextOrigin(a, b, c)
   }
 }

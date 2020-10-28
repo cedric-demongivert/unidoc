@@ -1,59 +1,51 @@
-export type UnidocOriginType = number
+export type UnidocOriginElementType = number
 
-export namespace UnidocOriginType {
+export namespace UnidocOriginElementType {
   /**
   * The runtime origin describe unidoc elements that are generated from nowhere
   * during the execution of a program.
   */
-  export const RUNTIME : UnidocOriginType = 0
+  export const RUNTIME : UnidocOriginElementType = 0
 
   /**
   * A resource origin describe unidoc elements that are generated from the
   * content of a document described by an unified resource identifier.
   */
-  export const RESOURCE : UnidocOriginType = 1
+  export const RESOURCE : UnidocOriginElementType = 1
 
   /**
   * The buffer origin describe unidoc elements that are generated from the
   * content of a buffer.
   */
-  export const BUFFER : UnidocOriginType = 2
+  export const BUFFER : UnidocOriginElementType = 2
 
   /**
   * The text origin describe unidoc elements that are generated from the
   * content of a document made of symbols.
   */
-  export const TEXT : UnidocOriginType = 3
+  export const TEXT : UnidocOriginElementType = 3
 
   /**
   * The network origin describe unidoc elements that are generated from the
   * content of a network connection.
   */
-  export const NETWORK : UnidocOriginType = 4
+  export const NETWORK : UnidocOriginElementType = 4
 
-  /**
-  * The RANGE origin describe unidoc elements that are generated from a
-  * continuity between two origins.
-  */
-  export const RANGE : UnidocOriginType = 5
-
-  export const ALL : UnidocOriginType[] = [
+  export const ALL : UnidocOriginElementType[] = [
     RUNTIME,
     RESOURCE,
     BUFFER,
     TEXT,
-    NETWORK,
-    RANGE
+    NETWORK
   ]
 
-  export function toString (value : UnidocOriginType) : string | undefined{
+  export function toString (value : UnidocOriginElementType) : string | undefined{
     switch (value) {
       case RUNTIME  : return 'RUNTIME'
       case RESOURCE : return 'RESOURCE'
       case BUFFER   : return 'BUFFER'
       case TEXT     : return 'TEXT'
       case NETWORK  : return 'NETWORK'
-      case RANGE    : return 'RANGE'
       default       : return undefined
     }
   }

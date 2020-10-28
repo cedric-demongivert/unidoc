@@ -1,52 +1,38 @@
-import { UnidocOriginType } from './UnidocOriginType'
-import { UnidocOrigin } from './UnidocOrigin'
+import { UnidocOriginElementType } from './UnidocOriginElementType'
+import { UnidocOriginElement } from './UnidocOriginElement'
 
 /**
 * An object that define the execution of a program at the origin of a unidoc value.
 */
-export class UnidocRuntimeOrigin implements UnidocOrigin {
+export class UnidocRuntimeOrigin implements UnidocOriginElement {
   /**
-  * @see UnidocOrigin.type
+  * @see UnidocOriginElement.type
   */
-  public readonly type : UnidocOriginType
-
-  /**
-  * @see UnidocOrigin.origin
-  */
-  public readonly origin : null
+  public readonly type : UnidocOriginElementType
 
   /**
   * Instantiate a new runtime origin.
   */
   public constructor () {
-    this.type = UnidocOriginType.RUNTIME
-    this.origin = null
+    this.type = UnidocOriginElementType.RUNTIME
   }
 
   /**
-  * @see UnidocOrigin.toElementString
+  * @see UnidocOriginElement.toString
   */
-  public toElementString () : string {
+  public toString () : string {
     return 'at runtime'
   }
 
   /**
-  * @see UnidocOrigin.toString
-  */
-  public toString () : string {
-    return UnidocOrigin.toString(this)
-  }
-
-  /**
-  * @see UnidocOrigin.equals
+  * @see UnidocOriginElement.equals
   */
   public equals (other : any) : boolean {
     if (other == null) return false
     if (other === this) return true
 
     if (other instanceof UnidocRuntimeOrigin) {
-      return this.type === other.type &&
-             UnidocOrigin.equals(this.origin, other.origin)
+      return this.type === other.type
     }
 
     return false

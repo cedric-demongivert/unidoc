@@ -1,20 +1,9 @@
-import { UnidocOriginType } from './UnidocOriginType'
 import { UnidocOrigin } from './UnidocOrigin'
 
 /**
 * An object that define a continuity between two origins as the origin of a unidoc value.
 */
-export class UnidocRangeOrigin implements UnidocOrigin {
-  /**
-  * @see UnidocOrigin.type
-  */
-  public readonly type : UnidocOriginType
-
-  /**
-  * @see UnidocOrigin.origin
-  */
-  public readonly origin : null
-
+export class UnidocRangeOrigin {
   /**
   * Starting origin.
   */
@@ -25,46 +14,54 @@ export class UnidocRangeOrigin implements UnidocOrigin {
   */
   public readonly to : UnidocOrigin
 
-  /**
-  * Instantiate a new range origin.
-  *
-  * @param from - A starting origin.
-  * @param to - An ending origin.
-  */
-  public constructor (from : UnidocOrigin, to : UnidocOrigin) {
-    this.type = UnidocOriginType.RANGE
-    this.origin = null
-    this.from = from
-    this.to = to
+  public constructor (capacity : number = 8) {
+    this.from = new UnidocOrigin(capacity)
+    this.to = new UnidocOrigin(capacity)
+  }
+
+  public runtime () : UnidocRangeOrigin {
+    this.from.runtime()
+    this.to.runtime()
+    return this
+  }
+
+  public at (origin : UnidocOrigin) : UnidocRangeOrigin {
+    this.from.copy(origin)
+    this.to.copy(origin)
+    return this
+  }
+
+  public copy (toCopy : UnidocRangeOrigin) : void {
+    this.from.copy(toCopy.from)
+    this.to.copy(toCopy.to)
+  }
+
+  public clear () : void {
+    this.from.clear()
+    this.to.clear()
   }
 
   /**
-  * @see UnidocOrigin.toElementString
-  */
-  public toElementString () : string {
-    return 'from ' + UnidocOrigin.toString(this.from) +
-           ' to ' + UnidocOrigin.toString(this.to)
-  }
-
-  /**
-  * @see UnidocOrigin.toString
+  * @see Object.toString
   */
   public toString () : string {
-    return UnidocOrigin.toString(this)
+    if (this.from.equals(this.to)) {
+      return this.from.toString()
+    } else {
+      return 'from ' + this.from.toString() + ' to ' + this.to.toString()
+    }
   }
 
   /**
-  * @see UnidocOrigin.equals
+  * @see Object.equals
   */
   public equals (other : any) : boolean {
     if (other == null) return false
     if (other === this) return true
 
     if (other instanceof UnidocRangeOrigin) {
-      return this.type === other.type &&
-             this.from.equals(other.from) &&
-             this.to.equals(other.to) &&
-             UnidocOrigin.equals(this.origin, other.origin)
+      return this.from.equals(other.from) &&
+             this.to.equals(other.to)
     }
 
     return false
@@ -74,11 +71,14 @@ export class UnidocRangeOrigin implements UnidocOrigin {
 export namespace UnidocRangeOrigin {
   /**
   * Instantiate a new range origin.
-  *
-  * @param from - A starting origin.
-  * @param to - An ending origin.
   */
-  export function create (from : UnidocOrigin, to : UnidocOrigin) : UnidocRangeOrigin {
-    return new UnidocRangeOrigin(from, to)
+  export function create () : UnidocRangeOrigin {
+    return new UnidocRangeOrigin()
+  }
+
+  export const RUNTIME : UnidocRangeOrigin = new UnidocRangeOrigin(1).runtime()
+
+  export function runtime () : UnidocRangeOrigin {
+    return RUNTIME
   }
 }

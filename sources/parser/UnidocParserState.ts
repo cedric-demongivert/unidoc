@@ -2,7 +2,8 @@ import { Allocator, Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../CodePoint'
 
-import { UnidocPath } from '../path/UnidocPath'
+import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
 
@@ -15,8 +16,7 @@ export class UnidocParserState {
   public tag                 : string
   public identifier          : string
   public readonly content    : Pack<CodePoint>
-  public readonly from       : UnidocPath
-  public readonly to         : UnidocPath
+  public readonly origin     : UnidocRangeOrigin
   public readonly classes    : Set<string>
 
   /**
@@ -28,13 +28,12 @@ export class UnidocParserState {
     this.identifier = EMPTY_STRING
     this.content    = Pack.uint32(128)
     this.classes    = new Set()
-    this.from       = new UnidocPath()
-    this.to         = new UnidocPath()
+    this.origin     = new UnidocRangeOrigin().runtime()
   }
 
   public begin (type : UnidocParserStateType, token : UnidocToken) : void
-  public begin (type : UnidocParserStateType, start : UnidocPath) : void
-  public begin (type : UnidocParserStateType, start : UnidocToken | UnidocPath) : void {
+  public begin (type : UnidocParserStateType, start : UnidocOrigin) : void
+  public begin (type : UnidocParserStateType, start : UnidocToken | UnidocOrigin) : void {
     this.clear()
     this.type = type
 
@@ -56,11 +55,9 @@ export class UnidocParserState {
           break
       }
 
-      this.from.copy(start.from)
-      this.to.copy(start.to)
+      this.origin.copy(start.origin)
     } else {
-      this.from.copy(start)
-      this.to.copy(start)
+      this.origin.at(start)
     }
   }
 
@@ -82,12 +79,7 @@ export class UnidocParserState {
         break
     }
 
-    this.to.copy(token.to)
-  }
-
-  public at (location : UnidocPath) : void {
-    this.from.copy(location)
-    this.to.copy(location)
+    this.origin.to.copy(token.origin.to)
   }
 
   /**
@@ -99,8 +91,8 @@ export class UnidocParserState {
     this.identifier = EMPTY_STRING
     this.content.clear()
     this.classes.clear()
-    this.from.clear()
-    this.to.clear()
+    this.origin.clear()
+    this.origin.runtime()
   }
 
   /**
@@ -113,8 +105,7 @@ export class UnidocParserState {
     this.tag = toCopy.tag
     this.identifier = toCopy.identifier
     this.content.copy(toCopy.content)
-    this.from.copy(toCopy.from)
-    this.to.copy(toCopy.to)
+    this.origin.copy(toCopy.origin)
     this.classes.clear()
 
     for (const element of toCopy.classes) {
@@ -135,8 +126,7 @@ export class UnidocParserState {
         other.tag          !== this.tag          ||
         other.identifier   !== this.identifier   ||
         !other.content.equals(this.content)      ||
-        !other.from.equals(this.from)            ||
-        !other.to.equals(this.to)                ||
+        !other.origin.equals(this.origin)        ||
         other.classes.size !== this.classes.size
       ) { return false }
 

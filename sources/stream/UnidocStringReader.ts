@@ -30,7 +30,7 @@ export class UnidocStringReader  implements UnidocSourceReader {
     this.name = name
     this._location = new UnidocLocationTracker()
     this._symbol = new UnidocSymbol()
-    this._symbol.location.pushMemory(this.name, UnidocLocation.ZERO, UnidocLocation.ZERO)
+    this._symbol.origin.clear()
   }
 
   /**
@@ -79,11 +79,12 @@ export class UnidocStringReader  implements UnidocSourceReader {
       )
     } else {
       this._symbol.symbol = nextCodePoint
-      this._symbol.location.first.asMemory(this.name, this._location.location)
+      this._symbol.origin.clear()
+      this._symbol.origin.from.runtime().text(this._location.location)
 
       this._location.next(nextCodePoint)
 
-      this._symbol.location.first.to.copy(this._location.location)
+      this._symbol.origin.to.runtime().text(this._location.location)
 
       return this._symbol
     }

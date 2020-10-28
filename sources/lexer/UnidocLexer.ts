@@ -1,6 +1,4 @@
 import { CodePoint } from '../CodePoint'
-import { UnidocLocation } from '../UnidocLocation'
-import { UnidocPath } from '../path/UnidocPath'
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
 import { UnidocValidation } from '../validation/UnidocValidation'
@@ -10,19 +8,10 @@ import { UnidocLexerEventType } from './UnidocLexerEventType'
 import { UnidocLexerState } from './UnidocLexerState'
 import { UnidocSymbolBuffer } from './UnidocSymbolBuffer'
 
-const ZERO_PATH : UnidocPath = (
-  UnidocPath.create(1).pushStream(UnidocLocation.ZERO)
-)
-
 /**
 * Unidoc lexer.
 */
 export class UnidocLexer {
-  /**
-  * Location of this lexer into it's parent stream.
-  */
-  public readonly location : UnidocPath
-
   /**
   * Current state of this lexer.
   */
@@ -64,8 +53,6 @@ export class UnidocLexer {
   * @param [capacity = 64] - Unidoc lexer internal symbol buffer capacity.
   */
   public constructor (capacity : number = 64) {
-    this.location             = new UnidocPath()
-
     this._state               = UnidocLexerState.START
     this._symbols             = new UnidocSymbolBuffer(capacity)
     this._token               = new UnidocToken(capacity)
@@ -74,8 +61,6 @@ export class UnidocLexer {
     this._validationListeners = new Set<UnidocLexer.ValidationListener>()
     this._completionListeners = new Set<UnidocLexer.CompletionListener>()
     this._errorListeners      = new Set<UnidocLexer.ErrorListener>()
-
-    this.location.copy(ZERO_PATH)
   }
 
   /**
@@ -123,9 +108,6 @@ export class UnidocLexer {
         this.handleAfterStart(symbol)
         break
     }
-
-    this.location.copy(symbol.location)
-    this.location.snapToEnd()
   }
 
   /**
@@ -513,8 +495,8 @@ export class UnidocLexer {
 
   private emitBuffer (type : UnidocTokenType) : void {
     this._token.clear()
-    this._token.from.copy(this._symbols.from)
-    this._token.to.copy(this._symbols.to)
+    this._token.origin.from.copy(this._symbols.from)
+    this._token.origin.to.copy(this._symbols.to)
     this._token.symbols.copy(this._symbols.symbols)
     this._symbols.clear()
     this._token.type = type
@@ -606,7 +588,6 @@ export class UnidocLexer {
   public clear () : void {
     this._token.clear()
     this._state = UnidocLexerState.START
-    this.location.copy(ZERO_PATH)
     this._symbols.clear()
 
     this._tokenListeners.clear()

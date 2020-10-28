@@ -2,19 +2,19 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../CodePoint'
-import { UnidocPath } from '../path/UnidocPath'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { UnidocSymbol } from '../stream/UnidocSymbol'
 
 export class UnidocSymbolBuffer {
   /**
   * Location of the first symbol of the buffer (included).
   */
-  public readonly from : UnidocPath
+  public readonly from : UnidocOrigin
 
   /**
   * Location of the last symbol of the buffer (excluded).
   */
-  public readonly to : UnidocPath
+  public readonly to : UnidocOrigin
 
   /**
   * Buffer of symbols of this lexer.
@@ -27,20 +27,18 @@ export class UnidocSymbolBuffer {
   public readonly symbols  : Sequence<CodePoint>
 
   public constructor (capacity : number) {
-    this.from = new UnidocPath(16)
-    this.to = new UnidocPath(16)
+    this.from = new UnidocOrigin(16)
+    this.to = new UnidocOrigin(16)
     this._symbols = Pack.uint32(capacity)
     this.symbols = this._symbols.view()
   }
 
   public bufferize (symbol : UnidocSymbol) : void {
     if (this._symbols.size <= 0) {
-      this.from.copy(symbol.location)
-      this.from.snapToStart()
+      this.from.copy(symbol.origin.from)
     }
 
-    this.to.copy(symbol.location)
-    this.to.snapToEnd()
+    this.to.copy(symbol.origin.to)
 
     this._symbols.push(symbol.symbol)
   }

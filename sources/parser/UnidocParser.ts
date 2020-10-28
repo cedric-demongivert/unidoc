@@ -1,14 +1,12 @@
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
 
-import { UnidocPath } from '../path/UnidocPath'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 
-import { ParsedUnidocEvent } from '../event/ParsedUnidocEvent'
+import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
 import { UnidocValidation } from '../validation/UnidocValidation'
-
-import { UnidocLocation } from '../UnidocLocation'
 
 import { UnidocParserStateType } from './UnidocParserStateType'
 import { UnidocParserEventType } from './UnidocParserEventType'
@@ -17,9 +15,6 @@ import { UnidocParserStateBuffer } from './UnidocParserStateBuffer'
 
 const DOCUMENT_TAG : string = 'document'
 const BLOCK_TAG : string = 'block'
-const ZERO_PATH : UnidocPath = (
-  UnidocPath.create(1).pushStream(UnidocLocation.ZERO)
-)
 
 /***
 * CORRIGER SINGLETON POUR SINGLETON + ELEMENT EN (SINGLETON) ONLY.
@@ -37,7 +32,7 @@ export class UnidocParser {
   /**
   * Unidoc event instance for publication.
   */
-  private _event : ParsedUnidocEvent
+  private _event : UnidocEvent
 
   /**
   * Unidoc validation instance for publication.
@@ -70,20 +65,13 @@ export class UnidocParser {
   private _index : number
 
   /**
-  * Current location of this parser in its parent document.
-  */
-  public readonly location : UnidocPath
-
-  /**
   * Instantiate a new unidoc parser with a given token buffer capacity.
   *
   * @param [capacity = 32] - Initial state buffer capacity of the parser.
   */
   public constructor (capacity : number = 32) {
-    this.location             = new UnidocPath()
-
     this._states              = new UnidocParserStateBuffer(capacity)
-    this._event               = new ParsedUnidocEvent()
+    this._event               = new UnidocEvent()
 
     this._eventListeneners    = new Set<UnidocParser.EventListener>()
     this._validationListeners = new Set<UnidocParser.ValidationListener>()
@@ -94,7 +82,7 @@ export class UnidocParser {
     this._validation = new UnidocValidation()
 
     this._states.push(UnidocParserStateType.START)
-    this._states.last.at(ZERO_PATH)
+    this._states.last.origin.at(UnidocOrigin.runtime())
   }
 
   /**
@@ -152,8 +140,6 @@ export class UnidocParser {
       default:
         this.throwUhandledParserState(token)
     }
-
-    this.location.copy(token.to)
   }
 
   private throwUhandledParserState (token : UnidocToken) : void {
@@ -180,14 +166,14 @@ export class UnidocParser {
       case UnidocParserStateType.STREAM_CONTENT:
         this.emitTagEnd()
         this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.at(this._states.last.to)
+        this._states.last.origin.at(this._states.last.origin.to)
         this.complete()
         break
       case UnidocParserStateType.BLOCK_CONTENT:
         // ERROR & RECOVER
         this.emitTagEnd()
         this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.at(this._states.last.to)
+        this._states.last.origin.at(this._states.last.origin.to)
         this.complete()
         break
       case UnidocParserStateType.WHITESPACE:
@@ -203,7 +189,7 @@ export class UnidocParser {
       case UnidocParserStateType.CLASS_OF_TAG_WITHOUT_IDENTIFIER:
       case UnidocParserStateType.CLASS_OF_TAG_WITH_IDENTIFIER:
         this.emitTagStart()
-        this._states.last.at(this._states.last.to)
+        this._states.last.origin.at(this._states.last.origin.to)
         this.emitTagEnd()
         this._states.pop()
         this.complete()
@@ -211,7 +197,7 @@ export class UnidocParser {
       case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER:
       case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER:
         this.emitTagStart(this._states.get(this._states.size - 2))
-        this._states.get(this._states.size - 2).at(this._states.last.from)
+        this._states.get(this._states.size - 2).origin.at(this._states.last.origin.from)
         this.emitTagEnd(this._states.get(this._states.size - 2))
         this.emitWhitespaceEvent()
         this._states.pop()
@@ -226,7 +212,7 @@ export class UnidocParser {
         this.emitWhitespaceEvent()
         this.emitVirtualDocumentEnd()
         this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.at(this._states.last.to)
+        this._states.last.origin.at(this._states.last.origin.to)
         this.complete()
         break
       case UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER:
@@ -234,17 +220,17 @@ export class UnidocParser {
         this.emitTagStart()
         this.emitVirtualDocumentEnd()
         this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.at(this._states.last.to)
+        this._states.last.origin.at(this._states.last.origin.to)
         this.complete()
         break
       case UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER:
         this.emitTagStart(this._states.get(this._states.size - 2))
-        this._states.get(this._states.size - 2).at(this._states.last.from)
+        this._states.get(this._states.size - 2).origin.at(this._states.last.origin.from)
         this.emitWhitespaceEvent()
         this._states.pop()
         this.emitVirtualDocumentEnd()
         this._states.last.type = UnidocParserStateType.TERMINATION
-        this._states.last.at(this._states.last.to)
+        this._states.last.origin.at(this._states.last.origin.to)
         this.complete()
         break
       case UnidocParserStateType.TERMINATION:
@@ -270,7 +256,7 @@ export class UnidocParser {
   * @param token - A unidock token to handle.
   */
   private handleAfterStart (token : UnidocToken) : void {
-    this._states.last.at(token.from)
+    this._states.last.origin.at(token.origin.from)
     this._states.last.tag = DOCUMENT_TAG
 
     switch (token.type) {
@@ -286,7 +272,7 @@ export class UnidocParser {
       case UnidocTokenType.CLASS       :
         if (token.isTag(DOCUMENT_TAG)) {
           this._states.last.type = UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER
-          this._states.last.to.copy(token.to)
+          this._states.last.origin.to.copy(token.origin.to)
         } else {
           this.emitVirtualDocumentStart()
           this._states.last.type = UnidocParserStateType.STREAM_CONTENT
@@ -315,13 +301,13 @@ export class UnidocParser {
       case UnidocTokenType.CLASS       :
         if (token.isTag(DOCUMENT_TAG)) {
           this._states.last.type = UnidocParserStateType.CLASS_OF_STREAM_WITHOUT_IDENTIFIER
-          this._states.last.to.copy(token.to)
+          this._states.last.origin.to.copy(token.origin.to)
           this._states.last.content.clear()
         } else {
           this.emitVirtualDocumentStart()
           this.emitWhitespaceEvent()
           this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-          this._states.last.at(token.from)
+          this._states.last.origin.at(token.origin.from)
           this.next(token)
         }
         return
@@ -339,7 +325,7 @@ export class UnidocParser {
       case UnidocTokenType.SPACE:
       case UnidocTokenType.NEW_LINE:
         this._states.push(UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         return
       case UnidocTokenType.IDENTIFIER:
@@ -355,7 +341,7 @@ export class UnidocParser {
       case UnidocTokenType.BLOCK_END :
         this.emitTagStart()
         this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this.next(token)
         return
       default:
@@ -382,7 +368,7 @@ export class UnidocParser {
         this.emitWhitespaceEvent()
         this._states.pop()
         this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this.next(token)
         return
       default:
@@ -395,7 +381,7 @@ export class UnidocParser {
       case UnidocTokenType.SPACE:
       case UnidocTokenType.NEW_LINE:
         this._states.push(UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_STREAM_WITH_IDENTIFIER)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         return
       case UnidocTokenType.CLASS:
@@ -408,7 +394,7 @@ export class UnidocParser {
       case UnidocTokenType.IDENTIFIER:
         this.emitTagStart()
         this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this.next(token)
         return
       default:
@@ -435,7 +421,7 @@ export class UnidocParser {
         this.emitWhitespaceEvent()
         this._states.pop()
         this._states.last.type = UnidocParserStateType.STREAM_CONTENT
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this.next(token)
         return
       default:
@@ -476,7 +462,7 @@ export class UnidocParser {
         this._states.last.append(token)
         this.emitTagEnd()
         this._states.pop()
-        this._states.last.at(token.to)
+        this._states.last.origin.at(token.origin.to)
         break
       default:
         this.throwUnhandledTokenType(token)
@@ -487,39 +473,39 @@ export class UnidocParser {
     switch (token.type) {
       case UnidocTokenType.TAG:
         this._states.push(UnidocParserStateType.CLASS_OF_TAG_WITHOUT_IDENTIFIER)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         break
       case UnidocTokenType.NEW_LINE:
       case UnidocTokenType.SPACE:
         this._states.push(UnidocParserStateType.WHITESPACE)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         break
       case UnidocTokenType.WORD:
         this._states.push(UnidocParserStateType.WORD)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         break
       case UnidocTokenType.IDENTIFIER:
         this._states.push(UnidocParserStateType.CLASS_OF_TAG_WITH_IDENTIFIER)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         this._states.last.tag = BLOCK_TAG
         break
       case UnidocTokenType.CLASS:
         this._states.push(UnidocParserStateType.CLASS_OF_TAG_WITHOUT_IDENTIFIER)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         this._states.last.tag = BLOCK_TAG
         break
       case UnidocTokenType.BLOCK_START:
         this._states.push(UnidocParserStateType.BLOCK_CONTENT)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         this._states.last.tag = BLOCK_TAG
         this.emitTagStart()
-        this._states.last.from.copy(token.to)
+        this._states.last.origin.from.copy(token.origin.to)
         break
       default:
         this.throwUnhandledTokenType(token)
@@ -535,7 +521,7 @@ export class UnidocParser {
       default:
         this.emitWhitespaceEvent()
         this._states.pop()
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this.next(token)
         return
     }
@@ -549,7 +535,7 @@ export class UnidocParser {
       default:
         this.emitWordEvent()
         this._states.pop()
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this.next(token)
         return
     }
@@ -560,7 +546,7 @@ export class UnidocParser {
       case UnidocTokenType.SPACE:
       case UnidocTokenType.NEW_LINE:
         this._states.push(UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         return
       case UnidocTokenType.IDENTIFIER:
@@ -574,7 +560,7 @@ export class UnidocParser {
       case UnidocTokenType.WORD :
       case UnidocTokenType.BLOCK_END :
         this.emitTagStart()
-        this._states.last.at(this._states.last.to)
+        this._states.last.origin.at(this._states.last.origin.to)
         this.emitTagEnd()
         this._states.pop()
         this.next(token)
@@ -583,7 +569,7 @@ export class UnidocParser {
         this._states.last.append(token)
         this.emitTagStart()
         this._states.last.type = UnidocParserStateType.BLOCK_CONTENT
-        this._states.last.at(token.to)
+        this._states.last.origin.at(token.origin.to)
         return
       default:
         this.throwUnhandledTokenType(token)
@@ -600,14 +586,14 @@ export class UnidocParser {
       case UnidocTokenType.CLASS:
       case UnidocTokenType.BLOCK_START:
         this._states.pop()
-        this._states.last.to.copy(token.from)
+        this._states.last.origin.to.copy(token.origin.from)
         this.next(token)
         return
       case UnidocTokenType.TAG :
       case UnidocTokenType.WORD :
       case UnidocTokenType.BLOCK_END :
         this.emitTagStart(this._states.get(this._states.size - 2))
-        this._states.get(this._states.size - 2).at(this._states.last.from)
+        this._states.get(this._states.size - 2).origin.at(this._states.last.origin.from)
         this.emitTagEnd(this._states.get(this._states.size - 2))
         this.emitWhitespaceEvent()
         this._states.pop()
@@ -624,7 +610,7 @@ export class UnidocParser {
       case UnidocTokenType.SPACE:
       case UnidocTokenType.NEW_LINE:
         this._states.push(UnidocParserStateType.WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER)
-        this._states.last.at(token.from)
+        this._states.last.origin.at(token.origin.from)
         this._states.last.append(token)
         return
       case UnidocTokenType.CLASS:
@@ -635,7 +621,7 @@ export class UnidocParser {
       case UnidocTokenType.BLOCK_END:
       case UnidocTokenType.IDENTIFIER:
         this.emitTagStart()
-        this._states.last.at(this._states.last.to)
+        this._states.last.origin.at(this._states.last.origin.to)
         this.emitTagEnd()
 
         this._states.pop()
@@ -645,7 +631,7 @@ export class UnidocParser {
         this._states.last.append(token)
         this.emitTagStart()
         this._states.last.type = UnidocParserStateType.BLOCK_CONTENT
-        this._states.last.at(token.to)
+        this._states.last.origin.at(token.origin.to)
         return
       default:
         this.throwUnhandledTokenType(token)
@@ -661,7 +647,7 @@ export class UnidocParser {
       case UnidocTokenType.CLASS:
       case UnidocTokenType.BLOCK_START:
         this._states.pop()
-        this._states.last.to.copy(token.from)
+        this._states.last.origin.to.copy(token.origin.from)
         this.next(token)
         return
       case UnidocTokenType.IDENTIFIER:
@@ -669,7 +655,7 @@ export class UnidocParser {
       case UnidocTokenType.WORD :
       case UnidocTokenType.BLOCK_END :
         this.emitTagStart(this._states.get(this._states.size - 2))
-        this._states.get(this._states.size - 2).at(this._states.last.from)
+        this._states.get(this._states.size - 2).origin.at(this._states.last.origin.from)
         this.emitTagEnd(this._states.get(this._states.size - 2))
         this.emitWhitespaceEvent()
         this._states.pop()
@@ -700,7 +686,7 @@ export class UnidocParser {
   }
 
   private recoverFromDocumentStartWithBlockEndingError (token : UnidocToken) : void {
-    this._states.last.from.copy(token.to)
+    this._states.last.origin.from.copy(token.origin.to)
   }
 
   private emitDocumentStartWithBlockEndingError () {
@@ -711,8 +697,7 @@ export class UnidocParser {
 
   private emitVirtualDocumentStart (state : UnidocParserState = this._states.last) {
     this._event.clear()
-    this._event.from.copy(state.from)
-    this._event.to.copy(state.from)
+    this._event.origin.at(state.origin.from)
 
     this._event.type = UnidocEventType.START_TAG
     this._event.tag = DOCUMENT_TAG
@@ -722,8 +707,7 @@ export class UnidocParser {
 
   private emitVirtualDocumentEnd (state : UnidocParserState = this._states.last) {
     this._event.clear()
-    this._event.from.copy(state.to)
-    this._event.to.copy(state.to)
+    this._event.origin.at(state.origin.to)
 
     this._event.type = UnidocEventType.END_TAG
     this._event.tag = DOCUMENT_TAG
@@ -733,8 +717,7 @@ export class UnidocParser {
 
   private emitTagStart (state : UnidocParserState = this._states.last) : void {
     this._event.clear()
-    this._event.from.copy(state.from)
-    this._event.to.copy(state.to)
+    this._event.origin.copy(state.origin)
 
     this._event.type = UnidocEventType.START_TAG
     this._event.addClasses(state.classes)
@@ -749,8 +732,7 @@ export class UnidocParser {
   */
   private emitTagEnd (state : UnidocParserState = this._states.last) : void {
     this._event.clear()
-    this._event.from.copy(state.from)
-    this._event.to.copy(state.to)
+    this._event.origin.copy(state.origin)
 
     this._event.type = UnidocEventType.END_TAG
     this._event.addClasses(state.classes)
@@ -765,8 +747,7 @@ export class UnidocParser {
   */
   private emitWhitespaceEvent (state : UnidocParserState = this._states.last) : void {
     this._event.clear()
-    this._event.from.copy(state.from)
-    this._event.to.copy(state.to)
+    this._event.origin.copy(state.origin)
 
     this._event.type = UnidocEventType.WHITESPACE
     this._event.symbols.concat(state.content)
@@ -779,8 +760,7 @@ export class UnidocParser {
   */
   private emitWordEvent (state : UnidocParserState = this._states.last) : void {
     this._event.clear()
-    this._event.from.copy(state.from)
-    this._event.to.copy(state.to)
+    this._event.origin.copy(state.origin)
 
     this._event.type = UnidocEventType.WORD
     this._event.symbols.concat(state.content)
@@ -793,7 +773,7 @@ export class UnidocParser {
   *
   * @param event - An event to publish.
   */
-  private emit (event : ParsedUnidocEvent) : void {
+  private emit (event : UnidocEvent) : void {
     event.index = this._index
     this._index += 1
 
@@ -879,7 +859,6 @@ export class UnidocParser {
   * Reset this parser in order to reuse-it.
   */
   public clear () : void {
-    this.location.clear()
     this._event.clear()
     this._states.clear()
     this._eventListeneners.clear()
@@ -894,7 +873,7 @@ export class UnidocParser {
 }
 
 export namespace UnidocParser {
-  export type EventListener      = (token : ParsedUnidocEvent) => void
+  export type EventListener      = (token : UnidocEvent) => void
   export type ValidationListener = (validation : UnidocValidation) => void
   export type CompletionListener = () => void
   export type ErrorListener      = (error : Error) => void

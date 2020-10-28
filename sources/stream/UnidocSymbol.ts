@@ -1,6 +1,6 @@
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocOrigin } from '../origin/UnidocOrigin'
+import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 import { CodePoint } from '../CodePoint'
 
 /**
@@ -15,14 +15,14 @@ export class UnidocSymbol {
   /**
   * Location of the symbol in the unidoc document.
   */
-  public origin : UnidocOrigin
+  public readonly origin : UnidocRangeOrigin
 
   /**
   * Instantiate a new empty unidoc symbol.
   */
   public constructor () {
     this.symbol = 0
-    this.origin = UnidocOrigin.runtime()
+    this.origin = new UnidocRangeOrigin(8).runtime()
   }
 
   public setSymbol (symbol : CodePoint) : UnidocSymbol {
@@ -30,8 +30,8 @@ export class UnidocSymbol {
     return this
   }
 
-  public setOrigin (origin : UnidocOrigin) : UnidocSymbol {
-    this.origin = origin
+  public setOrigin (origin : UnidocRangeOrigin) : UnidocSymbol {
+    this.origin.copy(origin)
     return this
   }
 
@@ -42,7 +42,7 @@ export class UnidocSymbol {
   */
   public copy (toCopy : UnidocSymbol) : void {
     this.symbol = toCopy.symbol
-    this.origin = toCopy.origin
+    this.origin.copy(toCopy.origin)
   }
 
   /**
@@ -59,7 +59,8 @@ export class UnidocSymbol {
   */
   public clear () : void {
     this.symbol = 0
-    this.origin = UnidocOrigin.runtime()
+    this.origin.clear()
+    this.origin.runtime()
   }
 
   /**
@@ -108,16 +109,12 @@ export namespace UnidocSymbol {
   * Instantiate and initialize a symbol.
   *
   * @param [symbol = 0] - The unicode symbol to wrap.
-  * @param [origin = UnidocOrigin.runtime()] - The origin of the symbol.
+  * @param [origin = UnidocRangeOrigin.runtime()] - The origin of the symbol.
   *
   * @return The requested unidoc symbol instance.
   */
-  export function create (symbol : CodePoint = 0, origin : UnidocOrigin = UnidocOrigin.runtime()) : UnidocSymbol {
-    const result : UnidocSymbol = new UnidocSymbol()
-    result.symbol = symbol
-    result.origin = origin
-
-    return result
+  export function create (symbol : CodePoint = 0, origin : UnidocRangeOrigin = UnidocRangeOrigin.runtime()) : UnidocSymbol {
+    return new UnidocSymbol().setSymbol(symbol).setOrigin(origin)
   }
 
   export function copy (toCopy : undefined) : undefined

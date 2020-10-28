@@ -2,6 +2,7 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../CodePoint'
+import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 
 import { UnidocEventType } from './UnidocEventType'
 
@@ -43,6 +44,11 @@ export class UnidocEvent {
   public readonly symbols : Pack<CodePoint>
 
   /**
+  * Ending location of the event into the parsed document.
+  */
+  public readonly origin : UnidocRangeOrigin
+
+  /**
   * Instantiate a new unidoc event.
   */
   public constructor () {
@@ -52,6 +58,7 @@ export class UnidocEvent {
     this.identifier = EMPTY_STRING
     this.classes    = new Set<string>()
     this.symbols    = Pack.uint32(128)
+    this.origin     = new UnidocRangeOrigin().runtime()
   }
 
   /**
@@ -235,6 +242,7 @@ export class UnidocEvent {
     this.identifier = toCopy.identifier
 
     this.symbols.copy(toCopy.symbols)
+    this.origin.copy(toCopy.origin)
 
     this.classes.clear()
 
@@ -260,6 +268,9 @@ export class UnidocEvent {
     this.tag        = EMPTY_STRING
     this.identifier = EMPTY_STRING
 
+    this.origin.clear()
+    this.origin.runtime()
+
     this.classes.clear()
     this.symbols.clear()
   }
@@ -273,6 +284,8 @@ export class UnidocEvent {
     result += this.index
     result += ' '
     result += UnidocEventType.toString(this.type)
+    result += ' at '
+    result += this.origin.toString()
 
     if (this.tag.length > 0) {
       result += ' \\'
@@ -314,7 +327,8 @@ export class UnidocEvent {
         other.type         !== this.type         ||
         other.classes.size !== this.classes.size ||
         other.identifier   !== this.identifier   ||
-        other.tag          !== this.tag
+        other.tag          !== this.tag          ||
+        !other.origin.equals(this.origin)
       ) { return false }
 
       for (const clazz of other.classes) {

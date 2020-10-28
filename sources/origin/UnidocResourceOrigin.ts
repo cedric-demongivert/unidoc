@@ -1,19 +1,14 @@
-import { UnidocOriginType } from './UnidocOriginType'
-import { UnidocOrigin } from './UnidocOrigin'
+import { UnidocOriginElementType } from './UnidocOriginElementType'
+import { UnidocOriginElement } from './UnidocOriginElement'
 
 /**
 * An object that define a resource at the origin of a unidoc value.
 */
-export class UnidocResourceOrigin implements UnidocOrigin {
+export class UnidocResourceOrigin implements UnidocOriginElement {
   /**
-  * @see UnidocOrigin.type
+  * @see UnidocOriginElement.type
   */
-  public readonly type : UnidocOriginType
-
-  /**
-  * @see UnidocOrigin.origin
-  */
-  public readonly origin : UnidocOrigin | null
+  public readonly type : UnidocOriginElementType
 
   /**
   * Unified resource identifier that identify the resource at the origin of the
@@ -25,33 +20,21 @@ export class UnidocResourceOrigin implements UnidocOrigin {
   * Instantiate a new resource origin.
   *
   * @param unifiedResourceIdentifier - The unified resource identifier of the resource at the origin of the unidoc value.
-  * @param [origin = null] - An origin in the resource.
   */
-  public constructor (
-    unifiedResourceIdentifier : string,
-    origin : UnidocOrigin | null = null
-  ) {
-    this.type = UnidocOriginType.RESOURCE
-    this.origin = origin
+  public constructor (unifiedResourceIdentifier : string) {
+    this.type = UnidocOriginElementType.RESOURCE
     this.unifiedResourceIdentifier = unifiedResourceIdentifier
   }
 
   /**
-  * @see UnidocOrigin.toElementString
+  * @see UnidocOriginElement.toString
   */
-  public toElementString () : string {
+  public toString () : string {
     return this.unifiedResourceIdentifier
   }
 
   /**
-  * @see UnidocOrigin.toString
-  */
-  public toString () : string {
-    return UnidocOrigin.toString(this)
-  }
-
-  /**
-  * @see UnidocOrigin.equals
+  * @see UnidocOriginElement.equals
   */
   public equals (other : any) : boolean {
     if (other == null) return false
@@ -59,8 +42,7 @@ export class UnidocResourceOrigin implements UnidocOrigin {
 
     if (other instanceof UnidocResourceOrigin) {
       return this.type === other.type &&
-             this.unifiedResourceIdentifier === other.unifiedResourceIdentifier &&
-             UnidocOrigin.equals(this.origin, other.origin)
+             this.unifiedResourceIdentifier === other.unifiedResourceIdentifier
     }
 
     return false
@@ -72,12 +54,8 @@ export namespace UnidocResourceOrigin {
   * Instantiate a new resource origin.
   *
   * @param unifiedResourceIdentifier - The unified resource identifier of the resource at the origin of the unidoc value.
-  * @param [origin = null] - An origin in the resource.
   */
-  export function create (
-    unifiedResourceIdentifier : string,
-    origin : UnidocOrigin | null = null
-  ) : UnidocResourceOrigin {
-    return new UnidocResourceOrigin(unifiedResourceIdentifier, origin)
+  export function create (unifiedResourceIdentifier : string) : UnidocResourceOrigin {
+    return new UnidocResourceOrigin(unifiedResourceIdentifier)
   }
 }

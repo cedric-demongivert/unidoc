@@ -29,7 +29,7 @@ export class UnidocFileReader  implements UnidocSourceReader {
   private readonly _location : UnidocLocationTracker
 
   public constructor (source : string) {
-    this.source = source
+    this.source = 'file://' + source
     this.stream = createReadStream(source, {
       flags: 'r',
       encoding: 'utf32',
@@ -43,7 +43,6 @@ export class UnidocFileReader  implements UnidocSourceReader {
 
     this._location = new UnidocLocationTracker()
     this._symbol = new UnidocSymbol()
-    this._symbol.location.pushFile(source, UnidocLocation.ZERO)
   }
 
   /**
@@ -90,11 +89,12 @@ export class UnidocFileReader  implements UnidocSourceReader {
       )
     } else {
       this._symbol.symbol = nextCodePoint
-      this._symbol.location.first.asFile(this.source, this._location.location)
+      this._symbol.origin.clear()
+      this._symbol.origin.from.resource(this.source).text(this._location.location)
 
       this._location.next(nextCodePoint)
 
-      this._symbol.location.first.to.copy(this._location.location)
+      this._symbol.origin.to.resource(this.source).text(this._location.location)
 
       return this._symbol
     }

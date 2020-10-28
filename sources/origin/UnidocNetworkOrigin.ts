@@ -1,19 +1,14 @@
-import { UnidocOriginType } from './UnidocOriginType'
-import { UnidocOrigin } from './UnidocOrigin'
+import { UnidocOriginElementType } from './UnidocOriginElementType'
+import { UnidocOriginElement } from './UnidocOriginElement'
 
 /**
 * An object that define a distant machine at the origin of a unidoc value.
 */
-export class UnidocNetworkOrigin implements UnidocOrigin {
+export class UnidocNetworkOrigin implements UnidocOriginElement {
   /**
-  * @see UnidocOrigin.type
+  * @see UnidocOriginElement.type
   */
-  public readonly type : UnidocOriginType
-
-  /**
-  * @see UnidocOrigin.origin
-  */
-  public readonly origin : UnidocOrigin | null
+  public readonly type : UnidocOriginElementType
 
   /**
   * The address of the distant machine.
@@ -24,30 +19,21 @@ export class UnidocNetworkOrigin implements UnidocOrigin {
   * Instantiate a new network origin.
   *
   * @param address - Address of the machine at the origin of the unidoc value.
-  * @param [origin = null] - An origin in the distant machine.
   */
-  public constructor (address : string, origin : UnidocOrigin | null = null) {
-    this.type = UnidocOriginType.NETWORK
-    this.origin = origin
+  public constructor (address : string) {
+    this.type = UnidocOriginElementType.NETWORK
     this.address = address
   }
 
   /**
-  * @see UnidocOrigin.toElementString
+  * @see UnidocOriginElement.toString
   */
-  public toElementString () : string {
+  public toString () : string {
     return this.address
   }
 
   /**
-  * @see UnidocOrigin.toString
-  */
-  public toString () : string {
-    return UnidocOrigin.toString(this)
-  }
-
-  /**
-  * @see UnidocOrigin.equals
+  * @see UnidocOriginElement.equals
   */
   public equals (other : any) : boolean {
     if (other == null) return false
@@ -55,8 +41,7 @@ export class UnidocNetworkOrigin implements UnidocOrigin {
 
     if (other instanceof UnidocNetworkOrigin) {
       return this.type === other.type &&
-             this.address === other.address &&
-             UnidocOrigin.equals(this.origin, other.origin)
+             this.address === other.address
     }
 
     return false
@@ -68,9 +53,8 @@ export namespace UnidocNetworkOrigin {
   * Instantiate a new network origin.
   *
   * @param address - Address of the machine at the origin of the unidoc value.
-  * @param [origin = null] - An origin in the distant machine.
   */
-  export function create (address : string, origin : UnidocOrigin | null = null) : UnidocNetworkOrigin {
-    return new UnidocNetworkOrigin(address, origin)
+  export function create (address : string) : UnidocNetworkOrigin {
+    return new UnidocNetworkOrigin(address)
   }
 }
