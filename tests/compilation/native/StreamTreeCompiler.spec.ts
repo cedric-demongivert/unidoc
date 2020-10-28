@@ -20,7 +20,6 @@ describe('StreamTreeCompiler', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(compile(new StreamTreeCompiler()))
       .pipe(toArray())
       .forEach(function (value : any[]) : void {

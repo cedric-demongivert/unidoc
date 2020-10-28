@@ -1,3 +1,5 @@
+import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+
 import { UnidocPath } from '../path/UnidocPath'
 
 import { UnidocValidationType } from './UnidocValidationType'
@@ -127,5 +129,19 @@ export namespace UnidocValidation {
   export function copy (toCopy : null) : null
   export function copy (toCopy : UnidocValidation | null) : UnidocValidation | null {
     return toCopy == null ? toCopy : toCopy.clone()
+  }
+
+  export const ALLOCATOR : Allocator<UnidocValidation> = {
+    allocate () : UnidocValidation {
+      return new UnidocValidation()
+    },
+
+    clear (instance : UnidocValidation) : void {
+      instance.clear()
+    },
+
+    copy (source : UnidocValidation, destination : UnidocValidation) : void {
+      destination.copy(source)
+    }
   }
 }

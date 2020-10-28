@@ -43,7 +43,7 @@ export class UnidocEvent {
   public readonly symbols : Pack<CodePoint>
 
   /**
-  * Instantiate a new tag event.
+  * Instantiate a new unidoc event.
   */
   public constructor () {
     this.index      = 0
@@ -188,8 +188,6 @@ export class UnidocEvent {
   /**
   * Configure this event as a new ending tag event.
   *
-  * @param from - New starting location of this event into the parent document.
-  * @param to - New ending location of this event into the parent document.
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
   public asTagEnd (configuration : string) : void {
@@ -214,6 +212,11 @@ export class UnidocEvent {
     }
   }
 
+  /**
+  * Add the given classes to this event set of classes.
+  *
+  * @param classes - An iterable of classes to add to this event set of classes.
+  */
   public addClasses (classes : Iterable<string>) : void {
     for (const clazz of classes) {
       this.classes.add(clazz)
@@ -262,7 +265,7 @@ export class UnidocEvent {
   }
 
   /**
-  * @see Object#toString
+  * @see Object.toString
   */
   public toString () : string {
     let result : string = ''
@@ -299,7 +302,7 @@ export class UnidocEvent {
   }
 
   /**
-  * @see Object#equals
+  * @see Object.equals
   */
   public equals (other : any) : boolean {
     if (other == null) return false
@@ -328,6 +331,42 @@ export class UnidocEvent {
 }
 
 export namespace UnidocEvent {
+  /**
+  * Create a word unidoc event.
+  */
+  export function word (content : string) : UnidocEvent {
+    const result : UnidocEvent = new UnidocEvent()
+    result.asWord(content)
+    return result
+  }
+
+  /**
+  * Create a whitespace unidoc event.
+  */
+  export function whitespace (content : string) : UnidocEvent {
+    const result : UnidocEvent = new UnidocEvent()
+    result.asWhitespace(content)
+    return result
+  }
+
+  /**
+  * Create a tag start unidoc event.
+  */
+  export function tagStart (configuration : string) : UnidocEvent {
+    const result : UnidocEvent = new UnidocEvent()
+    result.asTagStart(configuration)
+    return result
+  }
+
+  /**
+  * Create a tag end unidoc event.
+  */
+  export function tagEnd (configuration : string) : UnidocEvent {
+    const result : UnidocEvent = new UnidocEvent()
+    result.asTagEnd(configuration)
+    return result
+  }
+
   /**
   * Return a deep copy of the given instance.
   *
@@ -365,6 +404,14 @@ export namespace UnidocEvent {
     }
   }
 
+  /**
+  * Return true if both object instances are equals.
+  *
+  * @param left - The first operand.
+  * @param right - The second operand.
+  *
+  * @return True if both operand are equals.
+  */
   export function equals (left? : UnidocEvent, right? : UnidocEvent) : boolean {
     return left == null ? left == right : left.equals(right)
   }

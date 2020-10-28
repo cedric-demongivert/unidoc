@@ -725,10 +725,10 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@cedric-demongivert/gl-tool-collection@^0.23.1":
-  version "0.23.1"
-  resolved "https://registry.yarnpkg.com/@cedric-demongivert/gl-tool-collection/-/gl-tool-collection-0.23.1.tgz#8283888f3d89f775f10fc452006fe5d201372d44"
-  integrity sha512-DFcSFv9NN0DgKIx03ReMUN+wZhVbGrww12Wp3B3fzDmXYk81FpH2sdA3mWJJQpByi6+pxBnM79EonhF7YRut6g==
+"@cedric-demongivert/gl-tool-collection@^0.24.0":
+  version "0.24.0"
+  resolved "https://registry.yarnpkg.com/@cedric-demongivert/gl-tool-collection/-/gl-tool-collection-0.24.0.tgz#0cf92e89f541b0080b6a2aae87333c093a32438f"
+  integrity sha512-i9xSZMVudsq5dS0ealMzsW2k+XN6Cu2k2B2lmvCoZrwJS0tVmBQe/a7FtSTxXW6dsD0+QhRIbzWUqF7Ed1+Gvg==
 
 "@cnakazawa/watch@^1.0.3":
   version "1.0.4"
@@ -1327,11 +1327,6 @@ antlr4ts-cli@^0.5.0-alpha.3:
   version "0.5.0-alpha.3"
   resolved "https://registry.yarnpkg.com/antlr4ts-cli/-/antlr4ts-cli-0.5.0-alpha.3.tgz#1f581b2a3c840d3921a2f3b1e739e48c7e7c18cd"
   integrity sha512-i6oyxfaXU6qnw4HgyeSIsOLlsvT7zU3vmenoJKFNVFP1QNodtJMZYpnyxc8TmOFpJs7fEoWanLavSSDEmcCZBQ==
-
-antlr4ts@^0.5.0-alpha.3:
-  version "0.5.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/antlr4ts/-/antlr4ts-0.5.0-alpha.3.tgz#fa6d39d88d6b96341a8afef45867af9abcb38766"
-  integrity sha512-La89tKkGcHFIVuruv4Bm1esc3zLmES2NOTEwwNS1pudz+zx/0FNqQeUu9p48i9/QHKPVqjN87LB+q3buTg7oDQ==
 
 anymatch@^2.0.0:
   version "2.0.0"

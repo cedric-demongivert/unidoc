@@ -1,6 +1,6 @@
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocPath } from '../path/UnidocPath'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { CodePoint } from '../CodePoint'
 
 /**
@@ -15,14 +15,14 @@ export class UnidocSymbol {
   /**
   * Location of the symbol in the unidoc document.
   */
-  public readonly location : UnidocPath
+  public origin : UnidocOrigin
 
   /**
   * Instantiate a new empty unidoc symbol.
   */
   public constructor () {
     this.symbol = 0
-    this.location = new UnidocPath(2)
+    this.origin = UnidocOrigin.runtime()
   }
 
   public setSymbol (symbol : CodePoint) : UnidocSymbol {
@@ -30,8 +30,8 @@ export class UnidocSymbol {
     return this
   }
 
-  public setLocation (location : UnidocPath) : UnidocSymbol {
-    this.location.copy(location)
+  public setOrigin (origin : UnidocOrigin) : UnidocSymbol {
+    this.origin = origin
     return this
   }
 
@@ -42,7 +42,7 @@ export class UnidocSymbol {
   */
   public copy (toCopy : UnidocSymbol) : void {
     this.symbol = toCopy.symbol
-    this.location.copy(toCopy.location)
+    this.origin = toCopy.origin
   }
 
   /**
@@ -59,7 +59,7 @@ export class UnidocSymbol {
   */
   public clear () : void {
     this.symbol = 0
-    this.location.clear()
+    this.origin = UnidocOrigin.runtime()
   }
 
   /**
@@ -69,8 +69,8 @@ export class UnidocSymbol {
     let result : string = 'symbol('
 
     result += CodePoint.toDebugString(this.symbol)
-    result += ') in '
-    result += this.location.toString()
+    result += ') at '
+    result += this.origin.toString()
 
     return result
   }
@@ -84,7 +84,7 @@ export class UnidocSymbol {
 
     if (other instanceof UnidocSymbol) {
       return other.symbol === this.symbol &&
-             other.location.equals(this.location)
+             other.origin.equals(this.origin)
     }
 
     return false
@@ -108,14 +108,14 @@ export namespace UnidocSymbol {
   * Instantiate and initialize a symbol.
   *
   * @param [symbol = 0] - The unicode symbol to wrap.
-  * @param [path = UnidocPath.EMPTY] - The location of the symbol.
+  * @param [origin = UnidocOrigin.runtime()] - The origin of the symbol.
   *
   * @return The requested unidoc symbol instance.
   */
-  export function create (symbol : CodePoint = 0, location : UnidocPath = UnidocPath.EMPTY) : UnidocSymbol {
+  export function create (symbol : CodePoint = 0, origin : UnidocOrigin = UnidocOrigin.runtime()) : UnidocSymbol {
     const result : UnidocSymbol = new UnidocSymbol()
     result.symbol = symbol
-    result.location.copy(location)
+    result.origin = origin
 
     return result
   }

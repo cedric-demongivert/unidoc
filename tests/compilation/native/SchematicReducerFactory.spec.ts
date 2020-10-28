@@ -21,7 +21,6 @@ describe('SchematicReducerFactory', function () {
       semet.
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(Schema.text())))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -38,7 +37,6 @@ describe('SchematicReducerFactory', function () {
       3030.1569
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(Schema.token())))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -55,7 +53,6 @@ describe('SchematicReducerFactory', function () {
       3030.1569
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(Schema.float())))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -72,7 +69,6 @@ describe('SchematicReducerFactory', function () {
       3030
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(Schema.integer())))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -92,7 +88,6 @@ describe('SchematicReducerFactory', function () {
       \\element { -6 }
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(
         Schema.stream(
           Schema.float()
@@ -126,7 +121,6 @@ describe('SchematicReducerFactory', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(
         Schema.object({
           title: Schema.text(),
@@ -167,7 +161,6 @@ describe('SchematicReducerFactory', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(
         Schema.stream(Schema.any(
             Schema.object({
@@ -209,7 +202,6 @@ describe('SchematicReducerFactory', function () {
       \\integer { 18 }
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(
         Schema.stream(Schema.tags({
           string: Schema.text(),
@@ -260,7 +252,6 @@ describe('SchematicReducerFactory', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(peopleSchema)))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -311,7 +302,6 @@ describe('SchematicReducerFactory', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(listSchema)))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -369,7 +359,6 @@ describe('SchematicReducerFactory', function () {
       }
     `).pipe(tokenize())
       .pipe(parse())
-      .pipe(map(x => x.event))
       .pipe(reduce(factory.create(listSchema)))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {

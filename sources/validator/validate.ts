@@ -4,13 +4,13 @@ import { Subscription } from 'rxjs'
 
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocValidation } from '../validation/UnidocValidation'
-import { ValidationReducer } from './ValidationReducer'
+import { UnidocValidator } from './UnidocValidator'
 
-class Validator<T> {
+class Validator {
   /**
   * The validator to use.
   */
-  private _validator : ValidationReducer<T>
+  private _validator : UnidocValidator
 
   /**
   * The source of event of this validator.
@@ -32,7 +32,7 @@ class Validator<T> {
   *
   * @param lexer - The lexer to use for tokenization.
   */
-  public constructor (validator : ValidationReducer<T>) {
+  public constructor (validator : UnidocValidator) {
     this._validator           = validator
     this._input               = null
     this._subscription        = null
@@ -81,6 +81,7 @@ class Validator<T> {
       this._input = input
 
       if (input) {
+        this._validator.start()
         this._subscription = input.subscribe(
           this.consumeNextEvent,
           this.consumeNextError,
@@ -118,7 +119,7 @@ class Validator<T> {
   * @param event - The event to consume.
   */
   public consumeNextEvent (event : UnidocEvent) : void {
-    this._validator.next(event)
+    this._validator.validate(event)
   }
 
   /**
@@ -145,10 +146,7 @@ type Operator<In, Out> = (source : Observable<In>) => Observable<Out>
 *
 * @return An operator that transform a stream of events to a stream of validation.
 */
-export function validate (process : UnidocValidationProcess) : Operator<UnidocEvent, UnidocValidation> {
-  const validator : UnidocValidator = new UnidocValidator()
-  validator.start(process)
-
+export function validate (validator : UnidocValidator) : Operator<UnidocEvent, UnidocValidation> {
   const result : Validator = new Validator(validator)
 
   return function (input : Observable<UnidocEvent>) : Observable<UnidocValidation> {

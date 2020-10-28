@@ -714,8 +714,8 @@ export class UnidocParser {
     this._event.from.copy(state.from)
     this._event.to.copy(state.from)
 
-    this._event.event.type = UnidocEventType.START_TAG
-    this._event.event.tag = DOCUMENT_TAG
+    this._event.type = UnidocEventType.START_TAG
+    this._event.tag = DOCUMENT_TAG
 
     this.emit(this._event)
   }
@@ -725,8 +725,8 @@ export class UnidocParser {
     this._event.from.copy(state.to)
     this._event.to.copy(state.to)
 
-    this._event.event.type = UnidocEventType.END_TAG
-    this._event.event.tag = DOCUMENT_TAG
+    this._event.type = UnidocEventType.END_TAG
+    this._event.tag = DOCUMENT_TAG
 
     this.emit(this._event)
   }
@@ -736,10 +736,10 @@ export class UnidocParser {
     this._event.from.copy(state.from)
     this._event.to.copy(state.to)
 
-    this._event.event.type = UnidocEventType.START_TAG
-    this._event.event.addClasses(state.classes)
-    this._event.event.identifier = state.identifier
-    this._event.event.tag = state.tag
+    this._event.type = UnidocEventType.START_TAG
+    this._event.addClasses(state.classes)
+    this._event.identifier = state.identifier
+    this._event.tag = state.tag
 
     this.emit(this._event)
   }
@@ -752,10 +752,10 @@ export class UnidocParser {
     this._event.from.copy(state.from)
     this._event.to.copy(state.to)
 
-    this._event.event.type = UnidocEventType.END_TAG
-    this._event.event.addClasses(state.classes)
-    this._event.event.identifier = state.identifier
-    this._event.event.tag = state.tag
+    this._event.type = UnidocEventType.END_TAG
+    this._event.addClasses(state.classes)
+    this._event.identifier = state.identifier
+    this._event.tag = state.tag
 
     this.emit(this._event)
   }
@@ -768,8 +768,8 @@ export class UnidocParser {
     this._event.from.copy(state.from)
     this._event.to.copy(state.to)
 
-    this._event.event.type = UnidocEventType.WHITESPACE
-    this._event.event.symbols.concat(state.content)
+    this._event.type = UnidocEventType.WHITESPACE
+    this._event.symbols.concat(state.content)
 
     this.emit(this._event)
   }
@@ -782,8 +782,8 @@ export class UnidocParser {
     this._event.from.copy(state.from)
     this._event.to.copy(state.to)
 
-    this._event.event.type = UnidocEventType.WORD
-    this._event.event.symbols.concat(state.content)
+    this._event.type = UnidocEventType.WORD
+    this._event.symbols.concat(state.content)
 
     this.emit(this._event)
   }
@@ -794,7 +794,7 @@ export class UnidocParser {
   * @param event - An event to publish.
   */
   private emit (event : ParsedUnidocEvent) : void {
-    event.event.index = this._index
+    event.index = this._index
     this._index += 1
 
     for (const callback of this._eventListeneners) {

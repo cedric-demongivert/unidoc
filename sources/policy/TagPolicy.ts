@@ -1,21 +1,20 @@
 import { PolicyType } from './PolicyType'
 import { Policy } from './Policy'
 
-import { AnythingPolicy } from './AnythingPolicy'
+export class TagPolicy implements Policy {
+  public readonly type : PolicyType
+  public readonly name : string
+  public readonly content : Policy
 
-const DEFAULT_TAG_NAME : string = 'tag'
-
-export interface TagPolicy extends Policy {
-  name : string
-  content : Policy
+  public constructor (name : string, content : Policy) {
+    this.type = PolicyType.TAG
+    this.name = name
+    this.content = content
+  }
 }
 
 export namespace TagPolicy {
-  export function create () : TagPolicy {
-    return {
-      type: PolicyType.TAG,
-      name: DEFAULT_TAG_NAME,
-      content: AnythingPolicy.create()
-    }
+  export function create (name : string, content : Policy) : TagPolicy {
+    return new TagPolicy(name, content)
   }
 }

@@ -36,7 +36,7 @@ describe('UnidocParser', function () {
       const output : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       parser.next(UnidocToken.word(ending(), ending('test'), 'test'))
 
@@ -50,11 +50,13 @@ describe('UnidocParser', function () {
       const output : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       parser.next(UnidocToken.clazz(ending(), ending('.test'), '.test'))
+      console.log(output.toString())
 
       expectation.pushTagStart('document')
+      console.log(expectation.toString())
 
       expect(expectation.expect(output)).toBeTruthy()
     })
@@ -64,7 +66,7 @@ describe('UnidocParser', function () {
       const output : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       parser.next(UnidocToken.identifier(ending(), ending('#test'), '#test'))
 
@@ -78,7 +80,7 @@ describe('UnidocParser', function () {
       const output : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       parser.next(UnidocToken.tag(ending(), ending('\\test'), '\\test'))
 
@@ -92,7 +94,7 @@ describe('UnidocParser', function () {
       const output : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       parser.next(UnidocToken.blockStart(ending(), ending('{')))
 
@@ -108,7 +110,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       input.pushWord(ending(), ending('test'), 'test')
 
@@ -129,7 +131,7 @@ describe('UnidocParser', function () {
       const output : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       parser.complete()
 
@@ -145,7 +147,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushNewline(cursor(), cursor('\n'), '\n')
@@ -184,7 +186,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\document'), '\\document')
@@ -228,7 +230,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushSpace(cursor(), cursor('   '), '   ')
@@ -255,7 +257,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushNewline(cursor(), cursor('\n'), '\n')
@@ -282,7 +284,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushNewline(cursor(), cursor('\n'), '\n')
@@ -310,7 +312,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushNewline(cursor(), cursor('\n'), '\n')
@@ -335,7 +337,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushWord(cursor(), cursor('zwrtyt'), 'zwrtyt')
@@ -364,7 +366,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushWord(cursor(), cursor('awe'), 'awe')
@@ -391,7 +393,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushWord(cursor(), cursor('awe'),'awe')
@@ -419,7 +421,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushBlockStart(cursor(), cursor('{'))
@@ -445,7 +447,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
@@ -474,7 +476,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
@@ -508,7 +510,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
@@ -541,7 +543,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
@@ -572,7 +574,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
@@ -607,7 +609,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
@@ -637,7 +639,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
@@ -671,7 +673,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
@@ -703,7 +705,7 @@ describe('UnidocParser', function () {
       const output      : UnidocEventBuffer = new UnidocEventBuffer(8)
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
 
-      parser.addEventListener('event', event => output.push(event.event))
+      parser.addEventListener('event', event => output.push(event))
 
       const cursor : any = createCursor()
       input.pushTag(cursor(), cursor('\\emphasize'), '\\emphasize')
