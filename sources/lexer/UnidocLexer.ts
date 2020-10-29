@@ -1,12 +1,13 @@
-import { CodePoint } from '../CodePoint'
+import { CodePoint } from '../symbol/CodePoint'
+import { UnidocSymbol } from '../symbol/UnidocSymbol'
+import { UnidocSymbolBuffer } from '../symbol/UnidocSymbolBuffer'
+
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
 import { UnidocValidation } from '../validation/UnidocValidation'
-import { UnidocSymbol } from '../stream/UnidocSymbol'
 
 import { UnidocLexerEventType } from './UnidocLexerEventType'
 import { UnidocLexerState } from './UnidocLexerState'
-import { UnidocSymbolBuffer } from './UnidocSymbolBuffer'
 
 /**
 * Unidoc lexer.

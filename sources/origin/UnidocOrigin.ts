@@ -11,6 +11,10 @@ export class UnidocOrigin {
     this.elements = Pack.any (capacity)
   }
 
+  public reallocate (capacity : number) : void {
+    this.elements.reallocate(capacity)
+  }
+
   public text (line : number, column : number, character : number) : UnidocOrigin
   public text (location : UnidocLocation) : UnidocOrigin
   public text (a : any, b? : any, c? : any) : UnidocOrigin {

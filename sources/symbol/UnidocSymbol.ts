@@ -1,19 +1,22 @@
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
-import { CodePoint } from '../CodePoint'
+
+import { CodePoint } from './CodePoint'
 
 /**
 * A symbol of a unidoc document.
 */
 export class UnidocSymbol {
   /**
-  * Code point of the symbol.
+  * Unicode code point of the symbol.
   */
   public symbol : CodePoint
 
   /**
-  * Location of the symbol in the unidoc document.
+  * Origin of this symbol. If the origin is a range the begining is the
+  * including starting location of the symbol and the termination is the
+  * excluding ending location of this symbol.
   */
   public readonly origin : UnidocRangeOrigin
 
@@ -22,14 +25,28 @@ export class UnidocSymbol {
   */
   public constructor () {
     this.symbol = 0
-    this.origin = new UnidocRangeOrigin(8).runtime()
+    this.origin = new UnidocRangeOrigin(4).runtime()
   }
 
+  /**
+  * Update the underlying symbol.
+  *
+  * @param symbol - The new underlying symbol as a unidoc code point.
+  *
+  * @return This symbol instance for chaining purposes.
+  */
   public setSymbol (symbol : CodePoint) : UnidocSymbol {
     this.symbol = symbol
     return this
   }
 
+  /**
+  * Update the origin of this symbol.
+  *
+  * @param origin - The new origin of this symbol.
+  *
+  * @return This symbol instance for chaining purposes.
+  */
   public setOrigin (origin : UnidocRangeOrigin) : UnidocSymbol {
     this.origin.copy(origin)
     return this
@@ -70,7 +87,7 @@ export class UnidocSymbol {
     let result : string = 'symbol('
 
     result += CodePoint.toDebugString(this.symbol)
-    result += ') at '
+    result += ') '
     result += this.origin.toString()
 
     return result

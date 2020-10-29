@@ -39,10 +39,12 @@ export class UnidocTextOrigin implements UnidocOriginElement {
   public constructor (...parameters : any[]) {
     this.type = UnidocOriginElementType.TEXT
 
-    if (parameters.length === 1) {
-      this.line = parameters[0].line
-      this.column = parameters[0].column
-      this.index = parameters[0].index
+    if (parameters[0] instanceof UnidocLocation) {
+      const location : UnidocLocation = parameters[0]
+
+      this.line = location.line
+      this.column = location.column
+      this.index = location.index
     } else {
       this.line = parameters[0]
       this.column = parameters[1]

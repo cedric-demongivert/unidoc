@@ -1,7 +1,7 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { CodePoint } from '../CodePoint'
+import { CodePoint } from '../symbol/CodePoint'
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 
 import { UnidocTokenType } from './UnidocTokenType'

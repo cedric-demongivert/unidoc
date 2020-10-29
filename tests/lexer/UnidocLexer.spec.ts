@@ -1,11 +1,10 @@
 /** eslint-env jest */
 
-import { UnidocLexer } from '../../sources/lexer/UnidocLexer'
+import { UnidocRangeOrigin } from '../../sources/origin/UnidocRangeOrigin'
 import { UnidocSourceReader } from '../../sources/stream/UnidocSourceReader'
-import { UnidocLexerState } from '../../sources/lexer/UnidocLexerState'
-import { UnidocPath } from '../../sources/path/UnidocPath'
-import { UnidocLocation } from '../../sources/UnidocLocation'
 import { UnidocTokenBuffer } from '../../sources/token/UnidocTokenBuffer'
+import { UnidocLexerState } from '../../sources/lexer/UnidocLexerState'
+import { UnidocLexer } from '../../sources/lexer/UnidocLexer'
 
 /**
 * Requires a valid and functional UnidocSourceReader.
@@ -17,7 +16,6 @@ describe('UnidocLexer', function () {
       const lexer : UnidocLexer = new UnidocLexer()
 
       expect(lexer.state).toBe(UnidocLexerState.START)
-      expect(lexer.location.equals(UnidocPath.create(1).pushStream(UnidocLocation.ZERO))).toBeTruthy()
     })
   })
 
@@ -31,14 +29,17 @@ describe('UnidocLexer', function () {
       for (const symbol of UnidocSourceReader.fromString('{{{')) {
         lexer.next(symbol)
       }
+
       lexer.complete()
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
       for (const symbol of UnidocSourceReader.fromString('{{{')) {
         expectation.pushBlockStart(
-          symbol.location.clone().snapToStart(),
-          symbol.location.clone().snapToEnd()
+          UnidocRangeOrigin.builder()
+                           .from(symbol.origin.from)
+                           .to(symbol.origin.to)
+                           .build()
         )
       }
 
@@ -62,8 +63,10 @@ describe('UnidocLexer', function () {
 
       for (const symbol of UnidocSourceReader.fromString('}}}')) {
         expectation.pushBlockEnd(
-          symbol.location.clone().snapToStart(),
-          symbol.location.clone().snapToEnd()
+          UnidocRangeOrigin.builder()
+                           .from(symbol.origin.from)
+                           .to(symbol.origin.to)
+                           .build()
         )
       }
 
@@ -85,24 +88,34 @@ describe('UnidocLexer', function () {
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('\\alberta\\Chicago\\3d\\--meow-w')
+
       expectation.pushTag(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '\\alberta'
       )
+
       expectation.pushTag(
-        content.next().location.clone().snapToStart(),
-        content.skip('Chicag'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('Chicag'.length).next().origin.to)
+          .build(),
         '\\Chicago'
       )
       expectation.pushTag(
-        content.next().location.clone().snapToStart(),
-        content.skip('3'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('3'.length).next().origin.to)
+          .build(),
         '\\3d'
       )
       expectation.pushTag(
-        content.next().location.clone().snapToStart(),
-        content.skip('--meow-'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('--meow-'.length).next().origin.to)
+          .build(),
         '\\--meow-w'
       )
 
@@ -121,9 +134,12 @@ describe('UnidocLexer', function () {
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('\\alberta.')
+
       expectation.pushTag(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '\\alberta'
       )
 
@@ -143,8 +159,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('\\alberta ')
       expectation.pushTag(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '\\alberta'
       )
 
@@ -163,9 +181,12 @@ describe('UnidocLexer', function () {
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('\\alberta#')
+
       expectation.pushTag(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '\\alberta'
       )
 
@@ -188,23 +209,31 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta.Chicago.3d.--meow-w')
       expectation.pushClass(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '.alberta'
       )
       expectation.pushClass(
-        content.next().location.clone().snapToStart(),
-        content.skip('Chicag'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('Chicag'.length).next().origin.to)
+          .build(),
         '.Chicago'
       )
       expectation.pushClass(
-        content.next().location.clone().snapToStart(),
-        content.skip('3'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('3'.length).next().origin.to)
+          .build(),
         '.3d'
       )
       expectation.pushClass(
-        content.next().location.clone().snapToStart(),
-        content.skip('--meow-'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('--meow-'.length).next().origin.to)
+          .build(),
         '.--meow-w'
       )
 
@@ -223,9 +252,12 @@ describe('UnidocLexer', function () {
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta#')
+
       expectation.pushClass(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '.alberta'
       )
 
@@ -244,9 +276,12 @@ describe('UnidocLexer', function () {
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta ')
+
       expectation.pushClass(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '.alberta'
       )
 
@@ -265,9 +300,12 @@ describe('UnidocLexer', function () {
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta\\')
+
       expectation.pushClass(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '.alberta'
       )
 
@@ -290,23 +328,31 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta.Chicago.3d.--meow-w')
       expectation.pushIdentifier(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '#alberta'
       )
       expectation.pushIdentifier(
-        content.next().location.clone().snapToStart(),
-        content.skip('Chicag'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('Chicag'.length).next().origin.to)
+          .build(),
         '#Chicago'
       )
       expectation.pushIdentifier(
-        content.next().location.clone().snapToStart(),
-        content.skip('3'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('3'.length).next().origin.to)
+          .build(),
         '#3d'
       )
       expectation.pushIdentifier(
-        content.next().location.clone().snapToStart(),
-        content.skip('--meow-'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('--meow-'.length).next().origin.to)
+          .build(),
         '#--meow-w'
       )
 
@@ -326,8 +372,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('#alberta.')
       expectation.pushIdentifier(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '#alberta'
       )
 
@@ -347,8 +395,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('#alberta ')
       expectation.pushIdentifier(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '#alberta'
       )
 
@@ -368,8 +418,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('#alberta\\')
       expectation.pushIdentifier(
-        content.next().location.clone().snapToStart(),
-        content.skip('albert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('albert'.length).next().origin.to)
+          .build(),
         '#alberta'
       )
 
@@ -392,58 +444,80 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(16)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('only 1 test on this str#ing')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('nl'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('nl'.length).next().origin.to)
+          .build(),
         'only'
       )
       expectation.pushSpace(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         ' '
       )
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         '1'
       )
       expectation.pushSpace(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         ' '
       )
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('es'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('es'.length).next().origin.to)
+          .build(),
         'test'
       )
       expectation.pushSpace(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         ' '
       )
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.next().origin.to)
+          .build(),
         'on'
       )
       expectation.pushSpace(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         ' '
       )
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('hi'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('hi'.length).next().origin.to)
+          .build(),
         'this'
       )
       expectation.pushSpace(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         ' '
       )
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('tr#in'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('tr#in'.length).next().origin.to)
+          .build(),
         'str#ing'
       )
 
@@ -463,8 +537,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('.acuriousαclass ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('acuriousαclas'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('acuriousαclas'.length).next().origin.to)
+          .build(),
         '.acuriousαclass'
       )
 
@@ -484,8 +560,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('..acuriousclass ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('.acuriousclas'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('.acuriousclas'.length).next().origin.to)
+          .build(),
         '..acuriousclass'
       )
 
@@ -505,8 +583,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('#acuriousαidentifier ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('acuriousαidentifie'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('acuriousαidentifie'.length).next().origin.to)
+          .build(),
         '#acuriousαidentifier'
       )
 
@@ -526,8 +606,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('##acuriousidentifier ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('#acuriousidentifie'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('#acuriousidentifie'.length).next().origin.to)
+          .build(),
         '##acuriousidentifier'
       )
 
@@ -547,8 +629,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('\\acuriousαtag ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('acuriousαta'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('acuriousαta'.length).next().origin.to)
+          .build(),
         '\\acuriousαtag'
       )
 
@@ -568,8 +652,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('\\\\acurioustag ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('\\acuriousta'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('\\acuriousta'.length).next().origin.to)
+          .build(),
         '\\\\acurioustag'
       )
 
@@ -589,8 +675,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('. ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         '.'
       )
 
@@ -610,8 +698,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('# ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         '#'
       )
 
@@ -631,8 +721,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('\\ ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         '\\'
       )
 
@@ -652,8 +744,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta.test. ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('lberta.test'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('lberta.test'.length).next().origin.to)
+          .build(),
         'alberta.test.'
       )
 
@@ -673,8 +767,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta ')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('lbert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('lbert'.length).next().origin.to)
+          .build(),
         'alberta'
       )
 
@@ -694,8 +790,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta\\')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('lbert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('lbert'.length).next().origin.to)
+          .build(),
         'alberta'
       )
 
@@ -715,13 +813,17 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta}')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('lbert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('lbert'.length).next().origin.to)
+          .build(),
         'alberta'
       )
       expectation.pushBlockEnd(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd()
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
       )
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
@@ -740,13 +842,17 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta{')
       expectation.pushWord(
-        content.next().location.clone().snapToStart(),
-        content.skip('lbert'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('lbert'.length).next().origin.to)
+          .build(),
         'alberta'
       )
       expectation.pushBlockStart(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd()
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
       )
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
@@ -768,23 +874,31 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString('\r\n\n\r\r')
       expectation.pushNewline(
-        content.next().location.clone().snapToStart(),
-          content.next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.next().origin.to)
+          .build(),
         '\r\n'
       )
       expectation.pushNewline(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         '\n'
       )
       expectation.pushNewline(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         '\r'
       )
       expectation.pushNewline(
-        content.next().location.clone().snapToStart(),
-        content.current().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.current().origin.to)
+          .build(),
         '\r'
       )
 
@@ -807,8 +921,10 @@ describe('UnidocLexer', function () {
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
       const content : UnidocSourceReader = UnidocSourceReader.fromString(' \f\t\t ')
       expectation.pushSpace(
-        content.next().location.clone().snapToStart(),
-        content.skip('\f\t\t'.length).next().location.clone().snapToEnd(),
+        UnidocRangeOrigin.builder()
+          .from(content.next().origin.from)
+          .to(content.skip('\f\t\t'.length).next().origin.to)
+          .build(),
         ' \f\t\t '
       )
 

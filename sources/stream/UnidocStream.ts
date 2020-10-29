@@ -1,7 +1,8 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
+import { UnidocSymbol } from '../symbol/UnidocSymbol'
+
 import { UnidocSourceReader } from './UnidocSourceReader'
-import { UnidocSymbol } from './UnidocSymbol'
 
 export class UnidocStream {
   private readonly readers : Pack<UnidocSourceReader>

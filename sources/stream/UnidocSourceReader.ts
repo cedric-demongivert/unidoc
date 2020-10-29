@@ -1,6 +1,7 @@
+import { UnidocSymbol } from '../symbol/UnidocSymbol'
+
 import { UnidocLocation } from '../UnidocLocation'
 
-import { UnidocSymbol } from './UnidocSymbol'
 import { UnidocStringReader } from './UnidocStringReader'
 import { UnidocFileReader } from './UnidocFileReader'
 

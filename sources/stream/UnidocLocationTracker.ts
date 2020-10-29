@@ -1,5 +1,6 @@
+import { CodePoint } from '../symbol/CodePoint'
+
 import { UnidocLocation } from '../UnidocLocation'
-import { CodePoint } from '../CodePoint'
 
 import { UnidocLocationTrackerState } from './UnidocLocationTrackerState'
 

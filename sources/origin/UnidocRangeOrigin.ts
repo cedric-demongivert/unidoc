@@ -1,4 +1,5 @@
 import { UnidocOrigin } from './UnidocOrigin'
+import { UnidocRangeOriginBuilder } from './UnidocRangeOriginBuilder'
 
 /**
 * An object that define a continuity between two origins as the origin of a unidoc value.
@@ -19,6 +20,11 @@ export class UnidocRangeOrigin {
     this.to = new UnidocOrigin(capacity)
   }
 
+  public reallocate (capacity : number) : void {
+    this.from.reallocate(capacity)
+    this.to.reallocate(capacity)
+  }
+
   public runtime () : UnidocRangeOrigin {
     this.from.runtime()
     this.to.runtime()
@@ -34,6 +40,14 @@ export class UnidocRangeOrigin {
   public copy (toCopy : UnidocRangeOrigin) : void {
     this.from.copy(toCopy.from)
     this.to.copy(toCopy.to)
+  }
+
+  public clone () : UnidocRangeOrigin {
+    const result : UnidocRangeOrigin = new UnidocRangeOrigin()
+
+    result.copy(this)
+
+    return result
   }
 
   public clear () : void {
@@ -80,5 +94,16 @@ export namespace UnidocRangeOrigin {
 
   export function runtime () : UnidocRangeOrigin {
     return RUNTIME
+  }
+
+  /**
+  * Instantiate a new unidoc range origin builder and return it.
+  *
+  * @param [capacity = 8] - Initial capacity of the range origin to build.
+  *
+  * @return An unidoc range origin builder instance.
+  */
+  export function builder (capacity : number = 8) : UnidocRangeOriginBuilder {
+    return new UnidocRangeOriginBuilder(capacity)
   }
 }

@@ -1,9 +1,10 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
-import { CodePoint } from '../CodePoint'
 import { UnidocOrigin } from '../origin/UnidocOrigin'
-import { UnidocSymbol } from '../stream/UnidocSymbol'
+
+import { CodePoint } from './CodePoint'
+import { UnidocSymbol } from './UnidocSymbol'
 
 export class UnidocSymbolBuffer {
   /**

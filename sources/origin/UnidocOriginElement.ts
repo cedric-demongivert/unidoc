@@ -2,7 +2,6 @@ import { UnidocOriginElementType } from './UnidocOriginElementType'
 
 import { UnidocBufferOrigin } from './UnidocBufferOrigin'
 import { UnidocNetworkOrigin } from './UnidocNetworkOrigin'
-import { UnidocRangeOrigin } from './UnidocRangeOrigin'
 import { UnidocResourceOrigin } from './UnidocResourceOrigin'
 import { UnidocRuntimeOrigin } from './UnidocRuntimeOrigin'
 import { UnidocTextOrigin } from './UnidocTextOrigin'
@@ -31,7 +30,6 @@ export interface UnidocOriginElement {
 export namespace UnidocOriginElement {
   export const buffer = UnidocBufferOrigin.create
   export const network = UnidocNetworkOrigin.create
-  export const range = UnidocRangeOrigin.create
   export const resource = UnidocResourceOrigin.create
   export const runtime = UnidocRuntimeOrigin.create
   export const text = UnidocTextOrigin.create

@@ -21,7 +21,7 @@ export class UnidocRuntimeOrigin implements UnidocOriginElement {
   * @see UnidocOriginElement.toString
   */
   public toString () : string {
-    return 'at runtime'
+    return 'runtime'
   }
 
   /**

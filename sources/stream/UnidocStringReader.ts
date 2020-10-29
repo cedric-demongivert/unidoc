@@ -1,6 +1,7 @@
+import { UnidocSymbol } from '../symbol/UnidocSymbol'
+
 import { UnidocLocation } from '../UnidocLocation'
 
-import { UnidocSymbol } from './UnidocSymbol'
 import { UnidocSourceReader } from './UnidocSourceReader'
 import { UnidocLocationTracker } from './UnidocLocationTracker'
 
@@ -80,11 +81,11 @@ export class UnidocStringReader  implements UnidocSourceReader {
     } else {
       this._symbol.symbol = nextCodePoint
       this._symbol.origin.clear()
-      this._symbol.origin.from.runtime().text(this._location.location)
+      this._symbol.origin.from.text(this._location.location).runtime()
 
       this._location.next(nextCodePoint)
 
-      this._symbol.origin.to.runtime().text(this._location.location)
+      this._symbol.origin.to.text(this._location.location).runtime()
 
       return this._symbol
     }

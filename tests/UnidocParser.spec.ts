@@ -53,10 +53,8 @@ describe('UnidocParser', function () {
       parser.addEventListener('event', event => output.push(event))
 
       parser.next(UnidocToken.clazz(ending(), ending('.test'), '.test'))
-      console.log(output.toString())
 
       expectation.pushTagStart('document')
-      console.log(expectation.toString())
 
       expect(expectation.expect(output)).toBeTruthy()
     })

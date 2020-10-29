@@ -1,4 +1,3 @@
-export { UnidocSymbol } from './UnidocSymbol'
 export { UnidocFileReader } from './UnidocFileReader'
 export { UnidocStringReader } from './UnidocStringReader'
 export { UnidocSourceReader } from './UnidocSourceReader'

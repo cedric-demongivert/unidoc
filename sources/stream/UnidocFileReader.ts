@@ -1,9 +1,10 @@
 import { ReadStream } from 'fs'
 import { createReadStream } from 'fs'
 
+import { UnidocSymbol } from '../symbol/UnidocSymbol'
+
 import { UnidocLocation } from '../UnidocLocation'
 
-import { UnidocSymbol } from './UnidocSymbol'
 import { UnidocSourceReader } from './UnidocSourceReader'
 import { UnidocLocationTracker } from './UnidocLocationTracker'
 
@@ -90,11 +91,11 @@ export class UnidocFileReader  implements UnidocSourceReader {
     } else {
       this._symbol.symbol = nextCodePoint
       this._symbol.origin.clear()
-      this._symbol.origin.from.resource(this.source).text(this._location.location)
+      this._symbol.origin.from.text(this._location.location).resource(this.source)
 
       this._location.next(nextCodePoint)
 
-      this._symbol.origin.to.resource(this.source).text(this._location.location)
+      this._symbol.origin.to.text(this._location.location).resource(this.source)
 
       return this._symbol
     }

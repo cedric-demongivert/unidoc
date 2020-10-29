@@ -2,11 +2,12 @@
 
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocSymbol } from '../../sources/stream/UnidocSymbol'
+import { UnidocSymbol } from '../../sources/symbol/UnidocSymbol'
+import { CodePoint } from '../../sources/symbol/CodePoint'
+import { UnidocRangeOrigin } from '../../sources/origin/UnidocRangeOrigin'
+
 import { UnidocStringReader } from '../../sources/stream/UnidocStringReader'
-import { UnidocPath } from '../../sources/path/UnidocPath'
 import { UnidocLocation } from '../../sources/UnidocLocation'
-import { CodePoint } from '../../sources/CodePoint'
 
 describe('UnidocStringReader', function () {
   describe('#constructor', function () {
@@ -49,16 +50,35 @@ describe('UnidocStringReader', function () {
       }
 
       expect(symbols.get(0).equals(UnidocSymbol.create(
-        CodePoint.t, UnidocPath.memory('string', [0, 0, 0], [0, 1, 1])
+        CodePoint.t,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 0, 0).at().runtime()
+                         .to().text(0, 1, 1).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(1).equals(UnidocSymbol.create(
-        CodePoint.e, UnidocPath.memory('string', [0, 1, 1], [0, 2, 2])
+        CodePoint.e,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 1, 1).at().runtime()
+                         .to().text(0, 2, 2).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(2).equals(UnidocSymbol.create(
-        CodePoint.s, UnidocPath.memory('string', [0, 2, 2], [0, 3, 3])
+        CodePoint.s,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 2, 2).at().runtime()
+                         .to().text(0, 3, 3).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(3).equals(UnidocSymbol.create(
-        CodePoint.t, UnidocPath.memory('string', [0, 3, 3], [0, 4, 4])
+        CodePoint.t,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 3, 3).at().runtime()
+                         .to().text(0, 4, 4).at().runtime()
+                         .build()
       ))).toBeTruthy()
     })
 
@@ -71,25 +91,59 @@ describe('UnidocStringReader', function () {
       }
 
       expect(symbols.get(0).equals(UnidocSymbol.create(
-        CodePoint.t, UnidocPath.memory('string', [0, 0, 0], [0, 1, 1])
+        CodePoint.t,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 0, 0).at().runtime()
+                         .to().text(0, 1, 1).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(1).equals(UnidocSymbol.create(
-        CodePoint.e, UnidocPath.memory('string', [0, 1, 1], [0, 2, 2])
+        CodePoint.e,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 1, 1).at().runtime()
+                         .to().text(0, 2, 2).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(2).equals(UnidocSymbol.create(
-        CodePoint.NEW_LINE, UnidocPath.memory('string', [0, 2, 2], [1, 0, 3])
+        CodePoint.NEW_LINE,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 2, 2).at().runtime()
+                         .to().text(1, 0, 3).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(3).equals(UnidocSymbol.create(
-        CodePoint.NEW_LINE, UnidocPath.memory('string', [1, 0, 3], [2, 0, 4])
+        CodePoint.NEW_LINE,
+        UnidocRangeOrigin.builder()
+                         .from().text(1, 0, 3).at().runtime()
+                         .to().text(2, 0, 4).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(4).equals(UnidocSymbol.create(
-        CodePoint.s, UnidocPath.memory('string', [2, 0, 4], [2, 1, 5])
+        CodePoint.s,
+        UnidocRangeOrigin.builder()
+                         .from().text(2, 0, 4).at().runtime()
+                         .to().text(2, 1, 5).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(5).equals(UnidocSymbol.create(
-        CodePoint.NEW_LINE, UnidocPath.memory('string', [2, 1, 5], [3, 0, 6])
+        CodePoint.NEW_LINE,
+        UnidocRangeOrigin.builder()
+                         .from().text(2, 1, 5).at().runtime()
+                         .to().text(3, 0, 6).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(6).equals(UnidocSymbol.create(
-        CodePoint.t, UnidocPath.memory('string', [3, 0, 6], [3, 1, 7])
+        CodePoint.t,
+        UnidocRangeOrigin.builder()
+                         .from().text(3, 0, 6).at().runtime()
+                         .to().text(3, 1, 7).at().runtime()
+                         .build()
       ))).toBeTruthy()
     })
 
@@ -102,25 +156,59 @@ describe('UnidocStringReader', function () {
       }
 
       expect(symbols.get(0).equals(UnidocSymbol.create(
-        CodePoint.t, UnidocPath.memory('string', [0, 0, 0], [0, 1, 1])
+        CodePoint.t,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 0, 0).at().runtime()
+                         .to().text(0, 1, 1).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(1).equals(UnidocSymbol.create(
-        CodePoint.e, UnidocPath.memory('string', [0, 1, 1], [0, 2, 2])
+        CodePoint.e,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 1, 1).at().runtime()
+                         .to().text(0, 2, 2).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(2).equals(UnidocSymbol.create(
-        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [0, 2, 2], [1, 0, 3])
+        CodePoint.CARRIAGE_RETURN,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 2, 2).at().runtime()
+                         .to().text(1, 0, 3).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(3).equals(UnidocSymbol.create(
-        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [1, 0, 3], [2, 0, 4])
+        CodePoint.CARRIAGE_RETURN,
+        UnidocRangeOrigin.builder()
+                         .from().text(1, 0, 3).at().runtime()
+                         .to().text(2, 0, 4).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(4).equals(UnidocSymbol.create(
-        CodePoint.s, UnidocPath.memory('string', [2, 0, 4], [2, 1, 5])
+        CodePoint.s,
+        UnidocRangeOrigin.builder()
+                         .from().text(2, 0, 4).at().runtime()
+                         .to().text(2, 1, 5).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(5).equals(UnidocSymbol.create(
-        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [2, 1, 5], [3, 0, 6])
+        CodePoint.CARRIAGE_RETURN,
+        UnidocRangeOrigin.builder()
+                         .from().text(2, 1, 5).at().runtime()
+                         .to().text(3, 0, 6).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(6).equals(UnidocSymbol.create(
-        CodePoint.t, UnidocPath.memory('string', [3, 0, 6], [3, 1, 7])
+        CodePoint.t,
+        UnidocRangeOrigin.builder()
+                         .from().text(3, 0, 6).at().runtime()
+                         .to().text(3, 1, 7).at().runtime()
+                         .build()
       ))).toBeTruthy()
     })
 
@@ -133,25 +221,59 @@ describe('UnidocStringReader', function () {
       }
 
       expect(symbols.get(0).equals(UnidocSymbol.create(
-        CodePoint.t, UnidocPath.memory('string', [0, 0, 0], [0, 1, 1])
+        CodePoint.t,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 0, 0).at().runtime()
+                         .to().text(0, 1, 1).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(1).equals(UnidocSymbol.create(
-        CodePoint.e, UnidocPath.memory('string', [0, 1, 1], [0, 2, 2])
+        CodePoint.e,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 1, 1).at().runtime()
+                         .to().text(0, 2, 2).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(2).equals(UnidocSymbol.create(
-        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [0, 2, 2], [1, 0, 3])
+        CodePoint.CARRIAGE_RETURN,
+        UnidocRangeOrigin.builder()
+                         .from().text(0, 2, 2).at().runtime()
+                         .to().text(1, 0, 3).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(3).equals(UnidocSymbol.create(
-        CodePoint.NEW_LINE, UnidocPath.memory('string', [1, 0, 3], [1, 0, 4])
+        CodePoint.NEW_LINE,
+        UnidocRangeOrigin.builder()
+                         .from().text(1, 0, 3).at().runtime()
+                         .to().text(1, 0, 4).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(4).equals(UnidocSymbol.create(
-        CodePoint.s, UnidocPath.memory('string', [1, 0, 4], [1, 1, 5])
+        CodePoint.s,
+        UnidocRangeOrigin.builder()
+                         .from().text(1, 0, 4).at().runtime()
+                         .to().text(1, 1, 5).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(5).equals(UnidocSymbol.create(
-        CodePoint.CARRIAGE_RETURN, UnidocPath.memory('string', [1, 1, 5], [2, 0, 6])
+        CodePoint.CARRIAGE_RETURN,
+        UnidocRangeOrigin.builder()
+                         .from().text(1, 1, 5).at().runtime()
+                         .to().text(2, 0, 6).at().runtime()
+                         .build()
       ))).toBeTruthy()
+
       expect(symbols.get(6).equals(UnidocSymbol.create(
-        CodePoint.t, UnidocPath.memory('string', [2, 0, 6], [2, 1, 7])
+        CodePoint.t,
+        UnidocRangeOrigin.builder()
+                         .from().text(2, 0, 6).at().runtime()
+                         .to().text(2, 1, 7).at().runtime()
+                         .build()
       ))).toBeTruthy()
     })
   })
