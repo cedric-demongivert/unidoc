@@ -1,6 +1,6 @@
 import { Allocator, Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { CodePoint } from '../CodePoint'
+import { CodePoint } from '../symbol/CodePoint'
 
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 import { UnidocOrigin } from '../origin/UnidocOrigin'
@@ -28,7 +28,9 @@ export class UnidocParserState {
     this.identifier = EMPTY_STRING
     this.content    = Pack.uint32(128)
     this.classes    = new Set()
-    this.origin     = new UnidocRangeOrigin().runtime()
+    this.origin     = new UnidocRangeOrigin()
+    this.origin.from.text(0, 0, 0).runtime()
+    this.origin.to.text(0, 0, 0).runtime()
   }
 
   public begin (type : UnidocParserStateType, token : UnidocToken) : void
@@ -92,7 +94,8 @@ export class UnidocParserState {
     this.content.clear()
     this.classes.clear()
     this.origin.clear()
-    this.origin.runtime()
+    this.origin.from.text(0, 0, 0).runtime()
+    this.origin.to.text(0, 0, 0).runtime()
   }
 
   /**

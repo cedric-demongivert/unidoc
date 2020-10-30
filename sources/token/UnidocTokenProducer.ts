@@ -1,6 +1,7 @@
 import { BasicUnidocProducer } from '../producer/BasicUnidocProducer'
 import { UnidocProducerEvent } from '../producer/UnidocProducerEvent'
 import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
+import { UnidocParser } from '../parser/UnidocParser'
 
 import { CodePoint } from '../symbol/CodePoint'
 
@@ -192,6 +193,15 @@ export namespace UnidocTokenProducer {
 
     result.addEventListener(UnidocProducerEvent.PRODUCTION, buffer.push.bind(buffer))
     result.addEventListener(UnidocProducerEvent.COMPLETION, buffer.fit.bind(buffer))
+
+    return result
+  }
+
+  export function forParser (parser : UnidocParser) : UnidocTokenProducer {
+    const result : UnidocTokenProducer = new UnidocTokenProducer()
+
+    result.addEventListener(UnidocProducerEvent.PRODUCTION, parser.next.bind(parser))
+    result.addEventListener(UnidocProducerEvent.COMPLETION, parser.complete.bind(parser))
 
     return result
   }

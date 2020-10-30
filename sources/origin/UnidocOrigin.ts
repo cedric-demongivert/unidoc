@@ -8,7 +8,7 @@ export class UnidocOrigin {
   public readonly elements : Pack<UnidocOriginElement>
 
   public constructor (capacity : number = 8) {
-    this.elements = Pack.any (capacity)
+    this.elements = Pack.any(capacity)
   }
 
   public reallocate (capacity : number) : void {

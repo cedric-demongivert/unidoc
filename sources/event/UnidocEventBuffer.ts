@@ -40,6 +40,13 @@ export class UnidocEventBuffer {
   }
 
   /**
+  * @see Pack.fit
+  */
+  public fit () : void {
+    this._events.fit()
+  }
+
+  /**
   * @see Pack.reallocate
   */
   public reallocate (capacity : number) : void {
@@ -58,50 +65,6 @@ export class UnidocEventBuffer {
   */
   public push (event : UnidocEvent) : void {
     this._events.push(event)
-  }
-
-  /**
-  * Configure this event as a new word event.
-  *
-  * @param content - Content of the resulting event.
-  */
-  public pushWord (content : string) : void {
-    this._events.size += 1
-    this._events.last.asWord(content)
-    this._events.last.index = this.size - 1
-  }
-
-  /**
-  * Configure this event as a new whitespace event.
-  *
-  * @param content - Content of the resulting event.
-  */
-  public pushWhitespace (content : string) : void {
-    this._events.size += 1
-    this._events.last.asWhitespace(content)
-    this._events.last.index = this.size - 1
-  }
-
-  /**
-  * Configure this event as a new starting tag event.
-  *
-  * @param configuration - Type, identifiers and classes of the resulting tag.
-  */
-  public pushTagStart (configuration : string) : void {
-    this._events.size += 1
-    this._events.last.asTagStart(configuration)
-    this._events.last.index = this.size - 1
-  }
-
-  /**
-  * Configure this event as a new ending tag event.
-  *
-  * @param configuration - Type, identifiers and classes of the resulting tag.
-  */
-  public pushTagEnd (configuration : string) : void {
-    this._events.size += 1
-    this._events.last.asTagEnd(configuration)
-    this._events.last.index = this.size - 1
   }
 
   /**
@@ -193,7 +156,7 @@ export class UnidocEventBuffer {
     if (other instanceof UnidocEventBuffer) {
       if (other.events.size !== this._events.size) {
         throw (
-          "Different number of vents " +  other.events.size + " != " +
+          "Different number of events " +  other.events.size + " != " +
           this.events.size + "."
         )
       }
@@ -201,8 +164,9 @@ export class UnidocEventBuffer {
       for (let index = 0, size = this._events.size; index < size; ++index) {
         if (!other.events.get(index).equals(this._events.get(index))) {
           throw (
-            "Event #" + index + ' (' + other.events.get(index) + ') is not ' +
-            'equal to event #' + index + ' (' + this._events.get(index) + ').'
+            "Difference between buffers at event number " + index + ' :\r\n' +
+            other.events.get(index) + '\r\nis not equal to :\r\n' +
+            this._events.get(index)
           )
         }
       }

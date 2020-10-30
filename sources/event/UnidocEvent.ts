@@ -1,7 +1,7 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { CodePoint } from '../CodePoint'
+import { CodePoint } from '../symbol/CodePoint'
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 
 import { UnidocEventType } from './UnidocEventType'
@@ -284,7 +284,7 @@ export class UnidocEvent {
     result += this.index
     result += ' '
     result += UnidocEventType.toString(this.type)
-    result += ' at '
+    result += ' '
     result += this.origin.toString()
 
     if (this.tag.length > 0) {

@@ -82,7 +82,6 @@ export class UnidocParser {
     this._validation = new UnidocValidation()
 
     this._states.push(UnidocParserStateType.START)
-    this._states.last.origin.at(UnidocOrigin.runtime())
   }
 
   /**
@@ -178,11 +177,13 @@ export class UnidocParser {
         break
       case UnidocParserStateType.WHITESPACE:
         this.emitWhitespaceEvent()
+        this._states.get(this._states.size - 2).origin.at(this._states.last.origin.to)
         this._states.pop()
         this.complete()
         break
       case UnidocParserStateType.WORD:
         this.emitWordEvent()
+        this._states.get(this._states.size - 2).origin.at(this._states.last.origin.to)
         this._states.pop()
         this.complete()
         break

@@ -1,7 +1,7 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocLocation } from '../UnidocLocation'
+import { UnidocLocation } from '../location/UnidocLocation'
 
 import { UnidocPathElement } from './UnidocPathElement'
 

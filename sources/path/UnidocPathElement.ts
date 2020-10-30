@@ -1,6 +1,6 @@
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocLocation } from '../UnidocLocation'
+import { UnidocLocation } from '../location/UnidocLocation'
 
 import { UnidocPathElementType } from './UnidocPathElementType'
 
