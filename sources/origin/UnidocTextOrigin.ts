@@ -1,4 +1,4 @@
-import { UnidocLocation } from '../UnidocLocation'
+import { UnidocLocation } from '../location/UnidocLocation'
 
 import { UnidocOriginElementType } from './UnidocOriginElementType'
 import { UnidocOriginElement } from './UnidocOriginElement'

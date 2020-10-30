@@ -1,4 +1,4 @@
-import { UnidocLocation } from '../UnidocLocation'
+import { UnidocLocation } from '../location/UnidocLocation'
 
 import { UnidocOrigin } from './UnidocOrigin'
 import { UnidocRangeOrigin } from './UnidocRangeOrigin'
@@ -83,7 +83,7 @@ export class UnidocRangeOriginBuilder {
     } else {
       this._builtOrigin = this.state.to
     }
-    
+
     return this
   }
 

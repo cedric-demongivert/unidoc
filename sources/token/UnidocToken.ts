@@ -120,100 +120,87 @@ export class UnidocToken {
   * the given code points.
   *
   * @param type - New type of this token.
-  * @param origin - Origin of this token.
   * @param value - New code points of this token.
   */
-  public configure (type : UnidocTokenType, origin : UnidocRangeOrigin, value : string) : void {
-    this.clear()
+  public configure (type : UnidocTokenType, value : string) : void {
     this.type = type
     this.text = value
-    this.origin.copy(origin)
   }
 
   /**
   * Configure this token as an identifier token that start at the given location
   * and contains the given code points.
   *
-  * @param origin - Origin of this token.
   * @param value - New code points of this token.
   */
-  public asIdentifier (origin : UnidocRangeOrigin, value : string) : void {
-    this.configure(UnidocTokenType.IDENTIFIER, origin, value)
+  public asIdentifier (value : string) : void {
+    this.configure(UnidocTokenType.IDENTIFIER, value)
   }
 
   /**
   * Configure this token as a class token that start at the given location and
   * that contains the given code points.
   *
-  * @param origin - Origin of this token.
   * @param value - New code points of this token.
   */
-  public asClass (origin : UnidocRangeOrigin, value : string) : void {
-    this.configure(UnidocTokenType.CLASS, origin, value)
+  public asClass (value : string) : void {
+    this.configure(UnidocTokenType.CLASS, value)
   }
 
   /**
   * Configure this token as a tag token that start at the given location and
   * contains the given code points.
   *
-  * @param origin - Origin of this token.
   * @param value - New code points of this token.
   */
-  public asTag (origin : UnidocRangeOrigin, value : string) : void {
-    this.configure(UnidocTokenType.TAG,origin, value)
+  public asTag (value : string) : void {
+    this.configure(UnidocTokenType.TAG, value)
   }
 
   /**
   * Configure this token as a block start token that start at the given
   * location.
-  *
-  * @param origin - Origin of this token.
   */
-  public asBlockStart (origin : UnidocRangeOrigin) : void {
-    this.configure(UnidocTokenType.BLOCK_START, origin, '{')
+  public asBlockStart () : void {
+    this.configure(UnidocTokenType.BLOCK_START, '{')
   }
 
   /**
   * Configure this token as a block start token that start at the given
   * location.
-  *
-  * @param origin - Origin of this token.
   */
-  public asBlockEnd (origin : UnidocRangeOrigin) : void {
-    this.configure(UnidocTokenType.BLOCK_END, origin, '}')
+  public asBlockEnd () : void {
+    this.configure(UnidocTokenType.BLOCK_END, '}')
   }
 
   /**
   * Configure this token as a space token that start at the given location and
   * that contains the given code points.
   *
-  * @param origin - Origin of this token.
   * @param value - New code points of this token.
   */
-  public asSpace (origin : UnidocRangeOrigin, value : string) : void {
-    this.configure(UnidocTokenType.SPACE, origin, value)
+  public asSpace (value : string) : void {
+    this.configure(UnidocTokenType.SPACE, value)
   }
 
   /**
   * Configure this token as a space token that start at the given location and
   * that contains the given code points.
   *
-  * @param origin - Origin of this token.
   * @param [type = '\r\n'] - Type of new line to configure.
   */
-  public asNewline (origin : UnidocRangeOrigin, type : '\r\n' | '\r' | '\n' = '\r\n') : void {
-    this.configure(UnidocTokenType.NEW_LINE, origin, type)
+  public asNewline (type : '\r\n' | '\r' | '\n' = '\r\n') : void {
+    this.configure(UnidocTokenType.NEW_LINE, type)
   }
 
   /**
   * Configure this token as a word token that start at the given location and
   * that contains the given code points.
   *
-  * @param origin - Origin of this token.
   * @param value - New code points of this token.
   */
-  public asWord (origin : UnidocRangeOrigin, value : string) : void {
-    this.configure(UnidocTokenType.WORD, origin, value)
+  public asWord (value : string) : void {
+    this.configure(UnidocTokenType.WORD, value)
   }
 
   /**
@@ -318,94 +305,6 @@ export namespace UnidocToken {
   export function copy (toCopy : null) : null
   export function copy (toCopy : UnidocToken | null) : UnidocToken | null {
     return toCopy == null ? toCopy : toCopy.clone()
-  }
-
-  /**
-  * @see UnidocToken.asIdentifier
-  */
-  export function identifier (origin : UnidocRangeOrigin, value : string) : UnidocToken {
-    const result : UnidocToken = new UnidocToken(value.length)
-
-    result.asIdentifier(origin, value)
-
-    return result
-  }
-
-  /**
-  * @see UnidocToken.asClass
-  */
-  export function clazz (origin : UnidocRangeOrigin, value : string) : UnidocToken {
-    const result : UnidocToken = new UnidocToken(value.length)
-
-    result.asClass(origin, value)
-
-    return result
-  }
-
-  /**
-  * @see UnidocToken.asTag
-  */
-  export function tag (origin : UnidocRangeOrigin, value : string) : UnidocToken {
-    const result : UnidocToken = new UnidocToken(value.length)
-
-    result.asTag(origin, value)
-
-    return result
-  }
-
-  /**
-  * @see UnidocToken.asBlockStart
-  */
-  export function blockStart (origin : UnidocRangeOrigin) : UnidocToken {
-    const result : UnidocToken = new UnidocToken(1)
-
-    result.asBlockStart(origin)
-
-    return result
-  }
-
-  /**
-  * @see UnidocToken.asBlockEnd
-  */
-  export function blockEnd (origin : UnidocRangeOrigin) : UnidocToken {
-    const result : UnidocToken = new UnidocToken(1)
-
-    result.asBlockEnd(origin)
-
-    return result
-  }
-
-  /**
-  * @see UnidocToken.asSpace
-  */
-  export function space (origin : UnidocRangeOrigin, value : string) : UnidocToken {
-    const result : UnidocToken = new UnidocToken(value.length)
-
-    result.asSpace(origin, value)
-
-    return result
-  }
-
-  /**
-  * @see UnidocToken.asNewline
-  */
-  export function newline (origin : UnidocRangeOrigin, type : '\r\n' | '\r' | '\n' = '\r\n') : UnidocToken {
-    const result : UnidocToken = new UnidocToken(type.length)
-
-    result.asNewline(origin, type)
-
-    return result
-  }
-
-  /**
-  * @see UnidocToken.asWord
-  */
-  export function word (origin : UnidocRangeOrigin, value : string) : UnidocToken {
-    const result : UnidocToken = new UnidocToken(value.length)
-
-    result.asWord(origin, value)
-
-    return result
   }
 
   export const ALLOCATOR : Allocator<UnidocToken> = {

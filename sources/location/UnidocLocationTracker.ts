@@ -1,7 +1,6 @@
 import { CodePoint } from '../symbol/CodePoint'
 
-import { UnidocLocation } from '../UnidocLocation'
-
+import { UnidocLocation } from './UnidocLocation'
 import { UnidocLocationTrackerState } from './UnidocLocationTrackerState'
 
 export class UnidocLocationTracker {
@@ -11,6 +10,12 @@ export class UnidocLocationTracker {
   public constructor () {
     this.location = new UnidocLocation()
     this._state = UnidocLocationTrackerState.DEFAULT
+  }
+
+  public nextString (value : string) : void {
+    for (let index = 0, size = value.length; index < size; ++index) {
+      this.next(value.codePointAt(index) as CodePoint)
+    }
   }
 
   public next (symbol : CodePoint) : void {

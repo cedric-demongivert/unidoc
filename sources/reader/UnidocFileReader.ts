@@ -1,20 +1,23 @@
+import { ReadStream } from 'fs'
+import { createReadStream } from 'fs'
+
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
 
-import { UnidocLocation } from '../UnidocLocation'
+import { UnidocLocation } from '../location/UnidocLocation'
+import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
 
-import { UnidocSourceReader } from './UnidocSourceReader'
-import { UnidocLocationTracker } from './UnidocLocationTracker'
+import { UnidocSymbolReader } from './UnidocSymbolReader'
 
-export class UnidocStringReader  implements UnidocSourceReader {
+export class UnidocFileReader  implements UnidocSymbolReader {
   /**
    * The content to read.
    */
   public readonly source : string
 
   /**
-   * Name of this source.
+   * The underlying stream.
    */
-  public readonly name : string
+  public readonly stream : ReadStream
 
   /**
    * A symbol instance for symbol emission.
@@ -26,25 +29,34 @@ export class UnidocStringReader  implements UnidocSourceReader {
    */
   private readonly _location : UnidocLocationTracker
 
-  public constructor (source : string, name : string = 'string') {
-    this.source = source
-    this.name = name
+  public constructor (source : string) {
+    this.source = 'file://' + source
+    this.stream = createReadStream(source, {
+      flags: 'r',
+      encoding: 'utf32',
+      autoClose: true,
+      emitClose: false,
+      mode: 0o666,
+      start: 0,
+      end: Number.POSITIVE_INFINITY,
+      highWaterMark: 64 * 1024
+    })
+
     this._location = new UnidocLocationTracker()
     this._symbol = new UnidocSymbol()
-    this._symbol.origin.clear()
   }
 
   /**
-  * @see UnidocSourceReader.hasNext
+  * @see UnidocSymbolReader.hasNext
   */
   public hasNext() : boolean {
-    return this._location.location.index < this.source.length
+    return this.stream.readable
   }
 
   /**
-  * @see UnidocSourceReader.skip
+  * @see UnidocSymbolReader.skip
   */
-  public skip (count : number) : UnidocStringReader {
+  public skip (count : number) : UnidocFileReader {
     while (this.hasNext() && count > 0) {
       this.next()
       count -= 1
@@ -54,7 +66,7 @@ export class UnidocStringReader  implements UnidocSourceReader {
   }
 
   /**
-  * @see UnidocSourceReader.current
+  * @see UnidocSymbolReader.current
   */
   public current () : UnidocSymbol {
     if (this._location.location.index === 0) {
@@ -65,12 +77,10 @@ export class UnidocStringReader  implements UnidocSourceReader {
   }
 
   /**
-  * @see UnidocSourceReader.next
+  * @see UnidocSymbolReader.next
   */
   public next() : UnidocSymbol {
-    const nextCodePoint : number | undefined = (
-      this.source.codePointAt(this._location.location.index)
-    )
+    const nextCodePoint : number | undefined = this.stream.read(1)
 
     if (nextCodePoint == null) {
       throw new Error (
@@ -81,23 +91,26 @@ export class UnidocStringReader  implements UnidocSourceReader {
     } else {
       this._symbol.symbol = nextCodePoint
       this._symbol.origin.clear()
-      this._symbol.origin.from.text(this._location.location).runtime()
+      this._symbol.origin.from.text(this._location.location).resource(this.source)
 
       this._location.next(nextCodePoint)
 
-      this._symbol.origin.to.text(this._location.location).runtime()
+      this._symbol.origin.to.text(this._location.location).resource(this.source)
 
       return this._symbol
     }
   }
 
   /**
-  * @see UnidocSourceReader.location
+  * @see UnidocSymbolReader.location
   */
   public location () : UnidocLocation {
     return this._location.location
   }
 
+  /**
+  * @see Symbol.iterator
+  */
   public * [Symbol.iterator] () : Iterator<UnidocSymbol> {
     while (this.hasNext()) {
       yield this.next()

@@ -93,61 +93,15 @@ export class UnidocTokenBuffer {
     this._tokens.reallocate(capacity)
   }
 
+  public fit () : void {
+    this._tokens.fit()
+  }
+
   /**
   * @see MutableSequence.get
   */
   public get (index : number) : UnidocToken {
     return this._tokens.get(index)
-  }
-
-  public pushIdentifier (origin : UnidocRangeOrigin, value : string) : void {
-    this._tokens.size += 1
-    this._tokens.last.asIdentifier(origin, value)
-  }
-
-  public pushClass (origin : UnidocRangeOrigin, value : string) : void {
-    this._tokens.size += 1
-    this._tokens.last.asClass(origin, value)
-  }
-
-  public pushTag (origin : UnidocRangeOrigin, value : string) : void {
-    this._tokens.size += 1
-    this._tokens.last.asTag(origin, value)
-  }
-
-  public pushBlockStart (origin : UnidocRangeOrigin) : void {
-    this._tokens.size += 1
-    this._tokens.last.asBlockStart(origin)
-  }
-
-  public pushBlockEnd (origin : UnidocRangeOrigin) : void  {
-    this._tokens.size += 1
-    this._tokens.last.asBlockEnd(origin)
-  }
-
-  public pushSpace (origin : UnidocRangeOrigin, value : string) : void {
-    this._tokens.size += 1
-    this._tokens.last.asSpace(origin, value)
-  }
-
-  /**
-  * Append a newline token at the end of this buffer.
-  *
-  * @param type - Type of newline token to add.
-  */
-  public pushNewline (origin : UnidocRangeOrigin, type : '\r\n' | '\r' | '\n' = '\r\n') : void {
-    this._tokens.size += 1
-    this._tokens.last.asNewline(origin, type)
-  }
-
-  /**
-  * Append a word token at the end of this buffer.
-  *
-  * @param value - Code points of the token to append.
-  */
-  public pushWord (origin : UnidocRangeOrigin,value : string) : void {
-    this._tokens.size += 1
-    this._tokens.last.asWord(origin, value)
   }
 
   /**

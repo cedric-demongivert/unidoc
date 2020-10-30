@@ -2,13 +2,13 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
 
-import { UnidocSourceReader } from './UnidocSourceReader'
+import { UnidocSymbolReader } from '../reader/UnidocSymbolReader'
 
 export class UnidocStream {
-  private readonly readers : Pack<UnidocSourceReader>
+  private readonly readers : Pack<UnidocSymbolReader>
   private readonly symbol : UnidocSymbol
 
-  public constructor (reader : UnidocSourceReader) {
+  public constructor (reader : UnidocSymbolReader) {
     this.readers = Pack.any(16)
     this.symbol = new UnidocSymbol()
 
@@ -19,7 +19,7 @@ export class UnidocStream {
     }
   }
 
-  public import (reader : UnidocSourceReader) : void {
+  public import (reader : UnidocSymbolReader) : void {
     this.readers.push(reader)
   }
 

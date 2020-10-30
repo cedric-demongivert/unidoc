@@ -5,9 +5,8 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { UnidocSymbol } from '../../sources/symbol/UnidocSymbol'
 import { CodePoint } from '../../sources/symbol/CodePoint'
 import { UnidocRangeOrigin } from '../../sources/origin/UnidocRangeOrigin'
-
-import { UnidocStringReader } from '../../sources/stream/UnidocStringReader'
-import { UnidocLocation } from '../../sources/UnidocLocation'
+import { UnidocStringReader } from '../../sources/reader/UnidocStringReader'
+import { UnidocLocation } from '../../sources/location/UnidocLocation'
 
 describe('UnidocStringReader', function () {
   describe('#constructor', function () {

@@ -1,6 +1,6 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocLocation } from '../UnidocLocation'
+import { UnidocLocation } from '../location/UnidocLocation'
 
 import { UnidocOriginElement } from './UnidocOriginElement'
 

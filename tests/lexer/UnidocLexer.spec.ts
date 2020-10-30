@@ -1,13 +1,14 @@
 /** eslint-env jest */
 
 import { UnidocRangeOrigin } from '../../sources/origin/UnidocRangeOrigin'
-import { UnidocSourceReader } from '../../sources/stream/UnidocSourceReader'
+import { UnidocSymbolReader } from '../../sources/reader/UnidocSymbolReader'
 import { UnidocTokenBuffer } from '../../sources/token/UnidocTokenBuffer'
 import { UnidocLexerState } from '../../sources/lexer/UnidocLexerState'
 import { UnidocLexer } from '../../sources/lexer/UnidocLexer'
+import { UnidocTokenProducer } from '../../sources/token/UnidocTokenProducer'
 
 /**
-* Requires a valid and functional UnidocSourceReader.
+* Requires a valid and functional UnidocSymbolReader.
 */
 
 describe('UnidocLexer', function () {
@@ -26,7 +27,7 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('{{{')) {
+      for (const symbol of UnidocSymbolReader.fromString('{{{')) {
         lexer.next(symbol)
       }
 
@@ -34,14 +35,11 @@ describe('UnidocLexer', function () {
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      for (const symbol of UnidocSourceReader.fromString('{{{')) {
-        expectation.pushBlockStart(
-          UnidocRangeOrigin.builder()
-                           .from(symbol.origin.from)
-                           .to(symbol.origin.to)
-                           .build()
-        )
-      }
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceBlockStart()
+                         .produceBlockStart()
+                         .produceBlockStart()
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -54,21 +52,19 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('}}}')) {
+      for (const symbol of UnidocSymbolReader.fromString('}}}')) {
         lexer.next(symbol)
       }
+
       lexer.complete()
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      for (const symbol of UnidocSourceReader.fromString('}}}')) {
-        expectation.pushBlockEnd(
-          UnidocRangeOrigin.builder()
-                           .from(symbol.origin.from)
-                           .to(symbol.origin.to)
-                           .build()
-        )
-      }
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceBlockEnd()
+                         .produceBlockEnd()
+                         .produceBlockEnd()
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -81,43 +77,19 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('\\alberta\\Chicago\\3d\\--meow-w')) {
+      for (const symbol of UnidocSymbolReader.fromString('\\alberta\\Chicago\\3d\\--meow-w')) {
         lexer.next(symbol)
       }
+
       lexer.complete()
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('\\alberta\\Chicago\\3d\\--meow-w')
-
-      expectation.pushTag(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '\\alberta'
-      )
-
-      expectation.pushTag(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('Chicag'.length).next().origin.to)
-          .build(),
-        '\\Chicago'
-      )
-      expectation.pushTag(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('3'.length).next().origin.to)
-          .build(),
-        '\\3d'
-      )
-      expectation.pushTag(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('--meow-'.length).next().origin.to)
-          .build(),
-        '\\--meow-w'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceTag('\\alberta')
+                         .produceTag('\\Chicago')
+                         .produceTag('\\3d')
+                         .produceTag('\\--meow-w')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -128,20 +100,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('\\alberta.')) {
+      for (const symbol of UnidocSymbolReader.fromString('\\alberta.')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('\\alberta.')
-
-      expectation.pushTag(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '\\alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceTag('\\alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -152,19 +118,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('\\alberta ')) {
+      for (const symbol of UnidocSymbolReader.fromString('\\alberta ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('\\alberta ')
-      expectation.pushTag(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '\\alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceTag('\\alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -175,20 +136,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('\\alberta#')) {
+      for (const symbol of UnidocSymbolReader.fromString('\\alberta#')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('\\alberta#')
-
-      expectation.pushTag(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '\\alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceTag('\\alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -201,41 +156,19 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('.alberta.Chicago.3d.--meow-w')) {
+      for (const symbol of UnidocSymbolReader.fromString('.alberta.Chicago.3d.--meow-w')) {
         lexer.next(symbol)
       }
+
       lexer.complete()
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta.Chicago.3d.--meow-w')
-      expectation.pushClass(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '.alberta'
-      )
-      expectation.pushClass(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('Chicag'.length).next().origin.to)
-          .build(),
-        '.Chicago'
-      )
-      expectation.pushClass(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('3'.length).next().origin.to)
-          .build(),
-        '.3d'
-      )
-      expectation.pushClass(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('--meow-'.length).next().origin.to)
-          .build(),
-        '.--meow-w'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceClass('.alberta')
+                         .produceClass('.Chicago')
+                         .produceClass('.3d')
+                         .produceClass('.--meow-w')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -246,20 +179,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('.alberta#')) {
+      for (const symbol of UnidocSymbolReader.fromString('.alberta#')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta#')
-
-      expectation.pushClass(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '.alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceClass('.alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -270,20 +197,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('.alberta ')) {
+      for (const symbol of UnidocSymbolReader.fromString('.alberta ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta ')
-
-      expectation.pushClass(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '.alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceClass('.alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -294,20 +215,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('.alberta\\')) {
+      for (const symbol of UnidocSymbolReader.fromString('.alberta\\')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta\\')
-
-      expectation.pushClass(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '.alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceClass('.alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -320,41 +235,19 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('#alberta#Chicago#3d#--meow-w')) {
+      for (const symbol of UnidocSymbolReader.fromString('#alberta#Chicago#3d#--meow-w')) {
         lexer.next(symbol)
       }
+
       lexer.complete()
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('.alberta.Chicago.3d.--meow-w')
-      expectation.pushIdentifier(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '#alberta'
-      )
-      expectation.pushIdentifier(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('Chicag'.length).next().origin.to)
-          .build(),
-        '#Chicago'
-      )
-      expectation.pushIdentifier(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('3'.length).next().origin.to)
-          .build(),
-        '#3d'
-      )
-      expectation.pushIdentifier(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('--meow-'.length).next().origin.to)
-          .build(),
-        '#--meow-w'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceIdentifier('#alberta')
+                         .produceIdentifier('#Chicago')
+                         .produceIdentifier('#3d')
+                         .produceIdentifier('#--meow-w')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -365,19 +258,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('#alberta.')) {
+      for (const symbol of UnidocSymbolReader.fromString('#alberta.')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('#alberta.')
-      expectation.pushIdentifier(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '#alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceIdentifier('#alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -388,19 +276,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('#alberta ')) {
+      for (const symbol of UnidocSymbolReader.fromString('#alberta ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('#alberta ')
-      expectation.pushIdentifier(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '#alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceIdentifier('#alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -411,19 +294,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('#alberta\\')) {
+      for (const symbol of UnidocSymbolReader.fromString('#alberta\\')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('#alberta\\')
-      expectation.pushIdentifier(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('albert'.length).next().origin.to)
-          .build(),
-        '#alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceIdentifier('#alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -436,90 +314,26 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('only 1 test on this str#ing')) {
+      for (const symbol of UnidocSymbolReader.fromString('only 1 test on this str#ing')) {
         lexer.next(symbol)
       }
+
       lexer.complete()
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(16)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('only 1 test on this str#ing')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('nl'.length).next().origin.to)
-          .build(),
-        'only'
-      )
-      expectation.pushSpace(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        ' '
-      )
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        '1'
-      )
-      expectation.pushSpace(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        ' '
-      )
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('es'.length).next().origin.to)
-          .build(),
-        'test'
-      )
-      expectation.pushSpace(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        ' '
-      )
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.next().origin.to)
-          .build(),
-        'on'
-      )
-      expectation.pushSpace(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        ' '
-      )
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('hi'.length).next().origin.to)
-          .build(),
-        'this'
-      )
-      expectation.pushSpace(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        ' '
-      )
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('tr#in'.length).next().origin.to)
-          .build(),
-        'str#ing'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('only')
+                         .produceSpace(' ')
+                         .produceWord('1')
+                         .produceSpace(' ')
+                         .produceWord('test')
+                         .produceSpace(' ')
+                         .produceWord('on')
+                         .produceSpace(' ')
+                         .produceWord('this')
+                         .produceSpace(' ')
+                         .produceWord('str#ing')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -530,19 +344,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('.acuriousαclass ')) {
+      for (const symbol of UnidocSymbolReader.fromString('.acuriousαclass ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('.acuriousαclass ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('acuriousαclas'.length).next().origin.to)
-          .build(),
-        '.acuriousαclass'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('.acuriousαclass')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -553,19 +362,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('..acuriousclass ')) {
+      for (const symbol of UnidocSymbolReader.fromString('..acuriousclass ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('..acuriousclass ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('.acuriousclas'.length).next().origin.to)
-          .build(),
-        '..acuriousclass'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('..acuriousclass')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -576,19 +380,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('#acuriousαidentifier ')) {
+      for (const symbol of UnidocSymbolReader.fromString('#acuriousαidentifier ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('#acuriousαidentifier ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('acuriousαidentifie'.length).next().origin.to)
-          .build(),
-        '#acuriousαidentifier'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('#acuriousαidentifier')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -599,19 +398,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('##acuriousidentifier ')) {
+      for (const symbol of UnidocSymbolReader.fromString('##acuriousidentifier ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('##acuriousidentifier ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('#acuriousidentifie'.length).next().origin.to)
-          .build(),
-        '##acuriousidentifier'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('##acuriousidentifier')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -622,19 +416,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('\\acuriousαtag ')) {
+      for (const symbol of UnidocSymbolReader.fromString('\\acuriousαtag ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('\\acuriousαtag ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('acuriousαta'.length).next().origin.to)
-          .build(),
-        '\\acuriousαtag'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('\\acuriousαtag')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -645,19 +434,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('\\\\acurioustag ')) {
+      for (const symbol of UnidocSymbolReader.fromString('\\\\acurioustag ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('\\\\acurioustag ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('\\acuriousta'.length).next().origin.to)
-          .build(),
-        '\\\\acurioustag'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('\\\\acurioustag')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -668,19 +452,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('. ')) {
+      for (const symbol of UnidocSymbolReader.fromString('. ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('. ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        '.'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('.')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -691,19 +470,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('# ')) {
+      for (const symbol of UnidocSymbolReader.fromString('# ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('# ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        '#'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('#')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -714,19 +488,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('\\ ')) {
+      for (const symbol of UnidocSymbolReader.fromString('\\ ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('\\ ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        '\\'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('\\')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -737,19 +506,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('alberta.test. ')) {
+      for (const symbol of UnidocSymbolReader.fromString('alberta.test. ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta.test. ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('lberta.test'.length).next().origin.to)
-          .build(),
-        'alberta.test.'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('alberta.test.')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -760,19 +524,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('alberta ')) {
+      for (const symbol of UnidocSymbolReader.fromString('alberta ')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta ')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('lbert'.length).next().origin.to)
-          .build(),
-        'alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -783,19 +542,14 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('alberta\\')) {
+      for (const symbol of UnidocSymbolReader.fromString('alberta\\')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta\\')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('lbert'.length).next().origin.to)
-          .build(),
-        'alberta'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('alberta')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -806,25 +560,15 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('alberta}')) {
+      for (const symbol of UnidocSymbolReader.fromString('alberta}')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta}')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('lbert'.length).next().origin.to)
-          .build(),
-        'alberta'
-      )
-      expectation.pushBlockEnd(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('alberta')
+                         .produceBlockEnd()
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -835,25 +579,15 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('alberta{')) {
+      for (const symbol of UnidocSymbolReader.fromString('alberta{')) {
         lexer.next(symbol)
       }
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('alberta{')
-      expectation.pushWord(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('lbert'.length).next().origin.to)
-          .build(),
-        'alberta'
-      )
-      expectation.pushBlockStart(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceWord('alberta')
+                         .produceBlockStart()
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -866,41 +600,19 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString('\r\n\n\r\r')) {
+      for (const symbol of UnidocSymbolReader.fromString('\r\n\n\r\r')) {
         lexer.next(symbol)
       }
+
       lexer.complete()
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString('\r\n\n\r\r')
-      expectation.pushNewline(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.next().origin.to)
-          .build(),
-        '\r\n'
-      )
-      expectation.pushNewline(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        '\n'
-      )
-      expectation.pushNewline(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        '\r'
-      )
-      expectation.pushNewline(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.current().origin.to)
-          .build(),
-        '\r'
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceNewline('\r\n')
+                         .produceNewline('\n')
+                         .produceNewline('\r')
+                         .produceNewline('\r')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
@@ -913,20 +625,16 @@ describe('UnidocLexer', function () {
 
       lexer.addEventListener('token', token => output.push(token))
 
-      for (const symbol of UnidocSourceReader.fromString(' \f\t\t ')) {
+      for (const symbol of UnidocSymbolReader.fromString(' \f\t\t ')) {
         lexer.next(symbol)
       }
+
       lexer.complete()
 
       const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      const content : UnidocSourceReader = UnidocSourceReader.fromString(' \f\t\t ')
-      expectation.pushSpace(
-        UnidocRangeOrigin.builder()
-          .from(content.next().origin.from)
-          .to(content.skip('\f\t\t'.length).next().origin.to)
-          .build(),
-        ' \f\t\t '
-      )
+      UnidocTokenProducer.forBuffer(expectation)
+                         .produceSpace(' \f\t\t ')
+                         .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })

@@ -1,6 +1,6 @@
 /** eslint-env jest */
 
-import { UnidocLocation } from '../sources/UnidocLocation'
+import { UnidocLocation } from '../../sources/location/UnidocLocation'
 
 describe('UnidocLocation', function () {
   describe('#constructor', function () {
