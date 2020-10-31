@@ -2,7 +2,7 @@
 
 import { UnidocPath } from '../sources/path/UnidocPath'
 import { UnidocPathElement } from '../sources/path/UnidocPathElement'
-import { UnidocLocation } from '../sources/UnidocLocation'
+import { UnidocLocation } from '../sources/location/UnidocLocation'
 
 describe('UnidocPath', function () {
   describe('#constructor', function () {

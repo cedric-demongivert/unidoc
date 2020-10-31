@@ -92,6 +92,19 @@ export namespace CodePoint {
            symbol >= a && symbol <= f
   }
 
+  export function isWhitespace (symbol : CodePoint) : boolean {
+    switch (symbol) {
+      case CodePoint.CARRIAGE_RETURN:
+      case CodePoint.NEW_LINE:
+      case CodePoint.FORM_FEED:
+      case CodePoint.TABULATION:
+      case CodePoint.SPACE:
+        return true
+      default:
+        return false
+    }
+  }
+
   export function toDebugString (symbol : CodePoint) : string {
     switch (symbol) {
       case CodePoint.CARRIAGE_RETURN : return ':r'

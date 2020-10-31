@@ -1,24 +1,17 @@
-import { toArray, map } from 'rxjs/operators'
+import { toArray } from 'rxjs/operators'
 
-import { stream } from '../../../sources/stream'
-import { tokenize } from '../../../sources/tokenize'
-import { parse } from '../../../sources/parse'
+import { stream } from '../../../sources/producer/stream'
 import { reduce } from '../../../sources/compilation/native/reduce'
 
+import { UnidocEventProducer } from '../../../sources/event/UnidocEventProducer'
 import { EventStreamReducer } from '../../../sources/compilation/native/reducer/EventStreamReducer'
 
 describe('EventStreamReducer', function () {
   describe('#text', function () {
     it('compile unidoc tags into a text', function (done : Function) {
-      stream.string(`
-        \\document#first
+      const document : UnidocEventProducer = new UnidocEventProducer()
 
-        Lorem ipsum  dolor\t  sit amet, set amet
-        temeter let memet ket
-
-        semet.
-      `).pipe(tokenize())
-        .pipe(parse())
+      stream(document)
         .pipe(reduce(EventStreamReducer.text()))
         .pipe(toArray())
         .subscribe(function (value : string[]) : void {
@@ -26,17 +19,25 @@ describe('EventStreamReducer', function () {
           expect(value[0]).toBe('Lorem ipsum dolor sit amet, set amet temeter let memet ket semet.')
           done()
         })
+
+      document.tag('document#first', function () {
+        document.produceText(
+                  '',
+                  '',
+                  'Lorem ipsum  dolor\t  sit amet, set amet',
+                  'temeter let memet ket',
+                  '',
+                  'semet.'
+                )
+      }).complete()
     })
   })
 
   describe('#token', function () {
     it('compile unidoc tags into a token', function (done : Function) {
-      stream.string(`
-        \\document#first
+      const document : UnidocEventProducer = new UnidocEventProducer()
 
-        3030.1569
-      `).pipe(tokenize())
-        .pipe(parse())
+      stream(document)
         .pipe(reduce(EventStreamReducer.token()))
         .pipe(toArray())
         .subscribe(function (value : string[]) : void {
@@ -44,20 +45,23 @@ describe('EventStreamReducer', function () {
           expect(value[0]).toBe('3030.1569')
           done()
         })
+
+        document.tag('document#first', function () {
+          document.produceText(
+                    '',
+                    '',
+                    '3030.1569',
+                    ''
+                  )
+        }).complete()
     })
   })
 
   describe('#stream', function () {
     it('compile unidoc tags into a list', function (done : Function) {
-      stream.string(`
-        \\document#first
+      const document : UnidocEventProducer = new UnidocEventProducer()
 
-        \\element { 5 }
-        \\element { 2 }
-        \\element { -3 }
-        \\element { -6 }
-      `).pipe(tokenize())
-        .pipe(parse())
+      stream(document)
         .pipe(reduce(EventStreamReducer.stream(EventStreamReducer.token().map(parseInt))))
         .pipe(toArray())
         .subscribe(function (value : number[][]) : void {
@@ -65,30 +69,24 @@ describe('EventStreamReducer', function () {
           expect(value[0]).toEqual([5, 2, -3, -6])
           done()
         })
+
+      document.tag('document#first', function () {
+        document.produceString('\r\n\r\n')
+
+        for (const value of ['5', '2', '-3', '-6']) {
+          document.tag('element', function () {
+            document.produceString('\r\n' + value + '\r\n')
+          })
+        }
+      }).complete()
     })
   })
 
   describe('#object', function () {
     it('compile unidoc tags into an object', function (done : Function) {
-      stream.string(`
-        \\document#first
+      const document : UnidocEventProducer = new UnidocEventProducer()
 
-        \\title { lorem ipsum dolor sit amet }
-        \\identifier { 15 }
-        \\tags {
-          \\tag { lorem }
-          \\tag { dolor }
-          \\tag { amet }
-        }
-        \\content {
-          lorem ipsum dolor sit amet sit dolor est
-        }
-        \\tags {
-          \\tag { lorem }
-          \\tag { dolor }
-        }
-      `).pipe(tokenize())
-        .pipe(parse())
+      stream(document)
         .pipe(
           reduce(
             EventStreamReducer.object({
@@ -110,29 +108,42 @@ describe('EventStreamReducer', function () {
           })
           done()
         })
+
+      document.tag('document#first', function () {
+        document.produceString('\r\n\r\n')
+
+        document.tag('title', function () {
+          document.produceString(' lorem ipsum dolor sit amet ')
+        })
+        document.tag('identifier', function () {
+          document.produceString(' 15 ')
+        })
+        document.tag('tags', function () {
+          for (const tag of [' lorem ', ' dolor ', ' amet ']) {
+            document.tag('tag', function () {
+              document.produceString(tag)
+            })
+          }
+        })
+        document.tag('content', function () {
+          document.produceString(' lorem ipsum dolor sit amet sit dolor est ')
+        })
+        document.tag('tags', function () {
+          for (const tag of [' lorem ', ' dolor ']) {
+            document.tag('tag', function () {
+              document.produceString(tag)
+            })
+          }
+        })
+      }).complete()
     })
   })
 
   describe('#any', function () {
     it('compile unidoc tags into the first valid result of the specified reducers', function (done : Function) {
-      stream.string(`
-        \\document#first
+      const document : UnidocEventProducer = new UnidocEventProducer()
 
-        \\client {
-          \\name { lorem }
-          \\family-name { ipsum }
-        }
-
-        \\address {
-          206 lorem ipsum
-        }
-
-        \\item {
-          \\name { lorem ipsum dolor }
-          \\identifier { 15 }
-        }
-      `).pipe(tokenize())
-        .pipe(parse())
+      stream(document)
         .pipe(
           reduce(EventStreamReducer.stream(EventStreamReducer.any(
               EventStreamReducer.object({
@@ -161,21 +172,38 @@ describe('EventStreamReducer', function () {
           }])
           done()
         })
+
+      document.tag('document#first', function () {
+        document.produceString('\r\n\r\n')
+
+        document.tag('client', function () {
+          document.tag('name', function () {
+            document.produceString(' lorem ')
+          })
+          document.tag('family-name', function () {
+            document.produceString(' ipsum ')
+          })
+        })
+        document.tag('address', function () {
+          document.produceString('206 lorem ipsum')
+        })
+        document.tag('item', function () {
+          document.tag('name', function () {
+            document.produceString(' lorem ipsum dolor ')
+          })
+          document.tag('identifier', function () {
+            document.produceString(' 15 ')
+          })
+        })
+      }).complete()
     })
   })
 
   describe('#tags', function () {
     it('compile unidoc tags by using different reducers for different tags', function (done : Function) {
-      stream.string(`
-        \\document#first
+      const document : UnidocEventProducer = new UnidocEventProducer()
 
-        \\string { pwet sit dolor }
-        \\float { 125.69 }
-        \\integer { 35 }
-        \\string { amet }
-        \\integer { 18 }
-      `).pipe(tokenize())
-        .pipe(parse())
+      stream(document)
         .pipe(
           reduce(EventStreamReducer.stream(EventStreamReducer.tags({
             string: EventStreamReducer.text(),
@@ -195,6 +223,26 @@ describe('EventStreamReducer', function () {
           ])
           done()
         })
+
+      document.tag('document#first', function () {
+        document.produceString('\r\n\r\n')
+
+        document.tag('string', function () {
+          document.produceString(' pwet sit dolor ')
+        })
+        document.tag('float', function () {
+          document.produceString(' 125.69 ')
+        })
+        document.tag('integer', function () {
+          document.produceString(' 35 ')
+        })
+        document.tag('string', function () {
+          document.produceString(' amet ')
+        })
+        document.tag('integer', function () {
+          document.produceString(' 18 ')
+        })
+      }).complete()
     })
   })
 })

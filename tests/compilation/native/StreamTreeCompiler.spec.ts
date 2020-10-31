@@ -1,25 +1,16 @@
-import { toArray, map } from 'rxjs/operators'
+import { toArray } from 'rxjs/operators'
 
-import { stream } from '../../../sources/stream'
-import { tokenize } from '../../../sources/tokenize'
-import { parse } from '../../../sources/parse'
+import { stream } from '../../../sources/producer/stream'
 import { compile } from '../../../sources/compilation/native/compile'
+
+import { UnidocEventProducer } from '../../../sources/event/UnidocEventProducer'
 import { StreamTreeCompiler } from '../../../sources/compilation/native/compilation/StreamTreeCompiler'
 
 describe('StreamTreeCompiler', function () {
   it('compile unidoc files into stream tree objects', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      \\name { robert }
-      \\age { 20 }
-      \\address.home.smart-home {
-        \\number { 10 }
-        \\city { lorem }
-        \\state { florida }
-      }
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(compile(new StreamTreeCompiler()))
       .pipe(toArray())
       .forEach(function (value : any[]) : void {
@@ -33,7 +24,7 @@ describe('StreamTreeCompiler', function () {
                  tag: 'whitespace',
                  identifier: '',
                  classes: [],
-                 content: '\n\n      '
+                 content: '\r\n\r\n\t'
               },
               {
                  tag: 'name',
@@ -64,7 +55,7 @@ describe('StreamTreeCompiler', function () {
                  tag: 'whitespace',
                  identifier: '',
                  classes: [],
-                 content: '\n      '
+                 content: '\r\n\t'
               },
               {
                  tag: 'age',
@@ -95,7 +86,7 @@ describe('StreamTreeCompiler', function () {
                  tag: 'whitespace',
                  identifier: '',
                  classes: [],
-                 content: '\n      '
+                 content: '\r\n\t'
               },
               {
                  tag: 'address',
@@ -109,7 +100,7 @@ describe('StreamTreeCompiler', function () {
                        tag: 'whitespace',
                        identifier: '',
                        classes: [],
-                       content: '\n        '
+                       content: '\r\n\t\t'
                     },
                     {
                        tag: 'number',
@@ -140,7 +131,7 @@ describe('StreamTreeCompiler', function () {
                        tag: 'whitespace',
                        identifier: '',
                        classes: [],
-                       content: '\n        '
+                       content: '\r\n\t\t'
                     },
                     {
                        tag: 'city',
@@ -171,7 +162,7 @@ describe('StreamTreeCompiler', function () {
                        tag: 'whitespace',
                        identifier: '',
                        classes: [],
-                       content: '\n        '
+                       content: '\r\n\t\t'
                     },
                     {
                        tag: 'state',
@@ -202,7 +193,7 @@ describe('StreamTreeCompiler', function () {
                        tag: 'whitespace',
                        identifier: '',
                        classes: [],
-                       content: '\n      '
+                       content: '\r\n\t'
                     }
                  ]
               },
@@ -210,11 +201,40 @@ describe('StreamTreeCompiler', function () {
                  tag: 'whitespace',
                  identifier: '',
                  classes: [],
-                 content: '\n    '
+                 content: '\r\n\t'
               }
            ]
         })
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceString('\r\n\r\n\t')
+      document.tag('name', function () {
+        document.produceString(' robert ')
+      })
+      document.produceString('\r\n\t')
+      document.tag('age', function () {
+        document.produceString(' 20 ')
+      })
+      document.produceString('\r\n\t')
+      document.tag('address.home.smart-home', function () {
+        document.produceString('\r\n\t\t')
+        document.tag('number', function () {
+          document.produceString(' 10 ')
+        })
+        document.produceString('\r\n\t\t')
+        document.tag('city', function () {
+          document.produceString(' lorem ')
+        })
+        document.produceString('\r\n\t\t')
+        document.tag('state', function () {
+          document.produceString(' florida ')
+        })
+        document.produceString('\r\n\t')
+      })
+      document.produceString('\r\n\t')
+      document.complete()
+    })
   })
 })

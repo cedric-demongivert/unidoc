@@ -45,6 +45,54 @@ export class UnidocEventProducer extends BasicUnidocProducer<UnidocEvent> {
   }
 
   /**
+  * Produce a text.
+  *
+  * @param lines - Lines of text to produce.
+  *
+  * @return This producer for chaining purposes.
+  */
+  public produceText (...lines : string[]) : UnidocEventProducer {
+    return this.produceString(lines.join('\r\n'))
+  }
+
+  /**
+  * Produce a line of text.
+  *
+  * @param line - Line of text to produce.
+  *
+  * @return This producer for chaining purposes.
+  */
+  public produceString (line : string) : UnidocEventProducer {
+    if (line.length > 0) {
+      let offset : number = 0
+      let spaces : boolean = CodePoint.isWhitespace(
+        line.codePointAt(0) as CodePoint
+      )
+
+      for (let index = 1, size = line.length; index < size; ++index) {
+        if (CodePoint.isWhitespace(line.codePointAt(index) as CodePoint) !== spaces) {
+          if (spaces) {
+            this.produceWhitespace(line.substring(offset, index))
+          } else {
+            this.produceWord(line.substring(offset, index))
+          }
+
+          offset = index
+          spaces = !spaces
+        }
+      }
+
+      if (spaces) {
+        this.produceWhitespace(line.substring(offset))
+      } else {
+        this.produceWord(line.substring(offset))
+      }
+    }
+
+    return this
+  }
+
+  /**
   * Produce a new whitespace event.
   *
   * @param content - Content of the resulting event.
@@ -109,6 +157,13 @@ export class UnidocEventProducer extends BasicUnidocProducer<UnidocEvent> {
 
     this.produce(this._event)
 
+    return this
+  }
+
+  public tag (configuration : string, definition : (this : UnidocEventProducer) => void) : UnidocEventProducer {
+    this.produceTagStart(configuration)
+    definition.call(this)
+    this.produceTagEnd(configuration)
     return this
   }
 

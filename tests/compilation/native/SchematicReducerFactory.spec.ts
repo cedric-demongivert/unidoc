@@ -1,10 +1,9 @@
-import { toArray, map } from 'rxjs/operators'
+import { toArray } from 'rxjs/operators'
 
-import { stream } from '../../../sources/stream'
-import { tokenize } from '../../../sources/tokenize'
-import { parse } from '../../../sources/parse'
+import { stream } from '../../../sources/producer/stream'
 import { reduce } from '../../../sources/compilation/native/reduce'
 
+import { UnidocEventProducer } from '../../../sources/event/UnidocEventProducer'
 import { Schema } from '../../../sources/compilation/native/schema/Schema'
 import { SchematicReducerFactory } from '../../../sources/compilation/native/schema/SchematicReducerFactory'
 
@@ -12,15 +11,9 @@ describe('SchematicReducerFactory', function () {
   const factory : SchematicReducerFactory = new SchematicReducerFactory()
 
   it('it is able to build reducers for parsing text', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      Lorem ipsum  dolor\t  sit amet, set amet
-      temeter let memet ket
-
-      semet.
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(Schema.text())))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -28,15 +21,23 @@ describe('SchematicReducerFactory', function () {
         expect(value[0]).toBe('Lorem ipsum dolor sit amet, set amet temeter let memet ket semet.')
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceText(
+                '',
+                '',
+                'Lorem ipsum  dolor\t  sit amet, set amet',
+                'temeter let memet ket',
+                '',
+                'semet.'
+              )
+    }).complete()
   })
 
   it('it is able to build reducers for parsing token', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      3030.1569
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(Schema.token())))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -44,15 +45,21 @@ describe('SchematicReducerFactory', function () {
         expect(value[0]).toBe('3030.1569')
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceText(
+                '',
+                '',
+                '3030.1569',
+                ''
+              )
+    }).complete()
   })
 
   it('it is able to build reducers for parsing floats', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      3030.1569
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(Schema.float())))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -60,15 +67,21 @@ describe('SchematicReducerFactory', function () {
         expect(value[0]).toBe(3030.1569)
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceText(
+                '',
+                '',
+                '3030.1569',
+                ''
+              )
+    }).complete()
   })
 
   it('it is able to build reducers for parsing integers', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      3030
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(Schema.integer())))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -76,18 +89,21 @@ describe('SchematicReducerFactory', function () {
         expect(value[0]).toBe(3030)
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceText(
+                '',
+                '',
+                '3030',
+                ''
+              )
+    }).complete()
   })
 
   it('it is able to build reducers for parsing streams', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      \\element { 5 }
-      \\element { 2 }
-      \\element { -3 }
-      \\element { -6 }
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(
         Schema.stream(
           Schema.float()
@@ -99,28 +115,22 @@ describe('SchematicReducerFactory', function () {
         expect(value[0]).toEqual([5, 2, -3, -6])
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceString('\r\n\r\n')
+
+      for (const value of ['5', '2', '-3', '-6']) {
+        document.tag('element', function () {
+          document.produceString('\r\n' + value + '\r\n')
+        })
+      }
+    }).complete()
   })
 
   it('it is able to build reducers for parsing objects', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      \\title { lorem ipsum dolor sit amet }
-      \\identifier { 15 }
-      \\tags {
-        \\tag { lorem }
-        \\tag { dolor }
-        \\tag { amet }
-      }
-      \\content {
-        lorem ipsum dolor sit amet sit dolor est
-      }
-      \\tags {
-        \\tag { lorem }
-        \\tag { dolor }
-      }
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(
         Schema.object({
           title: Schema.text(),
@@ -140,27 +150,40 @@ describe('SchematicReducerFactory', function () {
         })
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceString('\r\n\r\n')
+
+      document.tag('title', function () {
+        document.produceString(' lorem ipsum dolor sit amet ')
+      })
+      document.tag('identifier', function () {
+        document.produceString(' 15 ')
+      })
+      document.tag('tags', function () {
+        for (const tag of [' lorem ', ' dolor ', ' amet ']) {
+          document.tag('tag', function () {
+            document.produceString(tag)
+          })
+        }
+      })
+      document.tag('content', function () {
+        document.produceString(' lorem ipsum dolor sit amet sit dolor est ')
+      })
+      document.tag('tags', function () {
+        for (const tag of [' lorem ', ' dolor ']) {
+          document.tag('tag', function () {
+            document.produceString(tag)
+          })
+        }
+      })
+    }).complete()
   })
 
   it('it is able to build reducers for parsing multiple cases', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      \\client {
-        \\name { lorem }
-        \\family-name { ipsum }
-      }
-
-      \\address {
-        206 lorem ipsum
-      }
-
-      \\item {
-        \\name { lorem ipsum dolor }
-        \\identifier { 15 }
-      }
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(
         Schema.stream(Schema.any(
             Schema.object({
@@ -189,19 +212,36 @@ describe('SchematicReducerFactory', function () {
         }])
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceString('\r\n\r\n')
+
+      document.tag('client', function () {
+        document.tag('name', function () {
+          document.produceString(' lorem ')
+        })
+        document.tag('family-name', function () {
+          document.produceString(' ipsum ')
+        })
+      })
+      document.tag('address', function () {
+        document.produceString('206 lorem ipsum')
+      })
+      document.tag('item', function () {
+        document.tag('name', function () {
+          document.produceString(' lorem ipsum dolor ')
+        })
+        document.tag('identifier', function () {
+          document.produceString(' 15 ')
+        })
+      })
+    }).complete()
   })
 
   it('it is able to build reducers for parsing tags', function (done : Function) {
-    stream.string(`
-      \\document#first
+    const document : UnidocEventProducer = new UnidocEventProducer()
 
-      \\string { pwet sit dolor }
-      \\float { 125.69 }
-      \\integer { 35 }
-      \\string { amet }
-      \\integer { 18 }
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(
         Schema.stream(Schema.tags({
           string: Schema.text(),
@@ -221,9 +261,31 @@ describe('SchematicReducerFactory', function () {
         ])
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceString('\r\n\r\n')
+
+      document.tag('string', function () {
+        document.produceString(' pwet sit dolor ')
+      })
+      document.tag('float', function () {
+        document.produceString(' 125.69 ')
+      })
+      document.tag('integer', function () {
+        document.produceString(' 35 ')
+      })
+      document.tag('string', function () {
+        document.produceString(' amet ')
+      })
+      document.tag('integer', function () {
+        document.produceString(' 18 ')
+      })
+    }).complete()
   })
 
   it('it is able to build reducers for circular objects', function (done : Function) {
+    const document : UnidocEventProducer = new UnidocEventProducer()
+
     const peopleSchema : Schema<any> = Schema.object({
       name: Schema.text(),
       'family-name': Schema.text(),
@@ -233,25 +295,7 @@ describe('SchematicReducerFactory', function () {
     peopleSchema.description.brother = peopleSchema
     peopleSchema.description.sister = peopleSchema
 
-    stream.string(`
-      \\document#first
-
-      \\name { lorem }
-      \\family-name { ipsum }
-      \\age { 10 }
-      \\brother {
-        \\name { amet }
-        \\family-name { ipsum }
-        \\age { 8 }
-
-        \\sister {
-          \\name { sit }
-          \\family-name { ipsum }
-          \\age { 7 }
-        }
-      }
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(peopleSchema)))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -273,35 +317,53 @@ describe('SchematicReducerFactory', function () {
         })
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceString('\r\n\r\n')
+
+      document.tag('name', function () {
+        document.produceString(' lorem ')
+      })
+      document.tag('family-name', function () {
+        document.produceString(' ipsum ')
+      })
+      document.tag('age', function () {
+        document.produceString(' 10 ')
+      })
+      document.tag('brother', function () {
+        document.tag('name', function () {
+          document.produceString(' amet ')
+        })
+        document.tag('family-name', function () {
+          document.produceString(' ipsum ')
+        })
+        document.tag('age', function () {
+          document.produceString(' 8 ')
+        })
+        document.tag('sister', function () {
+          document.tag('name', function () {
+            document.produceString(' sit ')
+          })
+          document.tag('family-name', function () {
+            document.produceString(' ipsum ')
+          })
+          document.tag('age', function () {
+            document.produceString(' 7 ')
+          })
+        })
+      })
+    }).complete()
   })
 
   it('it is able to build reducers for circular streams', function (done : Function) {
+    const document : UnidocEventProducer = new UnidocEventProducer()
+
     const elementSchema : Schema<any> = Schema.any(Schema.text())
     const listSchema : Schema<any> = Schema.stream(elementSchema)
 
     elementSchema.description.push(listSchema)
 
-    stream.string(`
-      \\document#first
-
-      \\name { dolor }
-      \\name { sit }
-      \\name { amet }
-      \\list {
-        \\name { sit }
-        \\name { dolor }
-        \\list {
-          \\name { amet }
-          \\name { dolor }
-        }
-        \\name { amet }
-        \\list {
-          \\name { sit }
-          \\name { dolor }
-        }
-      }
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(listSchema)))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -326,9 +388,46 @@ describe('SchematicReducerFactory', function () {
         ])
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceString('\r\n\r\n')
+
+      for (const element of [' dolor ', ' sit ', ' amet ']) {
+        document.tag('name', function () {
+          document.produceString(element)
+        })
+      }
+
+      document.tag('list', function () {
+        for (const element of [' sit ', ' dolor ']) {
+          document.tag('name', function () {
+            document.produceString(element)
+          })
+        }
+        document.tag('list', function () {
+          for (const element of [' amet ', ' dolor ']) {
+            document.tag('name', function () {
+              document.produceString(element)
+            })
+          }
+        })
+        document.tag('name', function () {
+          document.produceString(' amet ')
+        })
+        document.tag('list', function () {
+          for (const element of [' sit ', ' dolor ']) {
+            document.tag('name', function () {
+              document.produceString(element)
+            })
+          }
+        })
+      })
+    }).complete()
   })
 
   it('it is able to build reducers for circular switch', function (done : Function) {
+    const document : UnidocEventProducer = new UnidocEventProducer()
+
     const elementSchema : Schema<any> = Schema.tags({
       string: Schema.text(),
       float: Schema.float(),
@@ -338,27 +437,7 @@ describe('SchematicReducerFactory', function () {
 
     elementSchema.description.list = listSchema
 
-    stream.string(`
-      \\document#first
-
-      \\string { dolor }
-      \\float { 125.6 }
-      \\float { 123.9 }
-      \\list {
-        \\string { sit }
-        \\string { dolor }
-        \\list {
-          \\integer { 15 }
-          \\string { sit }
-        }
-        \\float { 32.6 }
-        \\list {
-          \\integer { 22 }
-          \\string { amet }
-        }
-      }
-    `).pipe(tokenize())
-      .pipe(parse())
+    stream(document)
       .pipe(reduce(factory.create(listSchema)))
       .pipe(toArray())
       .subscribe(function (value : any[]) : void {
@@ -383,5 +462,47 @@ describe('SchematicReducerFactory', function () {
         ])
         done()
       })
+
+    document.tag('document#first', function () {
+      document.produceString('\r\n\r\n')
+
+      document.tag('string', function () {
+        document.produceString(' dolor ')
+      })
+      document.tag('float', function () {
+        document.produceString(' 125.6 ')
+      })
+      document.tag('float', function () {
+        document.produceString(' 123.9 ')
+      })
+
+      document.tag('list', function () {
+        document.tag('string', function () {
+          document.produceString(' sit ')
+        })
+        document.tag('string', function () {
+          document.produceString(' dolor ')
+        })
+        document.tag('list', function () {
+          document.tag('integer', function () {
+            document.produceString(' 15 ')
+          })
+          document.tag('string', function () {
+            document.produceString(' sit ')
+          })
+        })
+        document.tag('float', function () {
+          document.produceString(' 32.6 ')
+        })
+        document.tag('list', function () {
+          document.tag('integer', function () {
+            document.produceString(' 22 ')
+          })
+          document.tag('string', function () {
+            document.produceString(' amet ')
+          })
+        })
+      })
+    }).complete()
   })
 })
