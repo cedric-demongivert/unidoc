@@ -1,7 +1,7 @@
 /** eslint-env jest */
 
 import { UnidocParser } from '../../sources/parser/UnidocParser'
-import { UnidocTokenProducer } from '../../sources/token/UnidocTokenProducer'
+import { TrackedUnidocTokenProducer } from '../../sources/token/TrackedUnidocTokenProducer'
 import { UnidocEventBuffer } from '../../sources/event/UnidocEventBuffer'
 import { UnidocEventProducer } from '../../sources/event/UnidocEventProducer'
 
@@ -13,8 +13,9 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceWord('test')
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceWord('test')
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -30,8 +31,9 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceClass('.test')
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceClass('.test')
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -47,8 +49,9 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceIdentifier('#test')
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceIdentifier('#test')
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -65,13 +68,15 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\test')
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\test')
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
-      UnidocEventProducer.forBuffer(expectation)
-            .produceTagStart('document', '')
-            .complete()
+      UnidocEventProducer
+        .forBuffer(expectation)
+        .produceTagStart('document', '')
+        .complete()
 
       expect(expectation.expect(output)).toBeTruthy()
     })
@@ -82,8 +87,9 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceBlockStart()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceBlockStart()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -100,9 +106,10 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceWord('test')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceWord('test')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -120,8 +127,9 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .complete()
 
      const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
      UnidocEventProducer.forBuffer(expectation)
@@ -138,24 +146,20 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceNewline('\n')
-                         .produceNewline('\r\n')
-                         .produceSpace('\t ')
-                         .produceTag('\\doCuMent')
-                         .produceSpace('\t ')
-                         .produceClass('.article')
-                         .produceClass('.go')
-                         .produceIdentifier('#pwet')
-                         .produceNewline('\r\n')
-                         .produceClass('.green')
-                         .produceSpace(' ')
-                         .produceNewline('\r\n')
-                         .produceNewline('\r\n')
-                         .produceClass('.blue')
-                         .produceSpace(' ')
-                         .produceWord('test')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceString('\n\r\n\t ')
+        .produceTag('\\doCuMent')
+        .produceSpace('\t ')
+        .produceClass('.article')
+        .produceClass('.go')
+        .produceIdentifier('#pwet')
+        .produceNewline('\r\n')
+        .produceClass('.green')
+        .produceString(' \r\n\r\n')
+        .produceClass('.blue')
+        .produceString(' test')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -174,22 +178,20 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\docuMent')
-                         .produceClass('.ruleset')
-                         .produceNewline('\r\n')
-                         .produceNewline('\r\n')
-                         .produceTag('\\title')
-                         .produceSpace(' ')
-                         .produceIdentifier('#characteristics')
-                         .produceSpace(' ')
-                         .produceBlockStart()
-                         .produceSpace(' ')
-                         .produceWord('green')
-                         .produceSpace(' ')
-                         .produceBlockEnd()
-                         .produceNewline('\r\n')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\docuMent')
+        .produceClass('.ruleset')
+        .produceString('\r\n\r\n')
+        .produceTag('\\title')
+        .produceSpace(' ')
+        .produceIdentifier('#characteristics')
+        .produceSpace(' ')
+        .produceBlockStart()
+        .produceString(' green ')
+        .produceBlockEnd()
+        .produceNewline('\r\n')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -215,12 +217,13 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceSpace('   ')
-                         .produceSpace('\t')
-                         .produceSpace('\t\f')
-                         .produceSpace('  ')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceSpace('   ')
+        .produceSpace('\t')
+        .produceSpace('\t\f')
+        .produceSpace('  ')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -238,12 +241,13 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceNewline('\n')
-                         .produceNewline('\r\n')
-                         .produceNewline('\r')
-                         .produceNewline('\r\n')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceNewline('\n')
+        .produceNewline('\r\n')
+        .produceNewline('\r')
+        .produceNewline('\r\n')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -261,13 +265,14 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceNewline('\n')
-                         .produceSpace(' \t\t\f')
-                         .produceNewline('\r')
-                         .produceNewline('\r\n')
-                         .produceSpace('  \f')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceNewline('\n')
+        .produceSpace(' \t\t\f')
+        .produceNewline('\r')
+        .produceNewline('\r\n')
+        .produceSpace('  \f')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -285,12 +290,13 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceNewline('\n')
-                         .produceSpace(' \t\t\f')
-                         .produceNewline('\r')
-                         .produceNewline('\r\n')
-                         .produceWord('qwerty')
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceNewline('\n')
+        .produceSpace(' \t\t\f')
+        .produceNewline('\r')
+        .produceNewline('\r\n')
+        .produceWord('qwerty')
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -307,13 +313,14 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceWord('zwrtyt')
-                         .produceNewline('\n')
-                         .produceSpace(' \t\t\f')
-                         .produceNewline('\r')
-                         .produceNewline('\r\n')
-                         .produceWord('qwerty')
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceWord('zwrtyt')
+        .produceNewline('\n')
+        .produceSpace(' \t\t\f')
+        .produceNewline('\r')
+        .produceNewline('\r\n')
+        .produceWord('qwerty')
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -333,12 +340,13 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceWord('awe')
-                         .produceWord('a')
-                         .produceWord('ioP')
-                         .produceWord('nt')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceWord('awe')
+        .produceWord('a')
+        .produceWord('ioP')
+        .produceWord('nt')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -356,12 +364,13 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceWord('awe')
-                         .produceWord('a')
-                         .produceWord('ioP')
-                         .produceWord('nt')
-                         .produceBlockStart()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceWord('awe')
+        .produceWord('a')
+        .produceWord('ioP')
+        .produceWord('nt')
+        .produceBlockStart()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -381,10 +390,11 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceBlockStart()
-                         .produceBlockEnd()
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceBlockStart()
+        .produceBlockEnd()
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -403,11 +413,12 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceWord('text')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceWord('text')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -428,13 +439,14 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceWord('text')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceWord('text')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -458,15 +470,16 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceClass('.yellow')
-                         .produceClass('.green')
-                         .produceClass('.blue')
-                         .produceSpace(' ')
-                         .produceWord('text')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceClass('.yellow')
+        .produceClass('.green')
+        .produceClass('.blue')
+        .produceSpace(' ')
+        .produceWord('text')
+        .complete()
 
      const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
      UnidocEventProducer.forBuffer(expectation)
@@ -487,13 +500,14 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceIdentifier('#yellow')
-                         .produceSpace(' ')
-                         .produceWord('text')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceIdentifier('#yellow')
+        .produceSpace(' ')
+        .produceWord('text')
+        .complete()
 
      const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
      UnidocEventProducer.forBuffer(expectation)
@@ -514,17 +528,18 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceClass('.green')
-                         .produceClass('.blue')
-                         .produceIdentifier('#yellow')
-                         .produceClass('.red')
-                         .produceClass('.purple')
-                         .produceSpace(' ')
-                         .produceWord('text')
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceClass('.green')
+        .produceClass('.blue')
+        .produceIdentifier('#yellow')
+        .produceClass('.red')
+        .produceClass('.purple')
+        .produceSpace(' ')
+        .produceWord('text')
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -545,13 +560,14 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceBlockStart()
-                         .produceWord('text')
-                         .produceBlockEnd()
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceBlockStart()
+        .produceWord('text')
+        .produceBlockEnd()
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -571,17 +587,18 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceClass('.yellow')
-                         .produceClass('.green')
-                         .produceClass('.blue')
-                         .produceSpace(' ')
-                         .produceBlockStart()
-                         .produceWord('text')
-                         .produceBlockEnd()
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceClass('.yellow')
+        .produceClass('.green')
+        .produceClass('.blue')
+        .produceSpace(' ')
+        .produceBlockStart()
+        .produceWord('text')
+        .produceBlockEnd()
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -601,15 +618,16 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceIdentifier('#yellow')
-                         .produceSpace(' ')
-                         .produceBlockStart()
-                         .produceWord('text')
-                         .produceBlockEnd()
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceIdentifier('#yellow')
+        .produceSpace(' ')
+        .produceBlockStart()
+        .produceWord('text')
+        .produceBlockEnd()
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)
@@ -629,19 +647,20 @@ describe('UnidocParser', function () {
 
       parser.addEventListener('event', output.push.bind(output))
 
-      UnidocTokenProducer.forParser(parser)
-                         .produceTag('\\emphasize')
-                         .produceSpace(' ')
-                         .produceClass('.green')
-                         .produceClass('.blue')
-                         .produceIdentifier('#yellow')
-                         .produceClass('.red')
-                         .produceClass('.purple')
-                         .produceSpace(' ')
-                         .produceBlockStart()
-                         .produceWord('text')
-                         .produceBlockEnd()
-                         .complete()
+      TrackedUnidocTokenProducer
+        .forParser(parser)
+        .produceTag('\\emphasize')
+        .produceSpace(' ')
+        .produceClass('.green')
+        .produceClass('.blue')
+        .produceIdentifier('#yellow')
+        .produceClass('.red')
+        .produceClass('.purple')
+        .produceSpace(' ')
+        .produceBlockStart()
+        .produceWord('text')
+        .produceBlockEnd()
+        .complete()
 
       const expectation : UnidocEventBuffer = new UnidocEventBuffer(8)
       UnidocEventProducer.forBuffer(expectation)

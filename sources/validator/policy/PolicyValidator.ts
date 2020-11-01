@@ -2,7 +2,7 @@ import { Policy } from '../../policy/Policy'
 import { TagPolicy } from '../../policy/TagPolicy'
 import { PolicyType } from '../../policy/PolicyType'
 
-import { ValidationContext } from './ValidationContext'
+import { UnidocValidationContext } from '../UnidocValidationContext'
 
 import { TagPolicyValidator } from './TagPolicyValidator'
 import { AnythingPolicyValidator } from './AnythingPolicyValidator'
@@ -15,7 +15,7 @@ export interface PolicyValidator {
   *
   * @return True if this validator match the stream of event in it's current state.
   */
-  start (context : ValidationContext) : void
+  start (context : UnidocValidationContext) : void
 
   /**
   * Validate the next available event of a stream of event to validate.
@@ -24,7 +24,7 @@ export interface PolicyValidator {
   *
   * @return True if this validator match the stream of event in it's current state.
   */
-  validate (context : ValidationContext) : void
+  validate (context : UnidocValidationContext) : void
 
   /**
   * Mark a stream of event to validate as completed.
@@ -33,7 +33,7 @@ export interface PolicyValidator {
   *
   * @return True if this validator match the stream of event in it's current state.
   */
-  complete (context : ValidationContext) : void
+  complete (context : UnidocValidationContext) : void
 }
 
 export namespace PolicyValidator {

@@ -1,7 +1,7 @@
 import { CircularBuffer } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocEvent } from '../../event/UnidocEvent'
+import { UnidocEvent } from '../event/UnidocEvent'
 
 /**
 * A storage for unidoc events.

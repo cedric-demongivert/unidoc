@@ -1,11 +1,13 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
+import { SubscribableUnidocConsumer } from '../consumer/SubscribableUnidocConsumer'
+
 import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 import { UnidocToken } from './UnidocToken'
 
-export class UnidocTokenBuffer {
+export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
   private readonly _tokens : Pack<UnidocToken>
   public  readonly tokens  : Sequence<UnidocToken>
 
@@ -15,8 +17,35 @@ export class UnidocTokenBuffer {
   * @param [capacity = 32] - Capacity of the buffer to instantiate.
   */
   public constructor (capacity : number = 32) {
+    super()
     this._tokens = Pack.instance(UnidocToken.ALLOCATOR, capacity)
     this.tokens = this._tokens.view()
+  }
+
+  /**
+  * @see UnidocConsumer.handleInitialization
+  */
+  public handleInitialization () : void { }
+
+  /**
+  * @see UnidocConsumer.handleProduction
+  */
+  public handleProduction(value: UnidocToken): void {
+    this.push(value)
+  }
+
+  /**
+  * @see UnidocConsumer.handleCompletion
+  */
+  public handleCompletion(): void {
+
+  }
+
+  /**
+  * @see UnidocConsumer.handleFailure
+  */
+  public handleFailure(error: Error): void {
+    console.error(error)
   }
 
   public get capacity () : number {

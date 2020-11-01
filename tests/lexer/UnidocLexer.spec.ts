@@ -1,640 +1,573 @@
 /** eslint-env jest */
 
-import { UnidocRangeOrigin } from '../../sources/origin/UnidocRangeOrigin'
 import { UnidocSymbolReader } from '../../sources/reader/UnidocSymbolReader'
 import { UnidocTokenBuffer } from '../../sources/token/UnidocTokenBuffer'
 import { UnidocLexerState } from '../../sources/lexer/UnidocLexerState'
 import { UnidocLexer } from '../../sources/lexer/UnidocLexer'
-import { UnidocTokenProducer } from '../../sources/token/UnidocTokenProducer'
+import { TrackedUnidocTokenProducer } from '../../sources/token/TrackedUnidocTokenProducer'
 
 /**
 * Requires a valid and functional UnidocSymbolReader.
 */
 
-describe('UnidocLexer', function () {
-  describe('#constructor', function () {
-    it('instantiate a new lexer', function () {
-      const lexer : UnidocLexer = new UnidocLexer()
+describe('UnidocLexer', function() {
+  describe('#constructor', function() {
+    it('instantiate a new lexer', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
 
       expect(lexer.state).toBe(UnidocLexerState.START)
     })
   })
 
-  describe('block opening recognition', function () {
-    it('recognize block opening', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+  describe('block opening recognition', function() {
+    it('recognize block opening', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('{{{')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('{{{'))
+        .read()
 
-      lexer.complete()
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceBlockStart()
-                         .produceBlockStart()
-                         .produceBlockStart()
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceBlockStart()
+        .produceBlockStart()
+        .produceBlockStart()
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
   })
 
-  describe('block closing recognition', function () {
-    it ('recognize block closing', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+  describe('block closing recognition', function() {
+    it('recognize block closing', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('}}}')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('}}}'))
+        .read()
 
-      lexer.complete()
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceBlockEnd()
-                         .produceBlockEnd()
-                         .produceBlockEnd()
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceBlockEnd()
+        .produceBlockEnd()
+        .produceBlockEnd()
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
   })
 
-  describe('tag recognition', function () {
-    it ('recognize tags', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+  describe('tag recognition', function() {
+    it('recognize tags', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('\\alberta\\Chicago\\3d\\--meow-w')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('\\alberta\\Chicago\\3d\\--meow-w')).read()
 
-      lexer.complete()
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceTag('\\alberta')
-                         .produceTag('\\Chicago')
-                         .produceTag('\\3d')
-                         .produceTag('\\--meow-w')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceTag('\\alberta')
+        .produceTag('\\Chicago')
+        .produceTag('\\3d')
+        .produceTag('\\--meow-w')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize tags when they are followed by a class', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize tags when they are followed by a class', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('\\alberta.')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('\\alberta.'))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceTag('\\alberta')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize tags when they are followed by a space', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('\\alberta ')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceTag('\\alberta')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceTag('\\alberta')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize tags when they are followed by an identifier', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize tags when they are followed by a space', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('\\alberta#')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('\\alberta '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceTag('\\alberta')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceTag('\\alberta')
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize tags when they are followed by an identifier', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('\\alberta#'))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceTag('\\alberta')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
   })
 
-  describe('class recognition', function () {
-    it ('recognize classes', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+  describe('class recognition', function() {
+    it('recognize classes', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('.alberta.Chicago.3d.--meow-w')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('.alberta.Chicago.3d.--meow-w')).read()
 
-      lexer.complete()
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceClass('.alberta')
-                         .produceClass('.Chicago')
-                         .produceClass('.3d')
-                         .produceClass('.--meow-w')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceClass('.alberta')
+        .produceClass('.Chicago')
+        .produceClass('.3d')
+        .produceClass('.--meow-w')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize classes when they are followed by an identifier', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize classes when they are followed by an identifier', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('.alberta#')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('.alberta#'))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceClass('.alberta')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize classes when they are followed by a space', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('.alberta ')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceClass('.alberta')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceClass('.alberta')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize classes when they are followed by a tag', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize classes when they are followed by a space', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('.alberta\\')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('.alberta '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceClass('.alberta')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceClass('.alberta')
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize classes when they are followed by a tag', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('.alberta\\'))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceClass('.alberta')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
   })
 
-  describe('identifier recognition', function () {
-    it ('recognize identifiers', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+  describe('identifier recognition', function() {
+    it('recognize identifiers', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('#alberta#Chicago#3d#--meow-w')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('#alberta#Chicago#3d#--meow-w')).read()
 
-      lexer.complete()
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceIdentifier('#alberta')
-                         .produceIdentifier('#Chicago')
-                         .produceIdentifier('#3d')
-                         .produceIdentifier('#--meow-w')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceIdentifier('#alberta')
+        .produceIdentifier('#Chicago')
+        .produceIdentifier('#3d')
+        .produceIdentifier('#--meow-w')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize identifiers when they are followed by a class', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize identifiers when they are followed by a class', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('#alberta.')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('#alberta.'))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceIdentifier('#alberta')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize identifiers when they are followed by a space', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('#alberta ')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceIdentifier('#alberta')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceIdentifier('#alberta')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize identifiers when they are followed by a tag', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize identifiers when they are followed by a space', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('#alberta\\')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('#alberta '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceIdentifier('#alberta')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceIdentifier('#alberta')
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize identifiers when they are followed by a tag', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('#alberta\\'))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceIdentifier('#alberta')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
   })
 
-  describe('word recognition', function () {
-    it ('recognize words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(16)
+  describe('word recognition', function() {
+    it('recognize words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(16)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('only 1 test on this str#ing')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('only 1 test on this str#ing')).read()
 
-      lexer.complete()
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(16)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('only')
-                         .produceSpace(' ')
-                         .produceWord('1')
-                         .produceSpace(' ')
-                         .produceWord('test')
-                         .produceSpace(' ')
-                         .produceWord('on')
-                         .produceSpace(' ')
-                         .produceWord('this')
-                         .produceSpace(' ')
-                         .produceWord('str#ing')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(16)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceString('only 1 test on this str#ing')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize degenerated classes as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize degenerated classes as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('.acuriousαclass ')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('.acuriousαclass '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('.acuriousαclass')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize degenerated classes as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('..acuriousclass ')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('..acuriousclass')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('.acuriousαclass')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize degenerated identifiers as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize degenerated classes as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('#acuriousαidentifier ')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('..acuriousclass '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('#acuriousαidentifier')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize degenerated identifiers as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('##acuriousidentifier ')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('##acuriousidentifier')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('..acuriousclass')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize degenerated tags as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize degenerated identifiers as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('\\acuriousαtag ')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('#acuriousαidentifier '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('\\acuriousαtag')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize degenerated tags as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('\\\\acurioustag ')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('\\\\acurioustag')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('#acuriousαidentifier')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize dot as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize degenerated identifiers as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('. ')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('##acuriousidentifier '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('.')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize sharp as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('# ')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('#')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('##acuriousidentifier')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize antislash as words', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize degenerated tags as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('\\ ')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('\\acuriousαtag '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('\\')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize words that contains dots', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('alberta.test. ')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('alberta.test.')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('\\acuriousαtag')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize words when they are followed by a space', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize degenerated tags as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('alberta ')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('\\\\acurioustag '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('alberta')
-                         .complete()
-
-      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
-    })
-
-    it ('recognize words when they are followed by a tag', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-
-      lexer.addEventListener('token', token => output.push(token))
-
-      for (const symbol of UnidocSymbolReader.fromString('alberta\\')) {
-        lexer.next(symbol)
-      }
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('alberta')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('\\\\acurioustag')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize words when they are followed by a block termination', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize dot as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('alberta}')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('. '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('alberta')
-                         .produceBlockEnd()
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('.')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
 
-    it ('recognize words when they are followed by a block start', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+    it('recognize sharp as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('alberta{')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('# '))
+        .readWithoutCompletion()
 
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceWord('alberta')
-                         .produceBlockStart()
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('#')
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize antislash as words', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('\\ '))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('\\')
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize words that contains dots', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('alberta.test. '))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('alberta.test.')
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize words when they are followed by a space', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('alberta '))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('alberta')
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize words when they are followed by a tag', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('alberta\\'))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('alberta')
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize words when they are followed by a block termination', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('alberta}'))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('alberta')
+        .produceBlockEnd()
+        .complete()
+
+      expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
+    })
+
+    it('recognize words when they are followed by a block start', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+
+      output.subscribe(lexer)
+
+      lexer.subscribe(UnidocSymbolReader.produceString('alberta{'))
+        .readWithoutCompletion()
+
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceWord('alberta')
+        .produceBlockStart()
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
   })
 
-  describe('newline recognition', function () {
-    it ('recognize newlines', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+  describe('newline recognition', function() {
+    it('recognize newlines', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString('\r\n\n\r\r')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString('\r\n\n\r\r'))
+        .read()
 
-      lexer.complete()
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceNewline('\r\n')
-                         .produceNewline('\n')
-                         .produceNewline('\r')
-                         .produceNewline('\r')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceString('\r\n\n\r\r')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })
   })
 
-  describe('space recognition', function () {
-    it ('recognize spaces', function () {
-      const lexer  : UnidocLexer = new UnidocLexer()
-      const output : UnidocTokenBuffer = new UnidocTokenBuffer(8)
+  describe('space recognition', function() {
+    it('recognize spaces', function() {
+      const lexer: UnidocLexer = new UnidocLexer()
+      const output: UnidocTokenBuffer = new UnidocTokenBuffer(8)
 
-      lexer.addEventListener('token', token => output.push(token))
+      output.subscribe(lexer)
 
-      for (const symbol of UnidocSymbolReader.fromString(' \f\t\t ')) {
-        lexer.next(symbol)
-      }
+      lexer.subscribe(UnidocSymbolReader.produceString(' \f\t\t '))
+        .read()
 
-      lexer.complete()
-
-      const expectation : UnidocTokenBuffer = new UnidocTokenBuffer(8)
-      UnidocTokenProducer.forBuffer(expectation)
-                         .produceSpace(' \f\t\t ')
-                         .complete()
+      const expectation: UnidocTokenBuffer = new UnidocTokenBuffer(8)
+      expectation.subscribe(TrackedUnidocTokenProducer.create())
+        .produceSpace(' \f\t\t ')
+        .complete()
 
       expect(() => UnidocTokenBuffer.assert(output, expectation)).not.toThrow()
     })

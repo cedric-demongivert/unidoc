@@ -1,4 +1,4 @@
-export { BasicUnidocProducer } from './BasicUnidocProducer'
-export { stream } from './stream'
+export { ListenableUnidocProducer } from './ListenableUnidocProducer'
+export { RxJSUnidocInput } from './RxJSUnidocInput'
 export { UnidocProducer } from './UnidocProducer'
 export { UnidocProducerEvent } from './UnidocProducerEvent'

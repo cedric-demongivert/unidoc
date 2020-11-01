@@ -11,6 +11,11 @@ import { UnidocTokenType } from './UnidocTokenType'
 */
 export class UnidocToken {
   /**
+  * Index of this token in the sequence of token of the underlying document.
+  */
+  public index : number
+
+  /**
   * Type of this unidoc token.
   */
   public type : UnidocTokenType
@@ -32,6 +37,7 @@ export class UnidocToken {
   * @param [capacity = 16] - Initial capacity of the symbol buffer of this token.
   */
   public constructor (capacity : number = 16) {
+    this.index = 0
     this.type = UnidocTokenType.DEFAULT_TYPE
     this.symbols = Pack.uint32(capacity)
     this.origin = new UnidocRangeOrigin()
@@ -122,7 +128,7 @@ export class UnidocToken {
   * @param type - New type of this token.
   * @param value - New code points of this token.
   */
-  public configure (type : UnidocTokenType, value : string) : void {
+  public as (type : UnidocTokenType, value : string) : void {
     this.type = type
     this.text = value
   }
@@ -134,7 +140,7 @@ export class UnidocToken {
   * @param value - New code points of this token.
   */
   public asIdentifier (value : string) : void {
-    this.configure(UnidocTokenType.IDENTIFIER, value)
+    this.as(UnidocTokenType.IDENTIFIER, value)
   }
 
   /**
@@ -144,7 +150,7 @@ export class UnidocToken {
   * @param value - New code points of this token.
   */
   public asClass (value : string) : void {
-    this.configure(UnidocTokenType.CLASS, value)
+    this.as(UnidocTokenType.CLASS, value)
   }
 
   /**
@@ -154,7 +160,7 @@ export class UnidocToken {
   * @param value - New code points of this token.
   */
   public asTag (value : string) : void {
-    this.configure(UnidocTokenType.TAG, value)
+    this.as(UnidocTokenType.TAG, value)
   }
 
   /**
@@ -162,7 +168,7 @@ export class UnidocToken {
   * location.
   */
   public asBlockStart () : void {
-    this.configure(UnidocTokenType.BLOCK_START, '{')
+    this.as(UnidocTokenType.BLOCK_START, '{')
   }
 
   /**
@@ -170,7 +176,7 @@ export class UnidocToken {
   * location.
   */
   public asBlockEnd () : void {
-    this.configure(UnidocTokenType.BLOCK_END, '}')
+    this.as(UnidocTokenType.BLOCK_END, '}')
   }
 
   /**
@@ -180,7 +186,7 @@ export class UnidocToken {
   * @param value - New code points of this token.
   */
   public asSpace (value : string) : void {
-    this.configure(UnidocTokenType.SPACE, value)
+    this.as(UnidocTokenType.SPACE, value)
   }
 
   /**
@@ -190,7 +196,7 @@ export class UnidocToken {
   * @param [type = '\r\n'] - Type of new line to configure.
   */
   public asNewline (type : '\r\n' | '\r' | '\n' = '\r\n') : void {
-    this.configure(UnidocTokenType.NEW_LINE, type)
+    this.as(UnidocTokenType.NEW_LINE, type)
   }
 
   /**
@@ -200,7 +206,7 @@ export class UnidocToken {
   * @param value - New code points of this token.
   */
   public asWord (value : string) : void {
-    this.configure(UnidocTokenType.WORD, value)
+    this.as(UnidocTokenType.WORD, value)
   }
 
   /**
@@ -245,6 +251,7 @@ export class UnidocToken {
   * @param toCopy - Another token instance to copy.
   */
   public copy (toCopy : UnidocToken) : void {
+    this.index = toCopy.index
     this.type = toCopy.type
     this.origin.copy(toCopy.origin)
     this.symbols.copy(toCopy.symbols)
@@ -263,6 +270,7 @@ export class UnidocToken {
   * Reset this token instance in order to reuse it.
   */
   public clear () : void {
+    this.index = 0
     this.type = UnidocTokenType.DEFAULT_TYPE
     this.symbols.clear()
     this.origin.clear()
@@ -272,8 +280,20 @@ export class UnidocToken {
   * @see Object#toString
   */
   public toString () : string {
-    return (UnidocTokenType.toString(this.type) as string).padEnd(15) + ' ' +
-           this.origin.toString().padEnd(30, ' ') + ' "' + this.debugText + '" '
+    let result : string = ''
+
+    result += 'unidoc token '
+    result += this.index.toString().padEnd(5)
+    result += ' #'
+    result += this.type.toString().padEnd(2)
+    result += ' ('
+    result += (UnidocTokenType.toString(this.type) || 'undefined').padEnd(15)
+    result += ') "'
+    result += this.debugText
+    result += '"'
+    result += this.origin.toString()
+
+    return result
   }
 
   /**
@@ -284,7 +304,8 @@ export class UnidocToken {
     if (other === this) return true
 
     if (other instanceof UnidocToken) {
-      return other.type === this.type &&
+      return other.index === this.index &&
+             other.type === this.type &&
              other.origin.equals(this.origin) &&
              other.symbols.equals(this.symbols)
     }

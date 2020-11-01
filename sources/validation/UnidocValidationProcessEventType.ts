@@ -1,47 +1,47 @@
-export type ValidationProcessEventType = number
+export type UnidocValidationProcessEventType = number
 
-export namespace ValidationProcessEventType {
+export namespace UnidocValidationProcessEventType {
   /**
   * Declare the begining of a sequence of validation.
   */
-  export const START_SEQUENCE : ValidationProcessEventType = 0
+  export const START_SEQUENCE : UnidocValidationProcessEventType = 0
 
   /**
   * Declare the termination of a sequence of validation.
   */
-  export const END_SEQUENCE : ValidationProcessEventType = 1
+  export const END_SEQUENCE : UnidocValidationProcessEventType = 1
 
   /**
   * Declare the validation of an event.
   */
-  export const VALIDATION : ValidationProcessEventType = 2
+  export const VALIDATION : UnidocValidationProcessEventType = 2
 
   /**
   * Declare a message related to the last validation.
   */
-  export const MESSAGE : ValidationProcessEventType = 3
+  export const MESSAGE : UnidocValidationProcessEventType = 3
 
   /**
   * Declare an error-recovery.
   */
-  export const RECOVERY : ValidationProcessEventType = 4
+  export const RECOVERY : UnidocValidationProcessEventType = 4
 
   /**
   * Declare the begining of a validation forking point.
   */
-  export const START_FORK : ValidationProcessEventType = 5
+  export const START_FORK : UnidocValidationProcessEventType = 5
 
   /**
   * Declare the termination of a validation forking point.
   */
-  export const END_FORK : ValidationProcessEventType = 6
+  export const END_FORK : UnidocValidationProcessEventType = 6
 
   /**
   * Default value.
   */
-  export const DEFAULT : ValidationProcessEventType = VALIDATION
+  export const DEFAULT : UnidocValidationProcessEventType = VALIDATION
 
-  export const ALL : ValidationProcessEventType[] = [
+  export const ALL : UnidocValidationProcessEventType[] = [
     START_SEQUENCE,
     END_SEQUENCE,
     VALIDATION,
@@ -51,7 +51,7 @@ export namespace ValidationProcessEventType {
     END_FORK
   ]
 
-  export function toString (value : ValidationProcessEventType) : string | undefined {
+  export function toString (value : UnidocValidationProcessEventType) : string | undefined {
     switch (value) {
       case START_SEQUENCE : return 'START_SEQUENCE'
       case END_SEQUENCE   : return 'END_SEQUENCE'

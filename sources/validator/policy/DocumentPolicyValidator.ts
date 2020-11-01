@@ -1,26 +1,18 @@
 import { UnidocEventType } from '../../event/UnidocEventType'
 
-import { TagPolicy } from '../../policy/TagPolicy'
+import { DocumentPolicy } from '../../policy/DocumentPolicy'
+import { UnidocValidationContext } from '../UnidocValidationContext'
 
 import { PolicyValidator } from './PolicyValidator'
-import { UnidocValidationContext } from './UnidocValidationContext'
 import { TagPolicyValidatorState } from './TagPolicyValidatorState'
 import { PolicyErrorMessage } from './PolicyErrorMessage'
 import { NullPolicyValidator } from './NullPolicyValidator'
 
-export class TagPolicyValidator implements PolicyValidator {
-  public readonly policy : TagPolicy
+export class DocumentPolicyValidator {
+  public readonly policy : DocumentPolicy
 
-  private _state : TagPolicyValidatorState
-  private _depth : number
-  private _contentValidator : PolicyValidator
-
-  public constructor (policy : TagPolicy) {
+  public constructor (policy : DocumentPolicy) {
     this.policy = policy
-
-    this._state = TagPolicyValidatorState.BEFORE_TAG
-    this._depth = 0
-    this._contentValidator = NullPolicyValidator.INSTANCE
   }
 
   /**

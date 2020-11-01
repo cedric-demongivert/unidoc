@@ -2,73 +2,81 @@ import { CodePoint } from '../symbol/CodePoint'
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
 import { UnidocSymbolBuffer } from '../symbol/UnidocSymbolBuffer'
 
-import { UnidocToken } from '../token/UnidocToken'
-import { UnidocTokenType } from '../token/UnidocTokenType'
-import { UnidocValidation } from '../validation/UnidocValidation'
+import { UnidocProducer } from '../producer/UnidocProducer'
+import { UnidocProducerEvent } from '../producer/UnidocProducerEvent'
+import { SubscribableUnidocConsumer } from '../consumer/SubscribableUnidocConsumer'
 
-import { UnidocLexerEventType } from './UnidocLexerEventType'
+import { UnidocToken } from '../token/UnidocToken'
+import { UnidocTokenProducer } from '../token/UnidocTokenProducer'
+import { UnidocTokenType } from '../token/UnidocTokenType'
+
 import { UnidocLexerState } from './UnidocLexerState'
 
 /**
 * Unidoc lexer.
 */
-export class UnidocLexer {
+export class UnidocLexer extends SubscribableUnidocConsumer<UnidocSymbol>
+  implements UnidocProducer<UnidocToken>
+{
   /**
   * Current state of this lexer.
   */
-  private _state : UnidocLexerState
+  private _state: UnidocLexerState
 
   /**
   * Token instance used to publish discovered tokens.
   */
-  private _symbols : UnidocSymbolBuffer
+  private _symbols: UnidocSymbolBuffer
 
   /**
   * Token instance used to publish discovered tokens.
   */
-  private _token : UnidocToken
-
-  /**
-  * A set of listeners of the 'token' event.
-  */
-  private _tokenListeners : Set<UnidocLexer.TokenListener>
-
-  /**
-  * A set of listeners of the 'validation' event.
-  */
-  private _validationListeners : Set<UnidocLexer.ValidationListener>
-
-  /**
-  * A set of listeners of the 'completion' event.
-  */
-  private _completionListeners : Set<UnidocLexer.CompletionListener>
-
-  /**
-  * A set of listeners of the 'error' event.
-  */
-  private _errorListeners : Set<UnidocLexer.ErrorListener>
+  private _producer: UnidocTokenProducer
 
   /**
   * Instantiate a new unidoc lexer.
   *
   * @param [capacity = 64] - Unidoc lexer internal symbol buffer capacity.
   */
-  public constructor (capacity : number = 64) {
-    this._state               = UnidocLexerState.START
-    this._symbols             = new UnidocSymbolBuffer(capacity)
-    this._token               = new UnidocToken(capacity)
+  public constructor(capacity: number = 64) {
+    super()
 
-    this._tokenListeners      = new Set<UnidocLexer.TokenListener>()
-    this._validationListeners = new Set<UnidocLexer.ValidationListener>()
-    this._completionListeners = new Set<UnidocLexer.CompletionListener>()
-    this._errorListeners      = new Set<UnidocLexer.ErrorListener>()
+    this._state = UnidocLexerState.START
+    this._symbols = new UnidocSymbolBuffer(capacity)
+    this._producer = new UnidocTokenProducer()
   }
 
   /**
   * @return The current state of this lexer.
   */
-  public get state () : UnidocLexerState {
+  public get state(): UnidocLexerState {
     return this._state
+  }
+
+  /**
+  * @see UnidocConsumer.handleInitialization
+  */
+  public handleInitialization(): void { }
+
+  /**
+  * @see UnidocConsumer.handleProduction
+  */
+  public handleProduction(symbol: UnidocSymbol): void {
+    this.next(symbol)
+  }
+
+  /**
+  * @see UnidocConsumer.handleCompletion
+  */
+  public handleCompletion(): void {
+    this.complete()
+  }
+
+  /**
+  * @see UnidocConsumer.handleFailure
+  */
+  public handleFailure(error: Error): void {
+    this._producer.fail(error)
   }
 
   /**
@@ -76,7 +84,7 @@ export class UnidocLexer {
   *
   * @param codePoint - A symbol to give to this lexer.
   */
-  public next (symbol : UnidocSymbol) : void {
+  public next(symbol: UnidocSymbol): void {
     switch (this._state) {
       case UnidocLexerState.SPACE:
         this.handleAfterSpace(symbol)
@@ -114,7 +122,7 @@ export class UnidocLexer {
   /**
   * Notify to this lexer that the stream of symbol has terminated.
   */
-  public complete () : void {
+  public complete(): void {
     switch (this._state) {
       case UnidocLexerState.END:
         //this.error()
@@ -147,7 +155,7 @@ export class UnidocLexer {
     }
 
     this._state = UnidocLexerState.END
-    this.emitCompletion()
+    this._producer.complete()
   }
 
   /**
@@ -155,12 +163,12 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterAntislash (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterAntislash(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     if (
-      (codePoint >= CodePoint.a    && codePoint <= CodePoint.z)    ||
-      (codePoint >= CodePoint.A    && codePoint <= CodePoint.Z)    ||
+      (codePoint >= CodePoint.a && codePoint <= CodePoint.z) ||
+      (codePoint >= CodePoint.A && codePoint <= CodePoint.Z) ||
       (codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE) ||
       (codePoint === CodePoint.MINUS)
     ) {
@@ -190,12 +198,12 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterTag (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterTag(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     if (
-      (codePoint >= CodePoint.a    && codePoint <= CodePoint.z)    ||
-      (codePoint >= CodePoint.A    && codePoint <= CodePoint.Z)    ||
+      (codePoint >= CodePoint.a && codePoint <= CodePoint.z) ||
+      (codePoint >= CodePoint.A && codePoint <= CodePoint.Z) ||
       (codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE) ||
       (codePoint === CodePoint.MINUS)
     ) {
@@ -229,8 +237,8 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterWord (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterWord(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     switch (codePoint) {
       case CodePoint.TABULATION:
@@ -256,8 +264,8 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterCarriageReturn (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterCarriageReturn(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     switch (codePoint) {
       case CodePoint.NEW_LINE:
@@ -278,8 +286,8 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterSpace (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterSpace(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     switch (codePoint) {
       case CodePoint.SPACE:
@@ -300,12 +308,12 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterDot (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterDot(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     if (
-      codePoint >= CodePoint.a && codePoint <= CodePoint.z       ||
-      codePoint >= CodePoint.A && codePoint <= CodePoint.Z       ||
+      codePoint >= CodePoint.a && codePoint <= CodePoint.z ||
+      codePoint >= CodePoint.A && codePoint <= CodePoint.Z ||
       codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
       codePoint === CodePoint.MINUS
     ) {
@@ -336,12 +344,12 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterClass (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterClass(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     if (
-      codePoint >= CodePoint.a    && codePoint <= CodePoint.z    ||
-      codePoint >= CodePoint.A    && codePoint <= CodePoint.Z    ||
+      codePoint >= CodePoint.a && codePoint <= CodePoint.z ||
+      codePoint >= CodePoint.A && codePoint <= CodePoint.Z ||
       codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
       codePoint === CodePoint.MINUS
     ) {
@@ -374,12 +382,12 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterSharp (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterSharp(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     if (
-      codePoint >= CodePoint.a && codePoint <= CodePoint.z       ||
-      codePoint >= CodePoint.A && codePoint <= CodePoint.Z       ||
+      codePoint >= CodePoint.a && codePoint <= CodePoint.z ||
+      codePoint >= CodePoint.A && codePoint <= CodePoint.Z ||
       codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
       codePoint === CodePoint.MINUS
     ) {
@@ -411,12 +419,12 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterIdentifier (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterIdentifier(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     if (
-      codePoint >= CodePoint.a    && codePoint <= CodePoint.z    ||
-      codePoint >= CodePoint.A    && codePoint <= CodePoint.Z    ||
+      codePoint >= CodePoint.a && codePoint <= CodePoint.z ||
+      codePoint >= CodePoint.A && codePoint <= CodePoint.Z ||
       codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE ||
       codePoint === CodePoint.MINUS
     ) {
@@ -449,8 +457,8 @@ export class UnidocLexer {
   *
   * @param symbol - The symbol to handle.
   */
-  private handleAfterStart (symbol : UnidocSymbol) : void {
-    const codePoint : CodePoint = symbol.symbol
+  private handleAfterStart(symbol: UnidocSymbol): void {
+    const codePoint: CodePoint = symbol.symbol
 
     switch (codePoint) {
       case CodePoint.OPENING_BRACE:
@@ -494,113 +502,83 @@ export class UnidocLexer {
     }
   }
 
-  private emitBuffer (type : UnidocTokenType) : void {
-    this._token.clear()
-    this._token.origin.from.copy(this._symbols.from)
-    this._token.origin.to.copy(this._symbols.to)
-    this._token.symbols.copy(this._symbols.symbols)
+  private emitBuffer(type: UnidocTokenType): void {
+    this._producer.initializeIfFirst()
+
+    this._producer
+      .from(this._symbols.from)
+      .to(this._symbols.to)
+      .withType(type)
+      .withSymbols(this._symbols.symbols)
+
     this._symbols.clear()
-    this._token.type = type
 
-    this.emitToken(this._token)
+    this._producer.produce()
   }
 
   /**
-  * Notify this lexer's listeners that the given token was discovered.
-  *
-  * @param token - A discovered token to publish.
+  * @see UnidocProducer.addEventListener
   */
-  private emitToken (token : UnidocToken) : void {
-    for (const listener of this._tokenListeners) {
-      listener(token)
-    }
+  public addEventListener(event: UnidocProducerEvent.ProductionEvent, listener: UnidocProducer.ProductionListener<UnidocToken>): void
+  /**
+  * @see UnidocProducer.addEventListener
+  */
+  public addEventListener(event: UnidocProducerEvent.CompletionEvent, listener: UnidocProducer.CompletionListener): void
+  /**
+  * @see UnidocProducer.addEventListener
+  */
+  public addEventListener(event: UnidocProducerEvent.InitializationEvent, listener: UnidocProducer.InitializationListener): void
+  /**
+  * @see UnidocProducer.addEventListener
+  */
+  public addEventListener(event: UnidocProducerEvent.FailureEvent, listener: UnidocProducer.FailureListener): void
+  public addEventListener(event: any, listener: any): void {
+    this._producer.addEventListener(event, listener)
   }
 
   /**
-  * Notify this lexer's listeners that this lexer finished is work.
+  * @see UnidocProducer.removeEventListener
   */
-  private emitCompletion () : void {
-    for (const listener of this._completionListeners) {
-      listener()
-    }
+  public removeEventListener(event: UnidocProducerEvent.ProductionEvent, listener: UnidocProducer.ProductionListener<UnidocToken>): void
+  /**
+  * @see UnidocProducer.removeEventListener
+  */
+  public removeEventListener(event: UnidocProducerEvent.CompletionEvent, listener: UnidocProducer.CompletionListener): void
+  /**
+  * @see UnidocProducer.removeEventListener
+  */
+  public removeEventListener(event: UnidocProducerEvent.InitializationEvent, listener: UnidocProducer.InitializationListener): void
+  /**
+  * @see UnidocProducer.removeEventListener
+  */
+  public removeEventListener(event: UnidocProducerEvent.FailureEvent, listener: UnidocProducer.FailureListener): void
+  public removeEventListener(event: any, listener: any): void {
+    this._producer.removeEventListener(event, listener)
   }
 
   /**
-  * Add the given listener to this lexer set of listeners.
-  *
-  * @param type - Type of event to listen to.
-  * @param listener - A listener to call then the given type of event happens.
+  * @see UnidocProducer.removeAllEventListener
   */
-  public addEventListener (type : 'token', listener : UnidocLexer.TokenListener) : void
-  public addEventListener (type : 'validation', listener : UnidocLexer.ValidationListener) : void
-  public addEventListener (type : 'completion', listener : UnidocLexer.CompletionListener) : void
-  public addEventListener (type : 'error', listener : UnidocLexer.ErrorListener) : void
-  public addEventListener (type : UnidocLexerEventType, listener : any) : void {
-    if (type === UnidocLexerEventType.TOKEN) {
-      this._tokenListeners.add(listener)
-    } else if (type === UnidocLexerEventType.VALIDATION) {
-      this._validationListeners.add(listener)
-    } else if (type === UnidocLexerEventType.COMPLETION) {
-      this._completionListeners.add(listener)
-    } else if (type === UnidocLexerEventType.ERROR) {
-      this._errorListeners.add(listener)
-    } else {
-      throw new Error(
-        'Unable to add the given listener for the "' + type +
-        '" type of event because "' + type + '" is not a valid unidoc lexer ' +
-        'event type, valid event types are : ' +
-        UnidocLexerEventType.ALL.join(', ') + '.'
-      )
-    }
-  }
-
+  public removeAllEventListener(event: number): void
   /**
-  * Remove a registered event listener.
-  *
-  * @param type - Type of event to stop to listen to.
-  * @param listener - A listener to remove.
+  * @see UnidocProducer.removeAllEventListener
   */
-  public removeEventListener (type : 'token', listener : UnidocLexer.TokenListener) : void
-  public removeEventListener (type : 'validation', listener : UnidocLexer.ValidationListener) : void
-  public removeEventListener (type : 'completion', listener : UnidocLexer.CompletionListener) : void
-  public removeEventListener (type : 'error', listener : UnidocLexer.ErrorListener) : void
-  public removeEventListener (type : UnidocLexerEventType, listener : any) : void {
-    if (type === UnidocLexerEventType.TOKEN) {
-      this._tokenListeners.delete(listener)
-    } else if (type === UnidocLexerEventType.VALIDATION) {
-      this._validationListeners.delete(listener)
-    } else if (type === UnidocLexerEventType.COMPLETION) {
-      this._completionListeners.delete(listener)
-    } else if (type === UnidocLexerEventType.ERROR) {
-      this._errorListeners.delete(listener)
-    } else {
-      throw new Error(
-        'Unable to remove the given listener for the "' + type +
-        '" type of event because "' + type + '" is not a valid unidoc lexer ' +
-        'event type, valid event types are : ' +
-        UnidocLexerEventType.ALL.join(', ') + '.'
-      )
-    }
+  public removeAllEventListener(): void
+  public removeAllEventListener(...params: [any?]): void {
+    this._producer.removeAllEventListener(...params)
   }
 
   /**
   * Reset this lexer in order to reuse-it.
   */
-  public clear () : void {
-    this._token.clear()
+  public clear(): void {
+    this._producer.clear()
     this._state = UnidocLexerState.START
     this._symbols.clear()
-
-    this._tokenListeners.clear()
-    this._validationListeners.clear()
-    this._completionListeners.clear()
-    this._errorListeners.clear()
+    this.removeAllEventListener()
   }
 }
 
 export namespace UnidocLexer {
-  export type TokenListener      = (token : UnidocToken) => void
-  export type ValidationListener = (validation : UnidocValidation) => void
-  export type CompletionListener = () => void
-  export type ErrorListener      = (error : Error) => void
+
 }

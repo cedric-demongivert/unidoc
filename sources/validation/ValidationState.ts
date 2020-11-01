@@ -1,4 +1,4 @@
-import { UnidocValidationType } from '../../validation/UnidocValidationType'
+import { UnidocValidationType } from './UnidocValidationType'
 
 export type ValidationState = number
 

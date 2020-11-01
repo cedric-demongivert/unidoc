@@ -1,93 +1,111 @@
-import { BasicUnidocProducer } from '../producer/BasicUnidocProducer'
-import { UnidocProducerEvent } from '../producer/UnidocProducerEvent'
-import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
+import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../symbol/CodePoint'
 
-import { UnidocEvent } from './UnidocEvent'
-import { UnidocEventBuffer } from './UnidocEventBuffer'
+import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
 
-export class UnidocEventProducer extends BasicUnidocProducer<UnidocEvent> {
-  private readonly _event : UnidocEvent
-  private readonly _tracker : UnidocLocationTracker
-  private _index : number
+import { UnidocOrigin } from '../origin/UnidocOrigin'
+
+import { UnidocEvent } from './UnidocEvent'
+import { UnidocEventType } from './UnidocEventType'
+
+export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
+  private readonly _event: UnidocEvent
+  private _index: number
 
   /**
   * Instantiate a new unidoc event.
   */
-  public constructor () {
+  public constructor() {
     super()
     this._event = new UnidocEvent()
-    this._tracker = new UnidocLocationTracker()
+    this._event.origin.from.runtime()
+    this._event.origin.to.runtime()
     this._index = 0
+  }
+
+  /**
+  * @see ListenableUnidocProducer.fail
+  */
+  public fail(error: Error): void {
+    super.fail(error)
+  }
+
+  /**
+  * @see ListenableUnidocProducer.initialize
+  */
+  public initialize(): void {
+    super.initialize()
+  }
+
+  public withType(type: UnidocEventType): UnidocEventProducer {
+    this._event.type = type
+    return this
+  }
+
+  public withSymbols(symbols: Sequence<CodePoint>): UnidocEventProducer {
+    this._event.symbols.copy(symbols)
+    return this
+  }
+
+  public withTag(tag: string): UnidocEventProducer {
+    this._event.tag = tag
+    return this
+  }
+
+  public withIdentifier(identifier: string): UnidocEventProducer {
+    this._event.identifier = identifier
+    return this
+  }
+
+  public withClasses(classes: Iterable<string>): UnidocEventProducer {
+    this._event.classes.clear()
+    this._event.addClasses(classes)
+    return this
+  }
+
+  public at(origin: UnidocOrigin): UnidocEventProducer {
+    this._event.origin.from.copy(origin)
+    this._event.origin.to.copy(origin)
+    return this
+  }
+
+  public from(): UnidocOrigin
+  public from(origin: UnidocOrigin): UnidocEventProducer
+  public from(origin?: UnidocOrigin): UnidocOrigin | UnidocEventProducer {
+    if (origin) {
+      this._event.origin.from.copy(origin)
+      return this
+    } else {
+      this._event.origin.from.clear()
+      return this._event.origin.from
+    }
+
+  }
+
+  public to(): UnidocOrigin
+  public to(origin: UnidocOrigin): UnidocEventProducer
+  public to(origin?: UnidocOrigin): UnidocOrigin | UnidocEventProducer {
+    if (origin) {
+      this._event.origin.to.copy(origin)
+      return this
+    } else {
+      this._event.origin.to.clear()
+      return this._event.origin.to
+    }
   }
 
   /**
   * Produce a new word event.
   *
   * @param content - Content of the event to produce.
-  * @param [line = content] - Line to use for computing the begining and the ending point of the event.
   *
   * @return This producer for chaining purposes.
   */
-  public produceWord (content : string, line : string = content) : UnidocEventProducer {
+  public produceWord(content: string): UnidocEventProducer {
     this._event.asWord(content)
-    this._event.index = this._index
-    this._index += 1
-    this._event.origin.clear()
-    this._event.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    this._event.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._event)
-
-    return this
-  }
-
-  /**
-  * Produce a text.
-  *
-  * @param lines - Lines of text to produce.
-  *
-  * @return This producer for chaining purposes.
-  */
-  public produceText (...lines : string[]) : UnidocEventProducer {
-    return this.produceString(lines.join('\r\n'))
-  }
-
-  /**
-  * Produce a line of text.
-  *
-  * @param line - Line of text to produce.
-  *
-  * @return This producer for chaining purposes.
-  */
-  public produceString (line : string) : UnidocEventProducer {
-    if (line.length > 0) {
-      let offset : number = 0
-      let spaces : boolean = CodePoint.isWhitespace(
-        line.codePointAt(0) as CodePoint
-      )
-
-      for (let index = 1, size = line.length; index < size; ++index) {
-        if (CodePoint.isWhitespace(line.codePointAt(index) as CodePoint) !== spaces) {
-          if (spaces) {
-            this.produceWhitespace(line.substring(offset, index))
-          } else {
-            this.produceWord(line.substring(offset, index))
-          }
-
-          offset = index
-          spaces = !spaces
-        }
-      }
-
-      if (spaces) {
-        this.produceWhitespace(line.substring(offset))
-      } else {
-        this.produceWord(line.substring(offset))
-      }
-    }
 
     return this
   }
@@ -96,18 +114,11 @@ export class UnidocEventProducer extends BasicUnidocProducer<UnidocEvent> {
   * Produce a new whitespace event.
   *
   * @param content - Content of the resulting event.
-  * @param [line = content] - Line to use for computing the begining and the ending point of the event.
   *
   * @return This producer for chaining purposes.
   */
-  public produceWhitespace (content : string, line : string = content) : UnidocEventProducer {
+  public produceWhitespace(content: string): UnidocEventProducer {
     this._event.asWhitespace(content)
-    this._event.index = this._index
-    this._index += 1
-    this._event.origin.clear()
-    this._event.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    this._event.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._event)
 
@@ -118,20 +129,11 @@ export class UnidocEventProducer extends BasicUnidocProducer<UnidocEvent> {
   * Configure this event as a new starting tag event.
   *
   * @param configuration - Type, identifiers and classes of the resulting tag.
-  * @param [line = configuration] - Line to use for computing the begining and the ending point of the event.
   *
   * @return This producer for chaining purposes.
   */
-  public produceTagStart (configuration : string, line : string = configuration) : UnidocEventProducer {
+  public produceTagStart(configuration: string): UnidocEventProducer {
     this._event.asTagStart(configuration)
-    this._event.index = this._index
-    this._index += 1
-    this._event.origin.clear()
-    this._event.origin.from.text(this._tracker.location).runtime()
-    if (Object.is(line, configuration)) this._tracker.next(CodePoint.ANTISLASH)
-    this._tracker.nextString(line)
-    if (Object.is(line, configuration)) this._tracker.next(CodePoint.OPENING_BRACE)
-    this._event.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._event)
 
@@ -142,25 +144,18 @@ export class UnidocEventProducer extends BasicUnidocProducer<UnidocEvent> {
   * Configure this event as a new ending tag event.
   *
   * @param configuration - Type, identifiers and classes of the resulting tag.
-  * @param [line = '}'] - Line to use for computing the begining and the ending point of the event.
   *
   * @return This producer for chaining purposes.
   */
-  public produceTagEnd (configuration : string, line : string = '}') : UnidocEventProducer {
+  public produceTagEnd(configuration: string): UnidocEventProducer {
     this._event.asTagEnd(configuration)
-    this._event.index = this._index
-    this._index += 1
-    this._event.origin.clear()
-    this._event.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    this._event.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._event)
 
     return this
   }
 
-  public tag (configuration : string, definition : (this : UnidocEventProducer) => void) : UnidocEventProducer {
+  public tag(configuration: string, definition: (this: UnidocEventProducer) => void): UnidocEventProducer {
     this.produceTagStart(configuration)
     definition.call(this)
     this.produceTagEnd(configuration)
@@ -168,24 +163,31 @@ export class UnidocEventProducer extends BasicUnidocProducer<UnidocEvent> {
   }
 
   /**
-  * @see BasicUnidocProducer.complete
+  * @see ListenableUnidocProducer.produce
   */
-  public complete () : void {
+  public produce(event: UnidocEvent = this._event): void {
+    event.index = this._index
+    this._index += 1
+
+    super.produce(event)
+  }
+
+  /**
+  * @see ListenableUnidocProducer.complete
+  */
+  public complete(): void {
     super.complete()
+  }
+
+  public clear(): void {
+    this._event.clear()
+    this._index = 0
+    this.removeAllEventListener()
   }
 }
 
 export namespace UnidocEventProducer {
-  export function create () : UnidocEventProducer {
+  export function create(): UnidocEventProducer {
     return new UnidocEventProducer()
-  }
-
-  export function forBuffer (buffer : UnidocEventBuffer) : UnidocEventProducer {
-    const result : UnidocEventProducer = new UnidocEventProducer()
-
-    result.addEventListener(UnidocProducerEvent.PRODUCTION, buffer.push.bind(buffer))
-    result.addEventListener(UnidocProducerEvent.COMPLETION, buffer.fit.bind(buffer))
-
-    return result
   }
 }

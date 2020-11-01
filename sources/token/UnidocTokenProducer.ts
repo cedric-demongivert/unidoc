@@ -1,30 +1,95 @@
-import { BasicUnidocProducer } from '../producer/BasicUnidocProducer'
-import { UnidocProducerEvent } from '../producer/UnidocProducerEvent'
-import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
-import { UnidocParser } from '../parser/UnidocParser'
+import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
-import { CodePoint } from '../symbol/CodePoint'
+import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 
 import { UnidocToken } from './UnidocToken'
-import { UnidocTokenBuffer } from './UnidocTokenBuffer'
+import { UnidocTokenType } from './UnidocTokenType'
 
 /**
-* A unidoc token.
+* A unidoc token producer.
 */
-export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
-  private readonly _token : UnidocToken
+export class UnidocTokenProducer extends ListenableUnidocProducer<UnidocToken> {
+  /**
+  * The token instance used for the emission of new tokens.
+  */
+  private readonly _token: UnidocToken
 
-  private readonly _tracker : UnidocLocationTracker
+  private _index: number
 
   /**
   * Instantiate a new unidoc token.
   *
   * @param [capacity = 16] - Initial capacity of the symbol buffer of this token.
   */
-  public constructor () {
+  public constructor() {
     super()
+
     this._token = new UnidocToken()
-    this._tracker = new UnidocLocationTracker()
+    this._token.origin.from.runtime()
+    this._token.origin.to.runtime()
+    this._index = 0
+  }
+
+  /**
+  * @see ListenableUnidocProducer.initialize
+  */
+  public initialize(): void {
+    super.initialize()
+  }
+
+  public initializeIfFirst(): void {
+    if (this._index === 0) {
+      this.initialize()
+    }
+  }
+
+  /**
+  * @see ListenableUnidocProducer.fail
+  */
+  public fail(error: Error): void {
+    super.fail(error)
+  }
+
+  public at(origin: UnidocOrigin): UnidocTokenProducer {
+    this._token.origin.from.copy(origin)
+    this._token.origin.to.copy(origin)
+    return this
+  }
+
+  public from(): UnidocOrigin
+  public from(origin: UnidocOrigin): UnidocTokenProducer
+  public from(origin?: UnidocOrigin): UnidocOrigin | UnidocTokenProducer {
+    if (origin) {
+      this._token.origin.from.copy(origin)
+      return this
+    } else {
+      this._token.origin.from.clear()
+      return this._token.origin.from
+    }
+
+  }
+
+  public to(): UnidocOrigin
+  public to(origin: UnidocOrigin): UnidocTokenProducer
+  public to(origin?: UnidocOrigin): UnidocOrigin | UnidocTokenProducer {
+    if (origin) {
+      this._token.origin.to.copy(origin)
+      return this
+    } else {
+      this._token.origin.to.clear()
+      return this._token.origin.to
+    }
+  }
+
+  public withSymbols(symbols: Sequence<number>): UnidocTokenProducer {
+    this._token.symbols.copy(symbols)
+    return this
+  }
+
+  public withType(type: UnidocTokenType): UnidocTokenProducer {
+    this._token.type = type
+    return this
   }
 
   /**
@@ -34,12 +99,8 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceIdentifier (value : string) : UnidocTokenProducer {
+  public produceIdentifier(value: string): UnidocTokenProducer {
     this._token.asIdentifier(value)
-    this._token.origin.clear()
-    this._token.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(value)
-    this._token.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._token)
 
@@ -53,12 +114,8 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceClass (value : string) : UnidocTokenProducer {
+  public produceClass(value: string): UnidocTokenProducer {
     this._token.asClass(value)
-    this._token.origin.clear()
-    this._token.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(value)
-    this._token.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._token)
 
@@ -72,12 +129,8 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceTag (value : string) : UnidocTokenProducer {
+  public produceTag(value: string): UnidocTokenProducer {
     this._token.asTag(value)
-    this._token.origin.clear()
-    this._token.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(value)
-    this._token.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._token)
 
@@ -89,12 +142,8 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceBlockStart () : UnidocTokenProducer {
+  public produceBlockStart(): UnidocTokenProducer {
     this._token.asBlockStart()
-    this._token.origin.clear()
-    this._token.origin.from.text(this._tracker.location).runtime()
-    this._tracker.next(CodePoint.OPENING_BRACE)
-    this._token.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._token)
 
@@ -106,12 +155,8 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceBlockEnd () : UnidocTokenProducer {
+  public produceBlockEnd(): UnidocTokenProducer {
     this._token.asBlockEnd()
-    this._token.origin.clear()
-    this._token.origin.from.text(this._tracker.location).runtime()
-    this._tracker.next(CodePoint.CLOSING_BRACE)
-    this._token.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._token)
 
@@ -125,12 +170,8 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceSpace (value : string) : UnidocTokenProducer {
+  public produceSpace(value: string): UnidocTokenProducer {
     this._token.asSpace(value)
-    this._token.origin.clear()
-    this._token.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(value)
-    this._token.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._token)
 
@@ -144,12 +185,8 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceNewline (type : '\r\n' | '\r' | '\n' = '\r\n') : UnidocTokenProducer {
+  public produceNewline(type: '\r\n' | '\r' | '\n' = '\r\n'): UnidocTokenProducer {
     this._token.asNewline(type)
-    this._token.origin.clear()
-    this._token.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(type)
-    this._token.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._token)
 
@@ -163,12 +200,8 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceWord (value : string) : UnidocTokenProducer {
+  public produceWord(value: string): UnidocTokenProducer {
     this._token.asWord(value)
-    this._token.origin.clear()
-    this._token.origin.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(value)
-    this._token.origin.to.text(this._tracker.location).runtime()
 
     this.produce(this._token)
 
@@ -176,33 +209,31 @@ export class UnidocTokenProducer extends BasicUnidocProducer<UnidocToken> {
   }
 
   /**
-  * @see BasicUnidocProducer.complete
+  * @see ListenableUnidocProducer.produce
   */
-  public complete () : void {
+  public produce(token: UnidocToken = this._token): void {
+    token.index = this._index
+    this._index += 1
+
+    super.produce(token)
+  }
+
+  public clear(): void {
+    this._index = 0
+    this._token.clear()
+    this.removeAllEventListener()
+  }
+
+  /**
+  * @see ListenableUnidocProducer.complete
+  */
+  public complete(): void {
     super.complete()
   }
 }
 
 export namespace UnidocTokenProducer {
-  export function create () : UnidocTokenProducer {
+  export function create(): UnidocTokenProducer {
     return new UnidocTokenProducer()
-  }
-
-  export function forBuffer (buffer : UnidocTokenBuffer) : UnidocTokenProducer {
-    const result : UnidocTokenProducer = new UnidocTokenProducer()
-
-    result.addEventListener(UnidocProducerEvent.PRODUCTION, buffer.push.bind(buffer))
-    result.addEventListener(UnidocProducerEvent.COMPLETION, buffer.fit.bind(buffer))
-
-    return result
-  }
-
-  export function forParser (parser : UnidocParser) : UnidocTokenProducer {
-    const result : UnidocTokenProducer = new UnidocTokenProducer()
-
-    result.addEventListener(UnidocProducerEvent.PRODUCTION, parser.next.bind(parser))
-    result.addEventListener(UnidocProducerEvent.COMPLETION, parser.complete.bind(parser))
-
-    return result
   }
 }

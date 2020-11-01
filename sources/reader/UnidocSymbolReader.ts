@@ -50,6 +50,10 @@ export namespace UnidocSymbolReader {
     return new UnidocFileReader(source)
   }
 
+  export function produceString (source : string) : UnidocSymbolReaderProducer {
+    return new UnidocSymbolReaderProducer(new UnidocStringReader(source))
+  }
+
   export function asProducer (source : UnidocSymbolReader) : UnidocSymbolReaderProducer {
     return new UnidocSymbolReaderProducer(source)
   }
