@@ -6,7 +6,6 @@ import { CodePoint } from '../symbol/CodePoint'
 
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventProducer } from './UnidocEventProducer'
-import { UnidocEventBuffer } from './UnidocEventBuffer'
 
 const DEFAULT_BLOCK_ENDING: string = '}'
 
@@ -35,7 +34,7 @@ export class TrackedUnidocEventProducer implements UnidocProducer<UnidocEvent> {
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
 
-    this.produceWord(content)
+    this._producer.produceWord(content)
 
     return this
   }
@@ -101,7 +100,7 @@ export class TrackedUnidocEventProducer implements UnidocProducer<UnidocEvent> {
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
 
-    this.produceWhitespace(content)
+    this._producer.produceWhitespace(content)
 
     return this
   }
@@ -119,7 +118,7 @@ export class TrackedUnidocEventProducer implements UnidocProducer<UnidocEvent> {
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
 
-    this.produceTagStart(configuration)
+    this._producer.produceTagStart(configuration)
 
     return this
   }
@@ -137,7 +136,7 @@ export class TrackedUnidocEventProducer implements UnidocProducer<UnidocEvent> {
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
 
-    this.produceTagEnd(configuration)
+    this._producer.produceTagEnd(configuration)
 
     return this
   }
@@ -212,14 +211,5 @@ export class TrackedUnidocEventProducer implements UnidocProducer<UnidocEvent> {
 export namespace TrackedUnidocEventProducer {
   export function create(): TrackedUnidocEventProducer {
     return new TrackedUnidocEventProducer()
-  }
-
-  export function forBuffer(buffer: UnidocEventBuffer): TrackedUnidocEventProducer {
-    const result: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
-
-    result.addEventListener(UnidocProducerEvent.PRODUCTION, buffer.push.bind(buffer))
-    result.addEventListener(UnidocProducerEvent.COMPLETION, buffer.fit.bind(buffer))
-
-    return result
   }
 }

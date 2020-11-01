@@ -11,7 +11,7 @@ export class RxJSUnidocOutput<T> extends SubscribableUnidocConsumer<T> {
   public constructor() {
     super()
 
-    this.handleRxSubscription.bind(this)
+    this.handleRxSubscription = this.handleRxSubscription.bind(this)
 
     this._subscribers = new Set()
     this.observable = new Observable(this.handleRxSubscription)

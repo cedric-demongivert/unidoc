@@ -80,7 +80,6 @@ export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
       this._event.origin.from.clear()
       return this._event.origin.from
     }
-
   }
 
   public to(): UnidocOrigin

@@ -6,8 +6,8 @@ import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 
 import { UnidocEventType } from './UnidocEventType'
 
-const TAG_EVENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?((?:\.[a-zA-Z0-9\-]+)+)?$/i
-const EMPTY_STRING : string = ''
+const TAG_EVENT_CONFIGURATION: RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?((?:\.[a-zA-Z0-9\-]+)+)?$/i
+const EMPTY_STRING: string = ''
 
 /**
 * A unidoc event.
@@ -16,55 +16,55 @@ export class UnidocEvent {
   /**
   * Event index.
   */
-  public index : number
+  public index: number
 
   /**
   * Type of this event.
   */
-  public type : UnidocEventType
+  public type: UnidocEventType
 
   /**
   * The discovered tag, if any.
   */
-  public tag : string
+  public tag: string
 
   /**
   * Identifier associated to the block or the tag if any.
   */
-  public identifier : string
+  public identifier: string
 
   /**
   * Classes associated to the block or the tag if any.
   */
-  public readonly classes : Set<string>
+  public readonly classes: Set<string>
 
   /**
   * Content associated to this event.
   */
-  public readonly symbols : Pack<CodePoint>
+  public readonly symbols: Pack<CodePoint>
 
   /**
   * Ending location of the event into the parsed document.
   */
-  public readonly origin : UnidocRangeOrigin
+  public readonly origin: UnidocRangeOrigin
 
   /**
   * Instantiate a new unidoc event.
   */
-  public constructor () {
-    this.index      = 0
-    this.type       = UnidocEventType.START_TAG
-    this.tag        = EMPTY_STRING
+  public constructor() {
+    this.index = 0
+    this.type = UnidocEventType.START_TAG
+    this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
-    this.classes    = new Set<string>()
-    this.symbols    = Pack.uint32(128)
-    this.origin     = new UnidocRangeOrigin().runtime()
+    this.classes = new Set<string>()
+    this.symbols = Pack.uint32(128)
+    this.origin = new UnidocRangeOrigin().runtime()
   }
 
   /**
   * @return This token as a javascript string.
   */
-  public get text () : string {
+  public get text(): string {
     return String.fromCodePoint(...this.symbols)
   }
 
@@ -73,7 +73,7 @@ export class UnidocEvent {
   *
   * @param content - The new content associated to this event.
   */
-  public set text (content : string) {
+  public set text(content: string) {
     this.symbols.clear()
     this.symbols.size = content.length
 
@@ -92,10 +92,10 @@ export class UnidocEvent {
   *
   * @return The requested part of this token as a string.
   */
-  public substring (start : number, length : number = this.symbols.size - start) : string {
-    const buffer : CodePoint[] = []
-    const from : number = start
-    const to : number = start + length
+  public substring(start: number, length: number = this.symbols.size - start): string {
+    const buffer: CodePoint[] = []
+    const from: number = start
+    const to: number = start + length
 
     for (let index = from; index < to; ++index) {
       buffer.push(this.symbols.get(index))
@@ -107,8 +107,8 @@ export class UnidocEvent {
   /**
   * @return This token as a string without invisible symbols.
   */
-  public get debugText () : string {
-    const buffer : CodePoint[] = []
+  public get debugText(): string {
+    const buffer: CodePoint[] = []
 
     for (const codePoint of this.symbols) {
       switch (codePoint) {
@@ -146,9 +146,7 @@ export class UnidocEvent {
   *
   * @param content - Content of the resulting event.
   */
-  public asWord (content : string) : void {
-    this.clear()
-
+  public asWord(content: string): void {
     this.type = UnidocEventType.WORD
     this.text = content
   }
@@ -158,9 +156,7 @@ export class UnidocEvent {
   *
   * @param content - Content of the resulting event.
   */
-  public asWhitespace (content : string) : void {
-    this.clear()
-
+  public asWhitespace(content: string): void {
     this.type = UnidocEventType.WHITESPACE
     this.text = content
   }
@@ -170,15 +166,14 @@ export class UnidocEvent {
   *
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public asTagStart (configuration : string) : void {
-    this.clear()
-
+  public asTagStart(configuration: string): void {
+    this.classes.clear()
     this.type = UnidocEventType.START_TAG
 
     this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
 
-    const tokens : RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
+    const tokens: RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
 
     if (tokens != null) {
       this.tag = tokens[1]
@@ -197,15 +192,14 @@ export class UnidocEvent {
   *
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
-  public asTagEnd (configuration : string) : void {
-    this.clear()
-
+  public asTagEnd(configuration: string): void {
+    this.classes.clear()
     this.type = UnidocEventType.END_TAG
 
     this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
 
-    const tokens : RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
+    const tokens: RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
 
     if (tokens != null) {
       this.tag = tokens[1]
@@ -224,7 +218,7 @@ export class UnidocEvent {
   *
   * @param classes - An iterable of classes to add to this event set of classes.
   */
-  public addClasses (classes : Iterable<string>) : void {
+  public addClasses(classes: Iterable<string>): void {
     for (const clazz of classes) {
       this.classes.add(clazz)
     }
@@ -235,10 +229,10 @@ export class UnidocEvent {
   *
   * @param toCopy - An instance to copy.
   */
-  public copy (toCopy : UnidocEvent) : void {
-    this.index      = toCopy.index
-    this.type       = toCopy.type
-    this.tag        = toCopy.tag
+  public copy(toCopy: UnidocEvent): void {
+    this.index = toCopy.index
+    this.type = toCopy.type
+    this.tag = toCopy.tag
     this.identifier = toCopy.identifier
 
     this.symbols.copy(toCopy.symbols)
@@ -254,8 +248,8 @@ export class UnidocEvent {
   /**
   * @return A deep copy of this event.
   */
-  public clone () : UnidocEvent {
-    const result : UnidocEvent = new UnidocEvent()
+  public clone(): UnidocEvent {
+    const result: UnidocEvent = new UnidocEvent()
     result.copy(this)
     return result
   }
@@ -263,9 +257,9 @@ export class UnidocEvent {
   /**
   * Reset this event instance in order to reuse it.
   */
-  public clear () : void {
-    this.index      = 0
-    this.tag        = EMPTY_STRING
+  public clear(): void {
+    this.index = 0
+    this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
 
     this.origin.clear()
@@ -278,8 +272,8 @@ export class UnidocEvent {
   /**
   * @see Object.toString
   */
-  public toString () : string {
-    let result : string = ''
+  public toString(): string {
+    let result: string = ''
 
     result += this.index
     result += ' '
@@ -317,17 +311,17 @@ export class UnidocEvent {
   /**
   * @see Object.equals
   */
-  public equals (other : any) : boolean {
+  public equals(other: any): boolean {
     if (other == null) return false
     if (other === this) return true
 
     if (other instanceof UnidocEvent) {
       if (
-        other.index        !== this.index        ||
-        other.type         !== this.type         ||
+        other.index !== this.index ||
+        other.type !== this.type ||
         other.classes.size !== this.classes.size ||
-        other.identifier   !== this.identifier   ||
-        other.tag          !== this.tag          ||
+        other.identifier !== this.identifier ||
+        other.tag !== this.tag ||
         !other.origin.equals(this.origin)
       ) { return false }
 
@@ -348,8 +342,8 @@ export namespace UnidocEvent {
   /**
   * Create a word unidoc event.
   */
-  export function word (content : string) : UnidocEvent {
-    const result : UnidocEvent = new UnidocEvent()
+  export function word(content: string): UnidocEvent {
+    const result: UnidocEvent = new UnidocEvent()
     result.asWord(content)
     return result
   }
@@ -357,8 +351,8 @@ export namespace UnidocEvent {
   /**
   * Create a whitespace unidoc event.
   */
-  export function whitespace (content : string) : UnidocEvent {
-    const result : UnidocEvent = new UnidocEvent()
+  export function whitespace(content: string): UnidocEvent {
+    const result: UnidocEvent = new UnidocEvent()
     result.asWhitespace(content)
     return result
   }
@@ -366,8 +360,8 @@ export namespace UnidocEvent {
   /**
   * Create a tag start unidoc event.
   */
-  export function tagStart (configuration : string) : UnidocEvent {
-    const result : UnidocEvent = new UnidocEvent()
+  export function tagStart(configuration: string): UnidocEvent {
+    const result: UnidocEvent = new UnidocEvent()
     result.asTagStart(configuration)
     return result
   }
@@ -375,8 +369,8 @@ export namespace UnidocEvent {
   /**
   * Create a tag end unidoc event.
   */
-  export function tagEnd (configuration : string) : UnidocEvent {
-    const result : UnidocEvent = new UnidocEvent()
+  export function tagEnd(configuration: string): UnidocEvent {
+    const result: UnidocEvent = new UnidocEvent()
     result.asTagEnd(configuration)
     return result
   }
@@ -388,32 +382,32 @@ export namespace UnidocEvent {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : UnidocEvent) : UnidocEvent
-  export function copy (toCopy : null) : null
-  export function copy (toCopy : undefined) : undefined
-  export function copy (toCopy : UnidocEvent | null | undefined) : UnidocEvent | null | undefined {
+  export function copy(toCopy: UnidocEvent): UnidocEvent
+  export function copy(toCopy: null): null
+  export function copy(toCopy: undefined): undefined
+  export function copy(toCopy: UnidocEvent | null | undefined): UnidocEvent | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR : Allocator<UnidocEvent> = {
+  export const ALLOCATOR: Allocator<UnidocEvent> = {
     /**
     * @see Allocator.copy
     */
-    allocate () : UnidocEvent {
+    allocate(): UnidocEvent {
       return new UnidocEvent()
     },
 
     /**
     * @see Allocator.copy
     */
-    copy (source : UnidocEvent, destination : UnidocEvent) : void {
+    copy(source: UnidocEvent, destination: UnidocEvent): void {
       destination.copy(source)
     },
 
     /**
     * @see Allocator.clear
     */
-    clear (instance : UnidocEvent) : void {
+    clear(instance: UnidocEvent): void {
       instance.clear()
     }
   }
@@ -426,7 +420,7 @@ export namespace UnidocEvent {
   *
   * @return True if both operand are equals.
   */
-  export function equals (left? : UnidocEvent, right? : UnidocEvent) : boolean {
+  export function equals(left?: UnidocEvent, right?: UnidocEvent): boolean {
     return left == null ? left == right : left.equals(right)
   }
 }

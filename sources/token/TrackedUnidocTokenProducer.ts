@@ -8,15 +8,15 @@ import { UnidocTokenProducer } from './UnidocTokenProducer'
 import { UnidocToken } from './UnidocToken'
 import { UnidocTokenBuffer } from './UnidocTokenBuffer'
 
-const DEFAULT_OPENING_BLOCK_LINE : string = '{'
-const DEFAULT_CLOSING_BLOCK_LINE : string = '}'
+const DEFAULT_OPENING_BLOCK_LINE: string = '{'
+const DEFAULT_CLOSING_BLOCK_LINE: string = '}'
 
-const STATE_WORD : number = 0
-const STATE_SPACE : number = 1
-const STATE_CARRIAGE_RETURN : number = 2
-const STATE_NEWLINE : number = 3
+const STATE_WORD: number = 0
+const STATE_SPACE: number = 1
+const STATE_CARRIAGE_RETURN: number = 2
+const STATE_NEWLINE: number = 3
 
-function getState (codePoint : CodePoint) : number {
+function getState(codePoint: CodePoint): number {
   switch (codePoint) {
     case CodePoint.NEW_LINE:
       return STATE_NEWLINE
@@ -35,15 +35,15 @@ function getState (codePoint : CodePoint) : number {
 * A unidoc token.
 */
 export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
-  private readonly _producer : UnidocTokenProducer
-  private readonly _tracker  : UnidocLocationTracker
+  private readonly _producer: UnidocTokenProducer
+  private readonly _tracker: UnidocLocationTracker
 
   /**
   * Instantiate a new unidoc token.
   *
   * @param [capacity = 16] - Initial capacity of the symbol buffer of this token.
   */
-  public constructor () {
+  public constructor() {
     this._producer = new UnidocTokenProducer()
     this._tracker = new UnidocLocationTracker()
   }
@@ -56,7 +56,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceIdentifier (value : string, line : string = value) : TrackedUnidocTokenProducer {
+  public produceIdentifier(value: string, line: string = value): TrackedUnidocTokenProducer {
     this._producer.from().text(this._tracker.location).runtime()
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
@@ -74,7 +74,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceClass (value : string, line : string = value) : TrackedUnidocTokenProducer {
+  public produceClass(value: string, line: string = value): TrackedUnidocTokenProducer {
     this._producer.from().text(this._tracker.location).runtime()
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
@@ -92,7 +92,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceTag (value : string, line : string = value) : TrackedUnidocTokenProducer {
+  public produceTag(value: string, line: string = value): TrackedUnidocTokenProducer {
     this._producer.from().text(this._tracker.location).runtime()
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
@@ -109,7 +109,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceBlockStart (line : string = DEFAULT_OPENING_BLOCK_LINE) : TrackedUnidocTokenProducer {
+  public produceBlockStart(line: string = DEFAULT_OPENING_BLOCK_LINE): TrackedUnidocTokenProducer {
     this._producer.from().text(this._tracker.location).runtime()
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
@@ -126,7 +126,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceBlockEnd (line : string = DEFAULT_CLOSING_BLOCK_LINE) : TrackedUnidocTokenProducer {
+  public produceBlockEnd(line: string = DEFAULT_CLOSING_BLOCK_LINE): TrackedUnidocTokenProducer {
     this._producer.from().text(this._tracker.location).runtime()
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
@@ -144,7 +144,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceSpace (value : string, line : string = value) : TrackedUnidocTokenProducer {
+  public produceSpace(value: string, line: string = value): TrackedUnidocTokenProducer {
     this._producer.from().text(this._tracker.location).runtime()
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
@@ -162,7 +162,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceNewline (type : '\r\n' | '\r' | '\n' = '\r\n', line : string = type) : TrackedUnidocTokenProducer {
+  public produceNewline(type: '\r\n' | '\r' | '\n' = '\r\n', line: string = type): TrackedUnidocTokenProducer {
     this._producer.from().text(this._tracker.location).runtime()
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
@@ -180,7 +180,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceWord (value : string, line : string = value) : TrackedUnidocTokenProducer {
+  public produceWord(value: string, line: string = value): TrackedUnidocTokenProducer {
     this._producer.from().text(this._tracker.location).runtime()
     this._tracker.nextString(line)
     this._producer.to().text(this._tracker.location).runtime()
@@ -197,14 +197,14 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceString (value : string) : TrackedUnidocTokenProducer {
+  public produceString(value: string): TrackedUnidocTokenProducer {
     if (value.length > 0) {
-      let offset : number = 0
-      let cursor : number = 1
-      let state : number = getState(value.codePointAt(0) as CodePoint)
+      let offset: number = 0
+      let cursor: number = 1
+      let state: number = getState(value.codePointAt(0) as CodePoint)
 
       while (cursor < value.length) {
-        const nextState : number = getState(value.codePointAt(cursor) as CodePoint)
+        const nextState: number = getState(value.codePointAt(cursor) as CodePoint)
 
         switch (state) {
           case STATE_WORD:
@@ -215,7 +215,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
             break
           case STATE_SPACE:
             if (nextState !== state) {
-              this.produceWord(value.substring(offset, cursor))
+              this.produceSpace(value.substring(offset, cursor))
               offset = cursor
             }
             break
@@ -257,7 +257,7 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   /**
   * @see ListenableUnidocProducer.complete
   */
-  public complete () : void {
+  public complete(): void {
     this._producer.complete()
   }
 
@@ -309,18 +309,18 @@ export class TrackedUnidocTokenProducer implements UnidocProducer<UnidocToken> {
   * @see UnidocProducer.removeAllEventListener
   */
   public removeAllEventListener(): void
-  public removeAllEventListener(...params : [any?]) {
+  public removeAllEventListener(...params: [any?]) {
     this._producer.removeAllEventListener(...params)
   }
 }
 
 export namespace TrackedUnidocTokenProducer {
-  export function create () : TrackedUnidocTokenProducer {
+  export function create(): TrackedUnidocTokenProducer {
     return new TrackedUnidocTokenProducer()
   }
 
-  export function forBuffer (buffer : UnidocTokenBuffer) : TrackedUnidocTokenProducer {
-    const result : TrackedUnidocTokenProducer = new TrackedUnidocTokenProducer()
+  export function forBuffer(buffer: UnidocTokenBuffer): TrackedUnidocTokenProducer {
+    const result: TrackedUnidocTokenProducer = new TrackedUnidocTokenProducer()
 
     result.addEventListener(UnidocProducerEvent.PRODUCTION, buffer.push.bind(buffer))
     result.addEventListener(UnidocProducerEvent.COMPLETION, buffer.fit.bind(buffer))
@@ -328,8 +328,8 @@ export namespace TrackedUnidocTokenProducer {
     return result
   }
 
-  export function forParser (parser : UnidocParser) : TrackedUnidocTokenProducer {
-    const result : TrackedUnidocTokenProducer = new TrackedUnidocTokenProducer()
+  export function forParser(parser: UnidocParser): TrackedUnidocTokenProducer {
+    const result: TrackedUnidocTokenProducer = new TrackedUnidocTokenProducer()
 
     result.addEventListener(UnidocProducerEvent.PRODUCTION, parser.next.bind(parser))
     result.addEventListener(UnidocProducerEvent.COMPLETION, parser.complete.bind(parser))
