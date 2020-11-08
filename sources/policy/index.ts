@@ -1,7 +1,0 @@
-export { AnythingPolicy } from './AnythingPolicy'
-export { DocumentPolicy } from './DocumentPolicy'
-export { Policy } from './Policy'
-export { PolicyType } from './PolicyType'
-export { ReferencePolicy } from './ReferencePolicy'
-export { SequencePolicy } from './SequencePolicy'
-export { TagPolicy } from './TagPolicy'

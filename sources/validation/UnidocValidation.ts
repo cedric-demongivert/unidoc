@@ -1,147 +1,67 @@
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { UnidocEvent } from '../event/UnidocEvent'
 
-import { UnidocPath } from '../path/UnidocPath'
-
-import { UnidocValidationType } from './UnidocValidationType'
-
-const EMPTY_STRING : string = ''
+import { UnidocValidationManager } from './UnidocValidationManager'
+import { UnidocValidationMessage } from './UnidocValidationMessage'
 
 export class UnidocValidation {
-  public type          : UnidocValidationType
-  public path          : UnidocPath
-  public code          : string
-  public readonly data : Map<string, any>
+  /**
+  * Parent manager of this validation object.
+  */
+  public manager: UnidocValidationManager
 
   /**
-  * Instantiate a new validation instance.
+  * Index of the next event.
   */
-  public constructor () {
-    this.type = UnidocValidationType.DEFAULT
-    this.path = new UnidocPath()
-    this.code = EMPTY_STRING
-    this.data = new Map<string, any>()
+  private process: number
+
+  public constructor(manager: UnidocValidationManager, process: number) {
+    this.manager = manager
+    this.process = process
   }
 
   /**
-  * Configure this validation as an error.
+  * Notify the begining of this process.
   */
-  public asError () : void {
-    this.type = UnidocValidationType.ERROR
+  public start(): void {
+    this.manager.start(this.process)
   }
 
   /**
-  * Configure this validation as an information.
+  * Notify the termination of this process.
   */
-  public asInformation () : void {
-    this.type = UnidocValidationType.INFORMATION
+  public end(): void {
+    this.manager.end(this.process)
   }
 
   /**
-  * Configure this validation as a warning.
-  */
-  public asWarning () : void {
-    this.type = UnidocValidationType.WARNING
-  }
-
-  /**
-  * Clear this validation instance in order to reuse it.
-  */
-  public clear () : void {
-    this.type = UnidocValidationType.DEFAULT
-    this.code = EMPTY_STRING
-    this.data.clear()
-    this.path.clear()
-  }
-
-  /**
-  * Copy an existing instance.
+  * Notify the validation of the given event by this process.
   *
-  * @param toCopy - An instance to copy.
+  * @param event - The event that is validated.
   */
-  public copy (toCopy : UnidocValidation) : void {
-    this.type = toCopy.type
-    this.code = toCopy.code
-    this.path.copy(toCopy.path)
-    this.data.clear()
-
-    for (const [key, data] of toCopy.data) {
-      this.data.set(key, data)
-    }
+  public validate(event: UnidocEvent): void {
+    this.manager.validate(this.process, event)
   }
 
   /**
-  * Return a copy of this instance.
+  * Notify the publication of the given message by the given process.
   *
-  * @return A copy of this instance.
+  * @param message - The message to publish.
   */
-  public clone () : UnidocValidation {
-    const result : UnidocValidation = new UnidocValidation()
-    result.copy(this)
-    return result
+  public publish(message: UnidocValidationMessage): void {
+    this.manager.publish(this.process, message)
   }
 
   /**
-  * @see Object#toString
-  */
-  public toString () : string {
-    return (
-      `[${UnidocValidationType.toString(this.type)}] ${this.path.toString()} ${this.code} : {${[...this.data.entries()].map(x => x[0] + ': ' + x[1]).join(', ')}}`
-    )
-  }
-
-  /**
-  * @see Object#equals
-  */
-  public equals (other : any) : boolean {
-    if (other == null) return false
-    if (other === this) return true
-
-    if (other instanceof UnidocValidation) {
-      if (
-        other.type !== this.type ||
-        other.code !== this.code ||
-        other.data.size !== this.data.size ||
-        !other.path.equals(this.path)
-      ) return false
-
-      for (const [key, data] of this.data) {
-        if (other.data.get(key) !== data) {
-          return false
-        }
-      }
-
-      return true
-    }
-
-    return false
-  }
-}
-
-export namespace UnidocValidation {
-  /**
-  * Return a deep copy of the given instance.
+  * Fork this process and return a new process number.
   *
-  * @param toCopy - An instance to copy.
-  *
-  * @return A deep copy of the given instance.
+  * @return The identifier of the new sub-process.
   */
-  export function copy (toCopy : UnidocValidation) : UnidocValidation
-  export function copy (toCopy : null) : null
-  export function copy (toCopy : UnidocValidation | null) : UnidocValidation | null {
-    return toCopy == null ? toCopy : toCopy.clone()
+  public fork(): number {
+    return this.manager.fork(this.process)
   }
 
-  export const ALLOCATOR : Allocator<UnidocValidation> = {
-    allocate () : UnidocValidation {
-      return new UnidocValidation()
-    },
-
-    clear (instance : UnidocValidation) : void {
-      instance.clear()
-    },
-
-    copy (source : UnidocValidation, destination : UnidocValidation) : void {
-      destination.copy(source)
-    }
+  public as(manager: UnidocValidationManager, process: number): void {
+    this.manager = manager
+    this.process = process
   }
 }

@@ -147,6 +147,10 @@ export class UnidocEvent {
   * @param content - Content of the resulting event.
   */
   public asWord(content: string): void {
+    this.identifier = EMPTY_STRING
+    this.tag = EMPTY_STRING
+    this.classes.clear()
+
     this.type = UnidocEventType.WORD
     this.text = content
   }
@@ -157,6 +161,10 @@ export class UnidocEvent {
   * @param content - Content of the resulting event.
   */
   public asWhitespace(content: string): void {
+    this.identifier = EMPTY_STRING
+    this.tag = EMPTY_STRING
+    this.classes.clear()
+
     this.type = UnidocEventType.WHITESPACE
     this.text = content
   }
@@ -167,6 +175,7 @@ export class UnidocEvent {
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
   public asTagStart(configuration: string): void {
+    this.symbols.clear()
     this.classes.clear()
     this.type = UnidocEventType.START_TAG
 
@@ -193,6 +202,7 @@ export class UnidocEvent {
   * @param configuration - Type, identifiers and classes of the resulting tag.
   */
   public asTagEnd(configuration: string): void {
+    this.symbols.clear()
     this.classes.clear()
     this.type = UnidocEventType.END_TAG
 

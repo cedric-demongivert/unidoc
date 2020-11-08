@@ -38,6 +38,11 @@ export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
     super.initialize()
   }
 
+  public event(): UnidocEventProducer {
+    this._event.clear()
+    return this
+  }
+
   public withType(type: UnidocEventType): UnidocEventProducer {
     this._event.type = type
     return this

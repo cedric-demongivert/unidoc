@@ -1,12 +1,8 @@
 import { UnidocEvent } from '../event/UnidocEvent'
-import { UnidocValidationProcessEvent } from '../validation/UnidocValidationProcessEvent'
+import { UnidocValidationEvent } from '../validation/UnidocValidationEvent'
 
 import { UnidocProducer } from '../producer/UnidocProducer'
+import { UnidocConsumer } from '../consumer/UnidocConsumer'
 
-export interface UnidocValidator extends UnidocProducer<UnidocValidationProcessEvent> {
-  start () : void
-
-  validate (event : UnidocEvent) : void
-
-  complete () : void
-}
+export interface UnidocValidator
+  extends UnidocProducer<UnidocValidationEvent>, UnidocConsumer<UnidocEvent> { }

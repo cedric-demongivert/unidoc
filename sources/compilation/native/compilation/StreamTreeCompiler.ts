@@ -2,15 +2,25 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocEvent } from '../../../event/UnidocEvent'
 import { UnidocEventType } from '../../../event/UnidocEventType'
+
+import { SubscribableUnidocConsumer } from '../../../consumer/SubscribableUnidocConsumer'
+import { StaticUnidocProducer } from '../../../producer/StaticUnidocProducer'
+import { UnidocProducerEvent } from '../../../producer/UnidocProducerEvent'
+
 import { StreamTree } from '../StreamTree'
 
 import { NativeCompiler } from './NativeCompiler'
 
-export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
-  private _result : StreamTree
-  private readonly _stack  : Pack<StreamTree>
+export class StreamTreeCompiler extends SubscribableUnidocConsumer<UnidocEvent> implements NativeCompiler<StreamTree> {
+  private _result: StreamTree
+  private readonly _stack: Pack<StreamTree>
+  private readonly _producer: StaticUnidocProducer<StreamTree>
 
-  public constructor (capacity : number = 32) {
+  public constructor(capacity: number = 32) {
+    super()
+
+    this._producer = new StaticUnidocProducer()
+
     this._result = {
       tag: 'document',
       identifier: undefined,
@@ -22,10 +32,9 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
   }
 
   /**
-  * Notify the begining of the stream of event that describe the document to
-  * compile.
+  * @see UnidocConsumer.handleInitialization
   */
-  public start () : void {
+  public handleInitialization(): void {
     this._result = {
       tag: 'document',
       identifier: undefined,
@@ -37,12 +46,9 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
   }
 
   /**
-  * Notify that a new event was published into the stream of event that describe
-  * the document to compile.
-  *
-  * @param event - An event to process.
+  * @see UnidocConsumer.handleProduction
   */
-  public next (event : UnidocEvent) : void {
+  public handleProduction(event: UnidocEvent): void {
     switch (event.type) {
       case UnidocEventType.WHITESPACE:
         return this.handleWhitespace(event)
@@ -61,13 +67,40 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
     }
   }
 
-  public handleWhitespace (event : UnidocEvent) : void {
-    const current : StreamTree = this._stack.last
+  /**
+  * @see UnidocConsumer.handleCompletion
+  */
+  public handleCompletion(): void {
+    const result: any = this._result
+
+    this._result = {
+      tag: 'document',
+      identifier: undefined,
+      classes: [],
+      content: []
+    }
+
+    this._stack.clear()
+
+    this._producer.initialize()
+    this._producer.produce(result)
+    this._producer.complete()
+  }
+
+  /**
+  * @see UnidocConsumer.handleFailure
+  */
+  public handleFailure(error: Error): void {
+    console.error(error)
+  }
+
+  public handleWhitespace(event: UnidocEvent): void {
+    const current: StreamTree = this._stack.last
 
     if (current.content.length === 0) {
       current.content.push(this.toWhitespaceTag(event))
     } else {
-      const last : StreamTree.Node<any> = current.content[current.content.length - 1]
+      const last: StreamTree.Node<any> = current.content[current.content.length - 1]
 
       if (last.tag === 'whitespace') {
         last.content += event.text
@@ -77,7 +110,7 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
     }
   }
 
-  private toWhitespaceTag (event : UnidocEvent) : StreamTree.Node<string> {
+  private toWhitespaceTag(event: UnidocEvent): StreamTree.Node<string> {
     return {
       tag: 'whitespace',
       identifier: event.identifier,
@@ -86,13 +119,13 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
     }
   }
 
-  public handleWord (event : UnidocEvent) : void {
-    const current : StreamTree = this._stack.last
+  public handleWord(event: UnidocEvent): void {
+    const current: StreamTree = this._stack.last
 
     if (current.content.length === 0) {
       current.content.push(this.toWordTag(event))
     } else {
-      const last : StreamTree.Node<any> = current.content[current.content.length - 1]
+      const last: StreamTree.Node<any> = current.content[current.content.length - 1]
 
       if (last.tag === 'word') {
         last.content += event.text
@@ -102,7 +135,7 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
     }
   }
 
-  private toWordTag (event : UnidocEvent) : StreamTree.Node<string> {
+  private toWordTag(event: UnidocEvent): StreamTree.Node<string> {
     return {
       tag: 'word',
       identifier: event.identifier,
@@ -111,17 +144,17 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
     }
   }
 
-  public handleDocument (event : UnidocEvent) : void {
+  public handleDocument(event: UnidocEvent): void {
     this._result.identifier = event.identifier
     this._result.classes = [...event.classes]
   }
 
-  public handleTagStart (event : UnidocEvent) : void {
+  public handleTagStart(event: UnidocEvent): void {
     if (this._stack.size === 1 && event.tag === 'document') {
       this.handleDocument(event)
     } else {
-      const current : StreamTree = this._stack.last
-      const tag : StreamTree = {
+      const current: StreamTree = this._stack.last
+      const tag: StreamTree = {
         tag: event.tag,
         identifier: event.identifier,
         classes: [...event.classes],
@@ -133,30 +166,14 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
     }
   }
 
-  public handleTagEnd (event : UnidocEvent) : void {
+  public handleTagEnd(event: UnidocEvent): void {
     this._stack.pop()
-  }
-
-  /**
-  * Notify the termination of the stream of event that describe the document to
-  * compile.
-  */
-  public complete () : StreamTree {
-    const result : any = this._result
-    this._result = {
-      tag: 'document',
-      identifier: undefined,
-      classes: [],
-      content: []
-    }
-    this._stack.clear()
-    return result
   }
 
   /**
   * Update the state of this compiler in order to reuse-it on another stream.
   */
-  public reset () : void {
+  public reset(): void {
     this._result = {
       tag: 'document',
       identifier: undefined,
@@ -170,7 +187,7 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
   * Update the state of this compiler toke make it as if the compiler was just
   * instantiated.
   */
-  public clear () : void {
+  public clear(): void {
     this._result = {
       tag: 'document',
       identifier: undefined,
@@ -179,7 +196,28 @@ export class StreamTreeCompiler implements NativeCompiler<StreamTree> {
     }
     this._stack.clear()
   }
+
+  /**
+  * @see UnidocProducer.addEventListener
+  */
+  public addEventListener(event: UnidocProducerEvent, listener: any): void {
+    this._producer.addEventListener(event, listener)
+  }
+
+  /**
+  * @see UnidocProducer.removeEventListener
+  */
+  public removeEventListener(event: UnidocProducerEvent, listener: any): void {
+    this._producer.removeEventListener(event, listener)
+  }
+
+  /**
+  * @see UnidocProducer.removeAllEventListener
+  */
+  public removeAllEventListener(...parameters: [any?]): void {
+    this._producer.removeAllEventListener(...parameters)
+  }
 }
 
-export namespace JSONCompiler {
+export namespace StreamTreeCompiler {
 }

@@ -170,7 +170,8 @@ export class UnidocLexer extends SubscribableUnidocConsumer<UnidocSymbol>
       (codePoint >= CodePoint.a && codePoint <= CodePoint.z) ||
       (codePoint >= CodePoint.A && codePoint <= CodePoint.Z) ||
       (codePoint >= CodePoint.ZERO && codePoint <= CodePoint.NINE) ||
-      (codePoint === CodePoint.MINUS)
+      (codePoint === CodePoint.MINUS) ||
+      (codePoint === CodePoint.DOUBLE_DOT)
     ) {
       this._symbols.bufferize(symbol)
       this._state = UnidocLexerState.TAG

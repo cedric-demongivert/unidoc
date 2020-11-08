@@ -4,8 +4,6 @@ import { UnidocTokenType } from '../token/UnidocTokenType'
 import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocEventType } from '../event/UnidocEventType'
 
-import { UnidocValidation } from '../validation/UnidocValidation'
-
 import { UnidocEventProducer } from '../event/UnidocEventProducer'
 
 import { UnidocProducer } from '../producer/UnidocProducer'
@@ -44,7 +42,7 @@ export class UnidocParser
   /**
   * Unidoc validation instance for publication.
   */
-  private _validation: UnidocValidation
+  //private _validation: UnidocValidation
 
   /**
   * Instantiate a new unidoc parser with a given token buffer capacity.
@@ -57,7 +55,7 @@ export class UnidocParser
     this._states = new UnidocParserStateBuffer(capacity)
     this._producer = new UnidocEventProducer()
 
-    this._validation = new UnidocValidation()
+    //this._validation = new UnidocValidation()
 
     this._states.push(UnidocParserStateType.START)
   }
@@ -697,7 +695,7 @@ export class UnidocParser
   }
 
   private emitDocumentStartWithBlockEndingError() {
-    this._validation.clear()
+    //this._validation.clear()
     //this._validation.asError('An unidoc document cannot start with a block ending character.')
     //this.emitValidation(this._validation)
     /** @TODO */
@@ -706,7 +704,9 @@ export class UnidocParser
   private emitVirtualDocumentStart(state: UnidocParserState = this._states.last) {
     this._producer.initialize()
 
-    this._producer.at(state.origin.from)
+    this._producer
+      .event()
+      .at(state.origin.from)
       .withType(UnidocEventType.START_TAG)
       .withTag(DOCUMENT_TAG)
       .produce()
@@ -715,7 +715,9 @@ export class UnidocParser
   private emitVirtualDocumentEnd(state: UnidocParserState = this._states.last) {
     this._producer.initialize()
 
-    this._producer.at(state.origin.to)
+    this._producer
+      .event()
+      .at(state.origin.to)
       .withType(UnidocEventType.END_TAG)
       .withTag(DOCUMENT_TAG)
       .produce()
@@ -724,7 +726,9 @@ export class UnidocParser
   private emitTagStart(state: UnidocParserState = this._states.last): void {
     this._producer.initialize()
 
-    this._producer.from(state.origin.from)
+    this._producer
+      .event()
+      .from(state.origin.from)
       .to(state.origin.to)
       .withType(UnidocEventType.START_TAG)
       .withClasses(state.classes)
@@ -739,7 +743,9 @@ export class UnidocParser
   private emitTagEnd(state: UnidocParserState = this._states.last): void {
     this._producer.initialize()
 
-    this._producer.from(state.origin.from)
+    this._producer
+      .event()
+      .from(state.origin.from)
       .to(state.origin.to)
       .withType(UnidocEventType.END_TAG)
       .withClasses(state.classes)
@@ -754,7 +760,9 @@ export class UnidocParser
   private emitWhitespaceEvent(state: UnidocParserState = this._states.last): void {
     this._producer.initialize()
 
-    this._producer.from(state.origin.from)
+    this._producer
+      .event()
+      .from(state.origin.from)
       .to(state.origin.to)
       .withType(UnidocEventType.WHITESPACE)
       .withSymbols(state.content)
@@ -767,7 +775,9 @@ export class UnidocParser
   private emitWordEvent(state: UnidocParserState = this._states.last): void {
     this._producer.initialize()
 
-    this._producer.from(state.origin.from)
+    this._producer
+      .event()
+      .from(state.origin.from)
       .to(state.origin.to)
       .withType(UnidocEventType.WORD)
       .withSymbols(state.content)
