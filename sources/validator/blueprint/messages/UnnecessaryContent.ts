@@ -6,6 +6,5 @@ export namespace UnnecessaryContent {
 
   export namespace Data {
     export const BLUEPRINT: string = 'blueprint'
-    export const INSTRUCTION: string = 'instruction'
   }
 }

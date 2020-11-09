@@ -269,6 +269,7 @@ export class UnidocEvent {
   */
   public clear(): void {
     this.index = 0
+    this.type = UnidocEventType.START_TAG
     this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
 

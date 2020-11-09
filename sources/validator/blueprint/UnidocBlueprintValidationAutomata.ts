@@ -7,10 +7,7 @@ import { UnidocBranchAutomata } from '../tree/UnidocBranchAutomata'
 import { UnidocBranchValidator } from '../tree/UnidocBranchValidator'
 
 import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
-import { UnidocBlueprintInstruction } from '../../blueprint/UnidocBlueprintInstruction'
-import { UnidocInstruction } from '../../blueprint/UnidocInstruction'
-import { UnidocInstructionType } from '../../blueprint/UnidocInstructionType'
-import { UnidocBlueprintWalker } from '../../blueprint/UnidocBlueprintWalker'
+import { UnidocBlueprintType } from '../../blueprint/UnidocBlueprintType'
 
 import { RequiredContent } from './messages/RequiredContent'
 import { TooManyErrors } from './messages/TooManyErrors'
@@ -18,23 +15,16 @@ import { UnexpectedContent } from './messages/UnexpectedContent'
 import { UnnecessaryContent } from './messages/UnnecessaryContent'
 
 import { UnidocBlueprintValidationState } from './UnidocBlueprintValidationState'
-import { UnidocBlueprintValidationStateType } from './UnidocBlueprintValidationStateType'
 
 const MAXIMUM_ALLOWED_RECOVERIES: number = 5
 
 export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
   private _blueprint: UnidocBlueprint
-  private _instruction: number
   private readonly _states: Pack<UnidocBlueprintValidationState>
   private _recoveries: number
 
-  public get instruction(): UnidocBlueprintInstruction {
-    return this._blueprint.get(this._instruction)
-  }
-
   public constructor(blueprint: UnidocBlueprint) {
     this._blueprint = blueprint
-    this._instruction = 0
     this._recoveries = 0
     this._states = Pack.instance(UnidocBlueprintValidationState.ALLOCATOR, 12)
   }
@@ -46,128 +36,169 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
 
   }
 
-  /**
-  * @see UnidocBranchAutomata.validate
-  */
-  public validate(branch: UnidocBranchValidator, event: UnidocEvent): void {
+  public prevalidate(branch: UnidocBranchValidator): void {
     while (true) {
-      const instruction: UnidocInstruction = this.instruction.instruction
+      const blueprint: UnidocBlueprint = this._blueprint
 
-      switch (instruction.type) {
-        case UnidocInstructionType.START_MANY:
-          this.startMany(branch)
+      switch (blueprint.type) {
+        case UnidocBlueprintType.MANY:
+          this.processMany(branch)
           break
-        case UnidocInstructionType.END_MANY:
-          this.endMany(branch)
-          break
-        case UnidocInstructionType.TAG_START:
-          return this.validateTagStart(branch, event)
-        case UnidocInstructionType.TAG_END:
-          return this.validateTagEnd(branch, event)
-        case UnidocInstructionType.WORD:
-          return this.validateWord(branch, event)
-        case UnidocInstructionType.WHITESPACE:
-          return this.validateWhitespace(branch, event)
-        case UnidocInstructionType.END:
-          return this.validateEnd(branch, event)
+        case UnidocBlueprintType.END:
+          if (this._states.size > 0) {
+            this.processEnd(branch)
+            break
+          } else {
+            return
+          }
+        case UnidocBlueprintType.TAG_START:
+        case UnidocBlueprintType.TAG_END:
+        case UnidocBlueprintType.WORD:
+        case UnidocBlueprintType.WHITESPACE:
+          return
         default:
           throw new Error(
-            'Unable to validate event ' + event.toString() + ' in accordance ' +
-            'with instruction ' +
-            this._blueprint.get(this._instruction).toString() +
-            ' of type #' + instruction.type + ' (' +
-            UnidocInstructionType.toString(instruction.type) + ') because no ' +
-            'procedure was defined into this automata for handling this ' +
-            'situation.'
+            'Unable to prevalidate in accordance with a blueprint of type #' +
+            blueprint.type + ' (' + UnidocBlueprintType.toString(blueprint.type)
+            + ') because no procedure was defined into this automata for ' +
+            'handling this situation.'
           )
       }
     }
   }
 
-  private startMany(branch: UnidocBranchValidator): void {
-    const instruction: UnidocInstruction.StartMany = this.instruction.instruction as UnidocInstruction.StartMany
+  /**
+  * @see UnidocBranchAutomata.validate
+  */
+  public validate(branch: UnidocBranchValidator, event: UnidocEvent): void {
+    const blueprint: UnidocBlueprint = this._blueprint
 
-    if (instruction.minimum === 0) {
+    switch (blueprint.type) {
+      case UnidocBlueprintType.MANY:
+        throw new Error('Call for a pre-validation before each validation call.')
+      case UnidocBlueprintType.TAG_START:
+        return this.validateTagStart(branch, event)
+      case UnidocBlueprintType.TAG_END:
+        return this.validateTagEnd(branch, event)
+      case UnidocBlueprintType.WORD:
+        return this.validateWord(branch, event)
+      case UnidocBlueprintType.WHITESPACE:
+        return this.validateWhitespace(branch, event)
+      case UnidocBlueprintType.END:
+        if (this._states.size > 0) {
+          throw new Error('Call for a pre-validation before each validation call.')
+        } else {
+          return this.validateEnd(branch)
+        }
+      default:
+        throw new Error(
+          'Unable to validate event ' + event.toString() + ' in accordance ' +
+          'with a blueprint of type #' + blueprint.type + ' (' +
+          UnidocBlueprintType.toString(blueprint.type) + ') because no ' +
+          'procedure was defined into this automata for handling this ' +
+          'situation.'
+        )
+    }
+  }
+
+  private processMany(branch: UnidocBranchValidator): void {
+    const blueprint: UnidocBlueprint.Many = this._blueprint as UnidocBlueprint.Many
+
+    if (blueprint.minimum === 0) {
       const fork: UnidocBlueprintValidationAutomata = this.clone()
-      fork._instruction = UnidocBlueprintWalker.get(this._blueprint, this._instruction).walkUntilManyBlockTermination() + 1
+      fork._blueprint = blueprint.next
       branch.fork(fork)
     }
 
     this._states.size += 1
-    this._states.last.from(this.instruction).asMany(instruction)
-    this._instruction += 1
+    this._states.last.blueprint = blueprint
+    this._blueprint = blueprint.content
   }
 
-  private endMany(branch: UnidocBranchValidator): void {
+  private processEnd(branch: UnidocBranchValidator): void {
     const state: UnidocBlueprintValidationState = this._states.last
 
-    if (state.type === UnidocBlueprintValidationStateType.MANY) {
-      state.current += 1
-
-      if (state.current >= state.minimum) {
-        const fork: UnidocBlueprintValidationAutomata = this.clone()
-        fork._states.pop()
-        fork._instruction += 1
-        branch.fork(fork)
-      }
-
-      if (state.current > state.maximum) {
-        branch.asMessageOfType(UnnecessaryContent.TYPE)
-          .ofCode(UnnecessaryContent.CODE)
-          .withData(UnnecessaryContent.Data.BLUEPRINT, this._blueprint)
-          .withData(UnnecessaryContent.Data.INSTRUCTION, this._blueprint.get(state.since))
-          .produce()
-
-        this.recover(branch)
-      }
-
-      this._instruction = state.since + 1
-    } else {
-      throw 'Illegal many block termination.'
+    switch (state.blueprint.type) {
+      case UnidocBlueprintType.MANY:
+        return this.processEndOfMany(branch)
+      default:
+        throw new Error(
+          'Unable to process end of a state of type #' + state.blueprint.type +
+          ' (' + UnidocBlueprintType.toString(state.blueprint.type) + ') ' +
+          'because no procedure was defined for this.'
+        )
     }
+  }
+
+  private processEndOfMany(branch: UnidocBranchValidator): void {
+    const state: UnidocBlueprintValidationState = this._states.last
+    const blueprint: UnidocBlueprint.Many = state.blueprint as UnidocBlueprint.Many
+
+    state.current += 1
+
+    if (state.current > blueprint.maximum) {
+      branch.asMessageOfType(UnnecessaryContent.TYPE)
+        .ofCode(UnnecessaryContent.CODE)
+        .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
+        .produce()
+
+      this.recover(branch)
+    }
+
+    if (state.current >= blueprint.minimum) {
+      const fork: UnidocBlueprintValidationAutomata = this.clone()
+      fork._states.pop()
+      fork._blueprint = blueprint.next
+      branch.fork(fork)
+    }
+
+    this._blueprint = blueprint.content
   }
 
   private validateTagStart(branch: UnidocBranchValidator, event: UnidocEvent): void {
-    const instruction: UnidocInstruction.TagStart = this.instruction.instruction as UnidocInstruction.TagStart
+    const blueprint: UnidocBlueprint.TagStart = this._blueprint as UnidocBlueprint.TagStart
 
-    if (event.type !== UnidocEventType.START_TAG || event.tag !== instruction.tag) {
+    if (event.type !== UnidocEventType.START_TAG || event.tag !== blueprint.tag) {
       this.throwUnexpectedContent(branch)
     }
 
-    this._instruction += 1
+    this._blueprint = blueprint.next
   }
 
   private validateTagEnd(branch: UnidocBranchValidator, event: UnidocEvent): void {
-    const instruction: UnidocInstruction.TagEnd = this.instruction.instruction as UnidocInstruction.TagEnd
+    const blueprint: UnidocBlueprint.TagEnd = this._blueprint as UnidocBlueprint.TagEnd
 
-    if (event.type !== UnidocEventType.END_TAG || event.tag !== instruction.tag) {
+    if (event.type !== UnidocEventType.END_TAG || event.tag !== blueprint.tag) {
       this.throwUnexpectedContent(branch)
     }
 
-    this._instruction += 1
+    this._blueprint = blueprint.next
   }
 
   private validateWord(branch: UnidocBranchValidator, event: UnidocEvent): void {
+    const blueprint: UnidocBlueprint.Word = this._blueprint as UnidocBlueprint.Word
+
     if (event.type !== UnidocEventType.WORD) {
       this.throwUnexpectedContent(branch)
     }
 
-    this._instruction += 1
+    this._blueprint = blueprint.next
   }
 
   private validateWhitespace(branch: UnidocBranchValidator, event: UnidocEvent): void {
+    const blueprint: UnidocBlueprint.Whitespace = this._blueprint as UnidocBlueprint.Whitespace
+
     if (event.type !== UnidocEventType.WHITESPACE) {
       this.throwUnexpectedContent(branch)
     }
 
-    this._instruction += 1
+    this._blueprint = blueprint.next
   }
 
-  private validateEnd(branch: UnidocBranchValidator, event: UnidocEvent): void {
+  private validateEnd(branch: UnidocBranchValidator): void {
     branch.asMessageOfType(UnnecessaryContent.TYPE)
       .ofCode(UnnecessaryContent.CODE)
       .withData(UnnecessaryContent.Data.BLUEPRINT, this._blueprint)
-      .withData(UnnecessaryContent.Data.INSTRUCTION, this.instruction)
       .produce()
 
     this.recover(branch)
@@ -177,7 +208,6 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
     branch.asMessageOfType(UnexpectedContent.TYPE)
       .ofCode(UnexpectedContent.CODE)
       .withData(UnexpectedContent.Data.BLUEPRINT, this._blueprint)
-      .withData(UnexpectedContent.Data.INSTRUCTION, this.instruction)
       .produce()
 
     this.recover(branch)
@@ -188,28 +218,28 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
   */
   public complete(branch: UnidocBranchValidator): void {
     while (true) {
-      const instruction: UnidocInstruction = this.instruction.instruction
+      const blueprint: UnidocBlueprint = this._blueprint
 
-      switch (instruction.type) {
-        case UnidocInstructionType.START_MANY:
-          this.startMany(branch)
+      switch (blueprint.type) {
+        case UnidocBlueprintType.MANY:
+          this.processMany(branch)
           break
-        case UnidocInstructionType.END_MANY:
-          this.endMany(branch)
-          break
-        case UnidocInstructionType.TAG_START:
-        case UnidocInstructionType.TAG_END:
-        case UnidocInstructionType.WORD:
-        case UnidocInstructionType.WHITESPACE:
+        case UnidocBlueprintType.TAG_START:
+        case UnidocBlueprintType.TAG_END:
+        case UnidocBlueprintType.WORD:
+        case UnidocBlueprintType.WHITESPACE:
           return this.completeWithRequiredContent(branch)
-        case UnidocInstructionType.END:
+        case UnidocBlueprintType.END:
+          if (this._states.size > 0) {
+            this.processEnd(branch)
+            break
+          }
           return
         default:
           throw new Error(
             'Unable to end the validation branch in accordance with ' +
-            'instruction ' + this._blueprint.get(this._instruction).toString() +
-            ' of type #' + instruction.type + ' (' +
-            UnidocInstructionType.toString(instruction.type) + ') because no ' +
+            'blueprint of type #' + blueprint.type + ' (' +
+            UnidocBlueprintType.toString(blueprint.type) + ') because no ' +
             'procedure was defined into this automata for handling this ' +
             'situation.'
           )
@@ -221,7 +251,6 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
     branch.asMessageOfType(RequiredContent.TYPE)
       .ofCode(RequiredContent.CODE)
       .withData(RequiredContent.Data.BLUEPRINT, this._blueprint)
-      .withData(RequiredContent.Data.INSTRUCTION, this.instruction)
       .produce()
 
     this.recover(branch)
@@ -236,7 +265,7 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
 
   public copy(toCopy: UnidocBlueprintValidationAutomata): void {
     this._blueprint = toCopy._blueprint
-    this._instruction = toCopy._instruction
+    this._blueprint = toCopy._blueprint
     this._recoveries = toCopy._recoveries
     this._states.copy(toCopy._states)
   }
@@ -254,7 +283,6 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
       branch.asMessageOfType(TooManyErrors.TYPE)
         .ofCode(TooManyErrors.CODE)
         .withData(TooManyErrors.Data.BLUEPRINT, this._blueprint)
-        .withData(TooManyErrors.Data.INSTRUCTION, this.instruction)
         .withData(TooManyErrors.Data.RECOVERIES, this._recoveries)
         .produce()
 

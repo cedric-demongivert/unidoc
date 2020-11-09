@@ -87,6 +87,10 @@ export class UnidocTreeValidator
   }
 
   public handleCompletion(): void {
+    for (const branch of this._pass) {
+      branch.complete()
+    }
+
     if (this._pass.size > 0) {
       this._pass.last.last()
       this._pass.clear()
@@ -102,6 +106,7 @@ export class UnidocTreeValidator
   public validate(event: UnidocEvent) {
     if (this._pass.size > 0) {
       for (const branch of this._pass) {
+        branch.preprocess()
         this._manager.validate(branch.branch, event)
         branch.validate(event)
 

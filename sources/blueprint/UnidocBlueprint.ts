@@ -1,89 +1,34 @@
-import { Sequence } from '@cedric-demongivert/gl-tool-collection'
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
+import { UnidocBlueprintType } from './UnidocBlueprintType'
 
-import { UnidocBlueprintInstruction } from './UnidocBlueprintInstruction'
-import { UnidocInstruction } from './UnidocInstruction'
+import { UnidocAnyBlueprint } from './UnidocAnyBlueprint'
+import { UnidocEndBlueprint } from './UnidocEndBlueprint'
+import { UnidocManyBlueprint } from './UnidocManyBlueprint'
+import { UnidocTagEndBlueprint } from './UnidocTagEndBlueprint'
+import { UnidocTagStartBlueprint } from './UnidocTagStartBlueprint'
+import { UnidocWhitespaceBlueprint } from './UnidocWhitespaceBlueprint'
+import { UnidocWordBlueprint } from './UnidocWordBlueprint'
 
-/**
-* A blueprint is a sequence of instruction that describe a class of unidoc
-* document.
-*/
-export class UnidocBlueprint {
-  private _instructions: Pack<UnidocBlueprintInstruction>
-
-  public instructions: Sequence<UnidocBlueprintInstruction>
-
-  public constructor(capacity: number = 64) {
-    this._instructions = Pack.any(capacity)
-    this.instructions = this._instructions.view()
-  }
-
-  public get capacity(): number {
-    return this._instructions.capacity
-  }
-
-  public reallocate(capacity: number): void {
-    this._instructions.reallocate(capacity)
-  }
-
-  public fit(): void {
-    this._instructions.fit()
-  }
-
-  public push(instruction: UnidocInstruction): void {
-    this._instructions.push(
-      new UnidocBlueprintInstruction(
-        this, this._instructions.size, instruction
-      )
-    )
-  }
-
-  public get(index: number): UnidocBlueprintInstruction {
-    return this._instructions.get(index)
-  }
-
-  public copy(toCopy: UnidocBlueprint): void {
-    this._instructions.copy(this._instructions)
-  }
-
-  public clone(): UnidocBlueprint {
-    const result: UnidocBlueprint = new UnidocBlueprint(this._instructions.capacity)
-
-    result._instructions.copy(this._instructions)
-
-    return result
-  }
-
-  public clear(): void {
-    this._instructions.clear()
-  }
-
+export interface UnidocBlueprint {
   /**
-  * @see Object.toString
+  * The underlying type of this instruction.
   */
-  public toString(): string {
-    let result: string = 'unidoc blueprint ['
+  readonly type: UnidocBlueprintType
+}
 
-    for (const instruction of this._instructions) {
-      result += '\r\n\t'
-      result += instruction.index.toString().padStart(5)
-      result += ' : '
-      result += instruction.instruction.toString()
-    }
+export namespace UnidocBlueprint {
+  export type Any = UnidocAnyBlueprint
+  export type End = UnidocEndBlueprint
+  export type Many = UnidocManyBlueprint
+  export type TagEnd = UnidocTagEndBlueprint
+  export type TagStart = UnidocTagStartBlueprint
+  export type Whitespace = UnidocWhitespaceBlueprint
+  export type Word = UnidocWordBlueprint
 
-    if (this._instructions.size > 0) {
-      result += '\r\n'
-    }
-
-    result += ']'
-
-    return result
-  }
-
-  /**
-  * @see Symbol.iterator
-  */
-  public *[Symbol.iterator](): Iterator<UnidocBlueprintInstruction> {
-    yield* this._instructions
-  }
+  export const any = UnidocAnyBlueprint.create
+  export const end = UnidocEndBlueprint.create
+  export const many = UnidocManyBlueprint.create
+  export const tagEnd = UnidocTagEndBlueprint.create
+  export const tagStart = UnidocTagStartBlueprint.create
+  export const whitespace = UnidocWhitespaceBlueprint.create
+  export const word = UnidocWordBlueprint.create
 }

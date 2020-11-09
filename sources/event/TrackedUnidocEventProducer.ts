@@ -22,6 +22,14 @@ export class TrackedUnidocEventProducer implements UnidocProducer<UnidocEvent> {
   }
 
   /**
+  * @see UnidocProducer.initialize
+  */
+  public initialize(): TrackedUnidocEventProducer {
+    this._producer.initialize()
+    return this
+  }
+
+  /**
   * Produce a new word event.
   *
   * @param content - Content of the event to produce.

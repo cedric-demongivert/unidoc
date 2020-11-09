@@ -7,6 +7,7 @@ import { UnidocEvent } from '../event/UnidocEvent'
 import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
 
 import { UnidocValidationEvent } from './UnidocValidationEvent'
+import { UnidocValidationEventType } from './UnidocValidationEventType'
 import { UnidocValidationMessage } from './UnidocValidationMessage'
 import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 import { UnidocValidationBranchIdentifier } from './UnidocValidationBranchIdentifier'
@@ -23,6 +24,11 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   * Index of the next event.
   */
   private _nextIndex: number
+
+  /**
+  * Index of the next event.
+  */
+  private _nextBatch: Pack<number>
 
   /**
   * Collection of used local branch indentifiers.
@@ -48,6 +54,7 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
     super()
     this._nextBranch = 0
     this._nextIndex = 0
+    this._nextBatch = Pack.uint32(capacity)
     this._branchIdentifiers = IdentifierSet.allocate(capacity)
     this._branches = Pack.instance(UnidocValidationBranchManager.allocator(this), capacity)
     this._event = new UnidocValidationEvent()
@@ -68,10 +75,12 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   public initialize(): UnidocValidationBranchManager {
     super.initialize()
 
+    this._nextBatch.clear()
     this._branchIdentifiers.add(0)
     this._branches.size += 1
     this._branches.last.branch.set(0, 0)
     this._nextBranch = 1
+    this._nextBatch.set(0, 0)
     this.initializeBranch(this._branches.last.branch)
 
     return this._branches.last
@@ -188,6 +197,7 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
     fork.branch.local = this._branchIdentifiers.next()
 
     this._event.fromBranch(branch).asFork(fork.branch)
+    this._nextBatch.set(fork.branch.local, this._nextBatch.get(branch.local))
     this.produce(this._event)
 
     return fork
@@ -199,6 +209,14 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   public produce(event: UnidocValidationEvent = this._event): UnidocValidationTreeManager {
     event.index = this._nextIndex
     this._nextIndex += 1
+
+    const local: number = event.branch.local
+
+    if (event.type === UnidocValidationEventType.VALIDATION) {
+      this._nextBatch.set(local, event.event.index + 1)
+    }
+    event.batch = this._nextBatch.get(local)
+
     super.produce(event)
     return this
   }

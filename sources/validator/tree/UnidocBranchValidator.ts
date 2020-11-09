@@ -36,8 +36,12 @@ export class UnidocBranchValidator {
     this.automata.validate(this, event)
   }
 
+  public preprocess(): void {
+    this.automata.prevalidate(this)
+  }
+
   public asMessageOfType(type: UnidocValidationMessageType): UnidocBranchValidator {
-    this.tree.asMessageOfType(type)
+    this.tree.fromBranch(this).asMessageOfType(type)
     return this
   }
 

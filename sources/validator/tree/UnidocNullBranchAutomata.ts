@@ -13,6 +13,13 @@ export class UnidocNullBranchAutomata implements UnidocBranchAutomata {
   }
 
   /**
+  * @see UnidocBranchAutomata.prevalidate
+  */
+  public prevalidate(_branch: UnidocBranchValidator): void {
+    throw new Error('A null unidoc branch automata can\'t handle an event prevalidation.')
+  }
+
+  /**
   * @see UnidocBranchAutomata.validate
   */
   public validate(_branch: UnidocBranchValidator, _event: UnidocEvent): void {

@@ -6,7 +6,6 @@ export namespace TooManyErrors {
 
   export namespace Data {
     export const BLUEPRINT: string = 'blueprint'
-    export const INSTRUCTION: string = 'instruction'
     export const RECOVERIES: string = 'recoveries'
   }
 }

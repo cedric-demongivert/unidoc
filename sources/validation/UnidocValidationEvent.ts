@@ -14,6 +14,11 @@ export class UnidocValidationEvent {
   public index: number
 
   /**
+  * Batch index of this event that is related to the number of validation events that precede it.
+  */
+  public batch: number
+
+  /**
   * Branch of the validation tree that emitted this event.
   */
   public readonly branch: UnidocValidationBranchIdentifier
@@ -43,6 +48,7 @@ export class UnidocValidationEvent {
   */
   public constructor() {
     this.index = 0
+    this.batch = 0
     this.branch = new UnidocValidationBranchIdentifier()
     this.type = UnidocValidationEventType.DEFAULT
     this.fork = new UnidocValidationBranchIdentifier()
@@ -55,6 +61,7 @@ export class UnidocValidationEvent {
   */
   public clear(): void {
     this.index = 0
+    this.batch = 0
     this.branch.clear()
     this.type = UnidocValidationEventType.DEFAULT
     this.fork.clear()
@@ -69,34 +76,48 @@ export class UnidocValidationEvent {
   }
 
   public asFork(fork: UnidocValidationBranchIdentifier): UnidocValidationEvent {
+    this.event.clear()
+    this.message.clear()
     this.fork.copy(fork)
     this.type = UnidocValidationEventType.FORK
     return this
   }
 
   public asInitialization(): UnidocValidationEvent {
+    this.event.clear()
+    this.message.clear()
+    this.fork.clear()
     this.type = UnidocValidationEventType.INITIALIZATION
     return this
   }
 
   public asCompletion(): UnidocValidationEvent {
+    this.event.clear()
+    this.message.clear()
+    this.fork.clear()
     this.type = UnidocValidationEventType.COMPLETION
     return this
   }
 
   public asValidation(event: UnidocEvent): UnidocValidationEvent {
+    this.message.clear()
+    this.fork.clear()
     this.event.copy(event)
     this.type = UnidocValidationEventType.VALIDATION
     return this
   }
 
   public asMessage(event: UnidocValidationMessage): UnidocValidationEvent {
+    this.event.clear()
+    this.fork.clear()
     this.message.copy(event)
     this.type = UnidocValidationEventType.MESSAGE
     return this
   }
 
   public asMessageOfType(type: UnidocValidationMessageType): UnidocValidationEvent {
+    this.event.clear()
+    this.fork.clear()
     this.message.clear()
     this.message.type = type
     this.type = UnidocValidationEventType.MESSAGE
@@ -140,6 +161,7 @@ export class UnidocValidationEvent {
   */
   public copy(toCopy: UnidocValidationEvent): void {
     this.index = toCopy.index
+    this.batch = toCopy.batch
     this.branch.copy(toCopy.branch)
     this.type = toCopy.type
     this.fork.copy(toCopy.fork)
@@ -168,7 +190,9 @@ export class UnidocValidationEvent {
     result += this.branch.global.toString().padEnd(5)
     result += ' local #'
     result += this.branch.local.toString().padEnd(5)
-    result += ' #'
+    result += ' batch #'
+    result += this.batch.toString().padEnd(5)
+    result += ' of type #'
     result += this.type
     result += ' ('
     result += UnidocValidationEventType.toString(this.type)
@@ -215,6 +239,7 @@ export class UnidocValidationEvent {
 
     if (other instanceof UnidocValidationEvent) {
       return this.index === other.index &&
+        this.batch === other.batch &&
         this.branch.equals(other.branch) &&
         this.type === other.type &&
         this.fork.equals(other.fork) &&
