@@ -1,3 +1,5 @@
+export { PreferredContent } from './PreferredContent'
+export { RequiredContent } from './RequiredContent'
 export { TooManyErrors } from './TooManyErrors'
 export { UnexpectedContent } from './UnexpectedContent'
-export { RequiredContent } from './RequiredContent'
+export { UnnecessaryContent } from './UnnecessaryContent'

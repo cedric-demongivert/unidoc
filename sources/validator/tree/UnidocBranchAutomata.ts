@@ -10,7 +10,12 @@ export interface UnidocBranchAutomata {
   */
   initialize(branch: UnidocBranchValidator): void
 
-  prevalidate(branch: UnidocBranchValidator): void
+  /**
+  * Called in order to continue the validation process until a new event is required.
+  *
+  * @param branch - The validation process that must continue.
+  */
+  validate(branch: UnidocBranchValidator): void
 
   /**
   * Called when the validation process must validate a given unidoc event.

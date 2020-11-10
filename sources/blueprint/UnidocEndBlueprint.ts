@@ -10,6 +10,10 @@ export class UnidocEndBlueprint implements UnidocBlueprint {
   public constructor() {
     this.type = UnidocBlueprintType.END
   }
+
+  public toString(): string {
+    return 'UnidocBlueprint:End'
+  }
 }
 
 export namespace UnidocEndBlueprint {

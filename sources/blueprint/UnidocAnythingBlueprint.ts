@@ -3,7 +3,7 @@ import { UnidocBlueprint } from './UnidocBlueprint'
 import { UnidocSequentialBlueprint } from './UnidocSequentialBlueprint'
 import { UnidocEndBlueprint } from './UnidocEndBlueprint'
 
-export class UnidocWordBlueprint implements UnidocSequentialBlueprint {
+export class UnidocAnythingBlueprint implements UnidocSequentialBlueprint {
   /**
   * @see UnidocBlueprint.type
   */
@@ -15,25 +15,25 @@ export class UnidocWordBlueprint implements UnidocSequentialBlueprint {
   public next: UnidocBlueprint
 
   public constructor() {
-    this.type = UnidocBlueprintType.WORD
+    this.type = UnidocBlueprintType.ANYTHING
     this.next = UnidocEndBlueprint.INSTANCE
   }
 
   /**
   * @see UnidocSequentialBlueprint.then
   */
-  public then(value: UnidocBlueprint): UnidocWordBlueprint {
+  public then(value: UnidocBlueprint): UnidocAnythingBlueprint {
     this.next = value
     return this
   }
 
   public toString(): string {
-    return 'UnidocBlueprint:Word'
+    return 'UnidocBlueprint:Anything'
   }
 }
 
-export namespace UnidocWordBlueprint {
-  export function create(): UnidocWordBlueprint {
-    return new UnidocWordBlueprint()
+export namespace UnidocAnythingBlueprint {
+  export function create(): UnidocAnythingBlueprint {
+    return new UnidocAnythingBlueprint()
   }
 }

@@ -30,14 +30,14 @@ export class UnidocBranchValidator {
   /**
   * Make this branch validating the given event.
   *
-  * @param event - The event to validate.
+  * @param [event] - The event to validate.
   */
-  public validate(event: UnidocEvent): void {
-    this.automata.validate(this, event)
-  }
-
-  public preprocess(): void {
-    this.automata.prevalidate(this)
+  public validate(event?: UnidocEvent): void {
+    if (event) {
+      this.automata.validate(this, event)
+    } else {
+      this.automata.validate(this)
+    }
   }
 
   public asMessageOfType(type: UnidocValidationMessageType): UnidocBranchValidator {
@@ -92,8 +92,10 @@ export class UnidocBranchValidator {
   * End this validation branch.
   */
   public complete(): void {
-    this.automata.complete(this)
-    this.running = false
+    if (this.running) {
+      this.running = false
+      this.automata.complete(this)
+    }
   }
 
   /**

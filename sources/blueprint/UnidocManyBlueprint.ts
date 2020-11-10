@@ -67,9 +67,13 @@ export class UnidocManyBlueprint implements UnidocSequentialBlueprint {
   /**
   * @see UnidocSequentialBlueprint.then
   */
-  public then<T extends UnidocBlueprint>(value: T): T {
+  public then(value: UnidocBlueprint): UnidocManyBlueprint {
     this.next = value
-    return value
+    return this
+  }
+
+  public toString(): string {
+    return 'UnidocBlueprint:Many ' + this.minimum + ' - ' + this.maximum + ' [1]'
   }
 }
 

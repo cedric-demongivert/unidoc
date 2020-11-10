@@ -35,9 +35,13 @@ export class UnidocTagEndBlueprint implements UnidocSequentialBlueprint {
   /**
   * @see UnidocSequentialBlueprint.then
   */
-  public then<T extends UnidocBlueprint>(value: T): T {
+  public then(value: UnidocBlueprint): UnidocTagEndBlueprint {
     this.next = value
-    return value
+    return this
+  }
+
+  public toString(): string {
+    return 'UnidocBlueprint:TagEnd ' + this.tag
   }
 }
 

@@ -61,7 +61,7 @@ export class UnidocValidationTrunckSelector
 
     if (node != null) {
       if (node === this._root) {
-        this._root = node.next
+        this._root = node.next || node.fork
       }
 
       node.delete()
@@ -292,7 +292,7 @@ export class UnidocValidationTrunckSelector
       }
     }
 
-    return true
+    return left.event.branch.global > right.event.branch.global
   }
 
   /**

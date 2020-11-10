@@ -106,7 +106,7 @@ export class UnidocTreeValidator
   public validate(event: UnidocEvent) {
     if (this._pass.size > 0) {
       for (const branch of this._pass) {
-        branch.preprocess()
+        branch.validate()
         this._manager.validate(branch.branch, event)
         branch.validate(event)
 

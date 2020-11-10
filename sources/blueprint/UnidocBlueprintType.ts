@@ -24,12 +24,29 @@ export namespace UnidocBlueprintType {
   /**
   * A blueprint that describe any kind of content.
   */
-  export const ANY: UnidocBlueprintType = 4
+  export const ANYTHING: UnidocBlueprintType = 4
 
   /**
   * A blueprint that describe a content that may be repeated.
   */
   export const MANY: UnidocBlueprintType = 5
+
+  /**
+  * A blueprint that describe a choice between multiple contents.
+  */
+  export const ANY: UnidocBlueprintType = 6
+
+  /**
+  * A blueprint that describe multiple contents that must exists but that can
+  * appears in any order.
+  */
+  export const SET: UnidocBlueprintType = 7
+
+  /**
+  * A blueprint that describe multiple contents that we prefer to get in
+  * sequence
+  */
+  export const LENIENT_SEQUENCE: UnidocBlueprintType = 8
 
   /**
   * A blueprint that describe the termination of the document, or a termination
@@ -50,7 +67,7 @@ export namespace UnidocBlueprintType {
     TAG_END,
     WORD,
     WHITESPACE,
-    ANY,
+    ANYTHING,
     MANY,
     END
   ]
@@ -61,7 +78,7 @@ export namespace UnidocBlueprintType {
       case TAG_END: return 'TAG_END'
       case WORD: return 'WORD'
       case WHITESPACE: return 'WHITESPACE'
-      case ANY: return 'ANY'
+      case ANYTHING: return 'ANYTHING'
       case MANY: return 'MANY'
       case END: return 'END'
       default: return undefined

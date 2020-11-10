@@ -5,16 +5,13 @@ import { UnidocBlueprint } from './UnidocBlueprint'
 import { UnidocEndBlueprint } from './UnidocEndBlueprint'
 import { UnidocSequentialBlueprint } from './UnidocSequentialBlueprint'
 
-export class UnidocAnyBlueprint implements UnidocSequentialBlueprint {
+export class UnidocLenientSequenceBlueprint implements UnidocSequentialBlueprint {
   /**
   * @see UnidocBlueprint.type
   */
   public readonly type: UnidocBlueprintType
 
-  /**
-  * A description of the content that may be repeated.
-  */
-  public alternatives: Pack<UnidocBlueprint>
+  public sequence: Pack<UnidocBlueprint>
 
   /**
   * @see UnidocSequentialBlueprint.next
@@ -22,31 +19,31 @@ export class UnidocAnyBlueprint implements UnidocSequentialBlueprint {
   public next: UnidocBlueprint
 
   public constructor(capacity: number = 8) {
-    this.type = UnidocBlueprintType.ANY
-    this.alternatives = Pack.any(capacity)
+    this.type = UnidocBlueprintType.LENIENT_SEQUENCE
+    this.sequence = Pack.any(capacity)
     this.next = UnidocEndBlueprint.INSTANCE
   }
 
-  public ofContent(content: UnidocBlueprint): UnidocAnyBlueprint {
-    this.alternatives.push(content)
+  public ofContent(content: UnidocBlueprint): UnidocLenientSequenceBlueprint {
+    this.sequence.push(content)
     return this
   }
 
   /**
   * @see UnidocSequentialBlueprint.then
   */
-  public then(value: UnidocBlueprint): UnidocAnyBlueprint {
+  public then(value: UnidocBlueprint): UnidocLenientSequenceBlueprint {
     this.next = value
     return this
   }
 
   public toString(): string {
-    return 'UnidocBlueprint:Any [' + this.alternatives.size + ']'
+    return 'UnidocBlueprint:LenientSequence [' + this.sequence.size + ']'
   }
 }
 
-export namespace UnidocAnyBlueprint {
-  export function create(): UnidocAnyBlueprint {
-    return new UnidocAnyBlueprint()
+export namespace UnidocLenientSequenceBlueprint {
+  export function create(): UnidocLenientSequenceBlueprint {
+    return new UnidocLenientSequenceBlueprint()
   }
 }

@@ -137,9 +137,9 @@ export class UnidocValidationNode {
   public delete(): void {
     if (this._previous != null) {
       if (this._previous.fork === this) {
-        this._previous.fork = this._next
+        this._previous.fork = this._next || this._fork
       } else {
-        this._previous.next = this._next
+        this._previous.next = this._next || this._fork
       }
     } else {
       if (this._next != null) {

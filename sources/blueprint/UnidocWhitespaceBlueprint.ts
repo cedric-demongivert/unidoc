@@ -22,9 +22,13 @@ export class UnidocWhitespaceBlueprint implements UnidocSequentialBlueprint {
   /**
   * @see UnidocSequentialBlueprint.then
   */
-  public then<T extends UnidocBlueprint>(value: T): T {
+  public then(value: UnidocBlueprint): UnidocWhitespaceBlueprint {
     this.next = value
-    return value
+    return this
+  }
+
+  public toString(): string {
+    return 'UnidocBlueprint:Whitespace'
   }
 }
 

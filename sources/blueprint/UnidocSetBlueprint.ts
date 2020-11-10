@@ -5,7 +5,7 @@ import { UnidocBlueprint } from './UnidocBlueprint'
 import { UnidocEndBlueprint } from './UnidocEndBlueprint'
 import { UnidocSequentialBlueprint } from './UnidocSequentialBlueprint'
 
-export class UnidocAnyBlueprint implements UnidocSequentialBlueprint {
+export class UnidocSetBlueprint implements UnidocSequentialBlueprint {
   /**
   * @see UnidocBlueprint.type
   */
@@ -22,12 +22,12 @@ export class UnidocAnyBlueprint implements UnidocSequentialBlueprint {
   public next: UnidocBlueprint
 
   public constructor(capacity: number = 8) {
-    this.type = UnidocBlueprintType.ANY
+    this.type = UnidocBlueprintType.SET
     this.alternatives = Pack.any(capacity)
     this.next = UnidocEndBlueprint.INSTANCE
   }
 
-  public ofContent(content: UnidocBlueprint): UnidocAnyBlueprint {
+  public ofContent(content: UnidocBlueprint): UnidocSetBlueprint {
     this.alternatives.push(content)
     return this
   }
@@ -35,18 +35,18 @@ export class UnidocAnyBlueprint implements UnidocSequentialBlueprint {
   /**
   * @see UnidocSequentialBlueprint.then
   */
-  public then(value: UnidocBlueprint): UnidocAnyBlueprint {
+  public then(value: UnidocBlueprint): UnidocSetBlueprint {
     this.next = value
     return this
   }
 
   public toString(): string {
-    return 'UnidocBlueprint:Any [' + this.alternatives.size + ']'
+    return 'UnidocBlueprint:Set [' + this.alternatives.size + ']'
   }
 }
 
-export namespace UnidocAnyBlueprint {
-  export function create(): UnidocAnyBlueprint {
-    return new UnidocAnyBlueprint()
+export namespace UnidocSetBlueprint {
+  export function create(): UnidocSetBlueprint {
+    return new UnidocSetBlueprint()
   }
 }

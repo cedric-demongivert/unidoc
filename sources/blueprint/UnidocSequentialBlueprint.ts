@@ -8,11 +8,11 @@ export interface UnidocSequentialBlueprint extends UnidocBlueprint {
 
   /**
   * Update the blueprint that describe the content that must follow this one and
-  * return the given instance.
+  * return this instance for chaining purposes.
   *
   * @param value - The new description of the content that must follow this one.
   *
-  * @return The given parameter for chaining purposes.
+  * @return This blueprint instance for chaining purposes.
   */
-  then<T extends UnidocBlueprint>(value: T): T
+  then(value: UnidocBlueprint): UnidocSequentialBlueprint
 }

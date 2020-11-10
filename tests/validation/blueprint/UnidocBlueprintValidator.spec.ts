@@ -9,6 +9,7 @@ import { UnidocBlueprint } from '../../../sources/blueprint/UnidocBlueprint'
 import { UnexpectedContent } from '../../../sources/validator/blueprint/messages/UnexpectedContent'
 import { RequiredContent } from '../../../sources/validator/blueprint/messages/RequiredContent'
 import { UnnecessaryContent } from '../../../sources/validator/blueprint/messages/UnnecessaryContent'
+import { PreferredContent } from '../../../sources/validator/blueprint/messages/PreferredContent'
 
 describe('UnidocBlueprintValidator', function() {
   describe('tag-start instruction', function() {
@@ -768,6 +769,596 @@ describe('UnidocBlueprintValidator', function() {
         .ofCode(UnnecessaryContent.CODE)
         .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
         .produce()
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+  })
+
+  describe('any block', function() {
+    it('accept one of the specified alternative', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.any()
+          .ofContent(UnidocBlueprint.tagStart().ofTag('red'))
+          .ofContent(UnidocBlueprint.tagStart().ofTag('green'))
+          .ofContent(UnidocBlueprint.tagStart().ofTag('blue'))
+          .then(
+            UnidocBlueprint.any()
+              .ofContent(UnidocBlueprint.tagStart().ofTag('red'))
+              .ofContent(UnidocBlueprint.tagStart().ofTag('green'))
+              .ofContent(UnidocBlueprint.tagStart().ofTag('blue'))
+              .then(
+                UnidocBlueprint.any()
+                  .ofContent(UnidocBlueprint.tagStart().ofTag('red'))
+                  .ofContent(UnidocBlueprint.tagStart().ofTag('green'))
+                  .ofContent(UnidocBlueprint.tagStart().ofTag('blue'))
+              )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('green')
+        .produceTagStart('blue')
+        .produceTagStart('red')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 3; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('throw an error if the content does not match one of the specified alternative', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint.Any = (
+        UnidocBlueprint.any()
+          .ofContent(UnidocBlueprint.tagStart().ofTag('red'))
+          .ofContent(UnidocBlueprint.tagStart().ofTag('green'))
+          .ofContent(UnidocBlueprint.tagStart().ofTag('blue'))
+          .then(
+            UnidocBlueprint.any()
+              .ofContent(UnidocBlueprint.tagStart().ofTag('red'))
+              .ofContent(UnidocBlueprint.tagStart().ofTag('green'))
+              .ofContent(UnidocBlueprint.tagStart().ofTag('blue'))
+              .then(
+                UnidocBlueprint.any()
+                  .ofContent(UnidocBlueprint.tagStart().ofTag('red'))
+                  .ofContent(UnidocBlueprint.tagStart().ofTag('green'))
+                  .ofContent(UnidocBlueprint.tagStart().ofTag('blue'))
+              )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('green')
+        .produceTagStart('yellow')
+        .produceTagStart('red')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      tree.branches.first
+        .validate(inputBuffer.get(0))
+        .validate(inputBuffer.get(1))
+        .asMessageOfType(UnexpectedContent.TYPE)
+        .ofCode(UnexpectedContent.CODE)
+        .withData(UnexpectedContent.Data.BLUEPRINT, (blueprint.next as UnidocBlueprint.Any).alternatives.get(2))
+        .produce()
+        .validate(inputBuffer.get(2))
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+  })
+
+  describe('set block', function() {
+    it('accept each of the specified alternative in any order', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.set()
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('red').then(
+              UnidocBlueprint.tagEnd().ofTag('red')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('green').then(
+              UnidocBlueprint.tagEnd().ofTag('green')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('blue').then(
+              UnidocBlueprint.tagEnd().ofTag('blue')
+            )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('green')
+        .produceTagEnd('green')
+        .produceTagStart('blue')
+        .produceTagEnd('blue')
+        .produceTagStart('red')
+        .produceTagEnd('red')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 6; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('raise an error if one content differ', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint.Set = (
+        UnidocBlueprint.set()
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('red').then(
+              UnidocBlueprint.tagEnd().ofTag('red')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('green').then(
+              UnidocBlueprint.tagEnd().ofTag('green')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('blue').then(
+              UnidocBlueprint.tagEnd().ofTag('blue')
+            )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('green')
+        .produceTagEnd('green')
+        .produceTagStart('red')
+        .produceTagEnd('blue')
+        .produceTagStart('red')
+        .produceTagEnd('red')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 2; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.branches.first
+        .validate(inputBuffer.get(2))
+        .asMessageOfType(UnexpectedContent.TYPE)
+        .ofCode(UnexpectedContent.CODE)
+        .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.alternatives.get(2))
+        .produce()
+
+      for (let index = 3; index < 6; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('raise an error if some content does not appears', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint.Set = (
+        UnidocBlueprint.set()
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('red').then(
+              UnidocBlueprint.tagEnd().ofTag('red')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('green').then(
+              UnidocBlueprint.tagEnd().ofTag('green')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('blue').then(
+              UnidocBlueprint.tagEnd().ofTag('blue')
+            )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('green')
+        .produceTagEnd('green')
+        .produceTagStart('red')
+        .produceTagEnd('red')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 4; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.branches.first
+        .asMessageOfType(RequiredContent.TYPE)
+        .ofCode(RequiredContent.CODE)
+        .withData(RequiredContent.Data.BLUEPRINT, blueprint.alternatives.get(2))
+        .produce()
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+  })
+
+  describe('lenient sequence block', function() {
+    it('accept a sequence of element', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.lienientSequence()
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('red').then(
+              UnidocBlueprint.tagEnd().ofTag('red')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('green').then(
+              UnidocBlueprint.tagEnd().ofTag('green')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('blue').then(
+              UnidocBlueprint.tagEnd().ofTag('blue')
+            )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('red')
+        .produceTagEnd('red')
+        .produceTagStart('green')
+        .produceTagEnd('green')
+        .produceTagStart('blue')
+        .produceTagEnd('blue')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 6; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('emit a warning when the sequence is unnordered', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint.LenientSequence = (
+        UnidocBlueprint.lienientSequence()
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('red').then(
+              UnidocBlueprint.tagEnd().ofTag('red')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('green').then(
+              UnidocBlueprint.tagEnd().ofTag('green')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('blue').then(
+              UnidocBlueprint.tagEnd().ofTag('blue')
+            )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('green')
+        .produceTagEnd('green')
+        .produceTagStart('red')
+        .produceTagEnd('red')
+        .produceTagStart('blue')
+        .produceTagEnd('blue')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 2; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.branches.first
+        .asMessageOfType(PreferredContent.TYPE)
+        .ofCode(PreferredContent.CODE)
+        .withData(PreferredContent.Data.BLUEPRINT, blueprint.sequence.get(0))
+        .produce()
+
+      for (let index = 2; index < 6; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('emit an error when an element of the sequence is missing', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint.LenientSequence = (
+        UnidocBlueprint.lienientSequence()
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('red').then(
+              UnidocBlueprint.tagEnd().ofTag('red')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('green').then(
+              UnidocBlueprint.tagEnd().ofTag('green')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('blue').then(
+              UnidocBlueprint.tagEnd().ofTag('blue')
+            )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('green')
+        .produceTagEnd('green')
+        .produceTagStart('blue')
+        .produceTagEnd('blue')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 2; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.branches.first
+        .asMessageOfType(PreferredContent.TYPE)
+        .ofCode(PreferredContent.CODE)
+        .withData(PreferredContent.Data.BLUEPRINT, blueprint.sequence.get(0))
+        .produce()
+
+      for (let index = 2; index < 4; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.branches.first
+        .asMessageOfType(PreferredContent.TYPE)
+        .ofCode(PreferredContent.CODE)
+        .withData(PreferredContent.Data.BLUEPRINT, blueprint.sequence.get(0))
+        .produce()
+
+      tree.branches.first
+        .asMessageOfType(RequiredContent.TYPE)
+        .ofCode(RequiredContent.CODE)
+        .withData(RequiredContent.Data.BLUEPRINT, blueprint.sequence.get(0))
+        .produce()
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('emit an error when an element of the sequence is invalid', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint.LenientSequence = (
+        UnidocBlueprint.lienientSequence()
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('red').then(
+              UnidocBlueprint.tagEnd().ofTag('red')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('green').then(
+              UnidocBlueprint.tagEnd().ofTag('green')
+            )
+          )
+          .ofContent(
+            UnidocBlueprint.tagStart().ofTag('blue').then(
+              UnidocBlueprint.tagEnd().ofTag('blue')
+            )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('blue')
+        .produceTagEnd('red')
+        .produceTagStart('green')
+        .produceTagEnd('green')
+        .produceTagStart('blue')
+        .produceTagEnd('blue')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      tree.branches.first
+        .validate(inputBuffer.get(0))
+        .asMessageOfType(UnexpectedContent.TYPE)
+        .ofCode(UnexpectedContent.CODE)
+        .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.sequence.get(0))
+        .produce()
+
+      for (let index = 1; index < 6; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
 
       tree.complete()
 
