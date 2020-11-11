@@ -1,14 +1,11 @@
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocPath } from '../path/UnidocPath'
-
 import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 
 const EMPTY_STRING: string = ''
 
 export class UnidocValidationMessage {
   public type: UnidocValidationMessageType
-  public path: UnidocPath
   public code: string
   public readonly data: Map<string, any>
 
@@ -17,7 +14,6 @@ export class UnidocValidationMessage {
   */
   public constructor() {
     this.type = UnidocValidationMessageType.DEFAULT
-    this.path = new UnidocPath()
     this.code = EMPTY_STRING
     this.data = new Map<string, any>()
   }
@@ -82,7 +78,6 @@ export class UnidocValidationMessage {
     this.type = UnidocValidationMessageType.DEFAULT
     this.code = EMPTY_STRING
     this.data.clear()
-    this.path.clear()
   }
 
   /**
@@ -93,7 +88,6 @@ export class UnidocValidationMessage {
   public copy(toCopy: UnidocValidationMessage): void {
     this.type = toCopy.type
     this.code = toCopy.code
-    this.path.copy(toCopy.path)
     this.data.clear()
 
     for (const [key, data] of toCopy.data) {
@@ -117,7 +111,7 @@ export class UnidocValidationMessage {
   */
   public toString(): string {
     return (
-      `[${UnidocValidationMessageType.toString(this.type)}] ${this.path.toString()} ${this.code} : {${[...this.data.entries()].map(x => x[0] + ': ' + x[1]).join(', ')}}`
+      `[${UnidocValidationMessageType.toString(this.type)}] ${this.code} : {${[...this.data.entries()].map(x => x[0] + ': ' + x[1]).join(', ')}}`
     )
   }
 
@@ -132,8 +126,7 @@ export class UnidocValidationMessage {
       if (
         other.type !== this.type ||
         other.code !== this.code ||
-        other.data.size !== this.data.size ||
-        !other.path.equals(this.path)
+        other.data.size !== this.data.size
       ) return false
 
       for (const [key, data] of this.data) {

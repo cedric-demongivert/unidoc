@@ -9,17 +9,17 @@ export interface UnidocSymbolReader {
   /**
   * @return True if this reader can exctract more symbols from it's underlying source.
   */
-  hasNext () : boolean
+  hasNext(): boolean
 
   /**
   * @return The next readable symbol from this reader's underlying source.
   */
-  next () : UnidocSymbol
+  next(): UnidocSymbol
 
   /**
   * @return The current readable symbol from this reader's underlying source.
   */
-  current () : UnidocSymbol
+  current(): UnidocSymbol
 
   /**
   * Skip a number of symbols.
@@ -28,33 +28,33 @@ export interface UnidocSymbolReader {
   *
   * @return This reader instance for chaining purposes.
   */
-  skip (count : number) : UnidocSymbolReader
+  skip(count: number): UnidocSymbolReader
 
   /**
   * @return The location of this reader in it's underlying source.
   */
-  location () : UnidocLocation
+  location(): UnidocLocation
 
   /**
   * @see Symbol.iterator
   */
-  [Symbol.iterator] () : Iterator<UnidocSymbol>
+  [Symbol.iterator](): Iterator<UnidocSymbol>
 }
 
 export namespace UnidocSymbolReader {
-  export function fromString (source : string) : UnidocSymbolReader {
+  export function fromString(source: string): UnidocSymbolReader {
     return new UnidocStringReader(source)
   }
 
-  export function fromFile (source : string) : UnidocSymbolReader {
+  export function fromFile(source: string): UnidocSymbolReader {
     return new UnidocFileReader(source)
   }
 
-  export function produceString (source : string) : UnidocSymbolReaderProducer {
+  export function produceString(source: string): UnidocSymbolReaderProducer {
     return new UnidocSymbolReaderProducer(new UnidocStringReader(source))
   }
 
-  export function asProducer (source : UnidocSymbolReader) : UnidocSymbolReaderProducer {
+  export function asProducer(source: UnidocSymbolReader): UnidocSymbolReaderProducer {
     return new UnidocSymbolReaderProducer(source)
   }
 }

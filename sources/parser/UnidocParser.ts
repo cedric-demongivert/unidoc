@@ -713,8 +713,6 @@ export class UnidocParser
   }
 
   private emitVirtualDocumentEnd(state: UnidocParserState = this._states.last) {
-    this._producer.initialize()
-
     this._producer
       .event()
       .at(state.origin.to)
@@ -724,8 +722,6 @@ export class UnidocParser
   }
 
   private emitTagStart(state: UnidocParserState = this._states.last): void {
-    this._producer.initialize()
-
     this._producer
       .event()
       .from(state.origin.from)
@@ -741,8 +737,6 @@ export class UnidocParser
   * Emit a unidoc tag termination event.
   */
   private emitTagEnd(state: UnidocParserState = this._states.last): void {
-    this._producer.initialize()
-
     this._producer
       .event()
       .from(state.origin.from)
@@ -758,8 +752,6 @@ export class UnidocParser
   * Emit a unidoc whitespace event.
   */
   private emitWhitespaceEvent(state: UnidocParserState = this._states.last): void {
-    this._producer.initialize()
-
     this._producer
       .event()
       .from(state.origin.from)
@@ -773,8 +765,6 @@ export class UnidocParser
   * Emit a unidoc word event.
   */
   private emitWordEvent(state: UnidocParserState = this._states.last): void {
-    this._producer.initialize()
-
     this._producer
       .event()
       .from(state.origin.from)

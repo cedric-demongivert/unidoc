@@ -11,9 +11,12 @@ import { UnidocTagStartBlueprint } from './UnidocTagStartBlueprint'
 import { UnidocWhitespaceBlueprint } from './UnidocWhitespaceBlueprint'
 import { UnidocWordBlueprint } from './UnidocWordBlueprint'
 
+/**
+* A blueprint is a specification that describe a class of unidoc document.
+*/
 export interface UnidocBlueprint {
   /**
-  * The underlying type of this instruction.
+  * A number that identify the type of this blueprint.
   */
   readonly type: UnidocBlueprintType
 }

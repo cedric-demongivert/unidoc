@@ -3,6 +3,10 @@ import { UnidocBlueprint } from './UnidocBlueprint'
 import { UnidocSequentialBlueprint } from './UnidocSequentialBlueprint'
 import { UnidocEndBlueprint } from './UnidocEndBlueprint'
 
+/**
+* 
+*
+*/
 export class UnidocAnythingBlueprint implements UnidocSequentialBlueprint {
   /**
   * @see UnidocBlueprint.type

@@ -290,7 +290,7 @@ export class UnidocToken {
     result += (UnidocTokenType.toString(this.type) || 'undefined').padEnd(10)
     result += ') "'
     result += this.debugText
-    result += '"'
+    result += '" '
     result += this.origin.toString()
 
     return result

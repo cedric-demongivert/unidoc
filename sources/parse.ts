@@ -1,25 +1,19 @@
-import { Observable } from 'rxjs'
-import { OperatorFunction } from 'rxjs'
-
-import { UnidocParser } from './parser/UnidocParser'
-import { UnidocEvent } from './event/UnidocEvent'
+import { UnidocProducer } from './producer/UnidocProducer'
 import { UnidocToken } from './token/UnidocToken'
-import { RxJSUnidocInput } from './producer/RxJSUnidocInput'
-import { RxJSUnidocOutput } from './consumer/RxJSUnidocOutput'
+import { UnidocEvent } from './event/UnidocEvent'
+import { UnidocParser } from './parser/UnidocParser'
 
 /**
-* Transform a stream of symbols to a stream of tokens.
+* Transform a producer of tokens into a producer of document events.
 *
-* @return An operator that transform a stream of symbols to a stream of tokens.
+* @param input - A producer of tokens.
+*
+* @return A producer of document events.
 */
-export function parse(): OperatorFunction<UnidocToken, UnidocEvent> {
-  return function(input: Observable<UnidocToken>): Observable<UnidocEvent> {
-    const parser: UnidocParser = new UnidocParser()
-    parser.subscribe(new RxJSUnidocInput(input))
+export function parse(input: UnidocProducer<UnidocToken>): UnidocProducer<UnidocEvent> {
+  const parser: UnidocParser = new UnidocParser()
 
-    const rxOutput: RxJSUnidocOutput<UnidocEvent> = new RxJSUnidocOutput()
-    rxOutput.subscribe(parser)
+  parser.subscribe(input)
 
-    return rxOutput.observable
-  }
+  return parser
 }

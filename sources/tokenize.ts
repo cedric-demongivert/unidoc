@@ -1,26 +1,19 @@
-import { Observable } from 'rxjs'
-import { OperatorFunction } from 'rxjs'
-
+import { UnidocProducer } from './producer/UnidocProducer'
 import { UnidocSymbol } from './symbol/UnidocSymbol'
-
-import { UnidocLexer } from './lexer/UnidocLexer'
 import { UnidocToken } from './token/UnidocToken'
-import { RxJSUnidocInput } from './producer/RxJSUnidocInput'
-import { RxJSUnidocOutput } from './consumer/RxJSUnidocOutput'
+import { UnidocLexer } from './lexer/UnidocLexer'
 
 /**
-* Transform a stream of symbols to a stream of tokens.
+* Transform a producer of symbols into a producer of tokens.
 *
-* @return An operator that transform a stream of symbols to a stream of tokens.
+* @param input - A producer of symbols.
+*
+* @return A producer of tokens.
 */
-export function tokenize(): OperatorFunction<UnidocSymbol, UnidocToken> {
-  return function(input: Observable<UnidocSymbol>): Observable<UnidocToken> {
-    const lexer: UnidocLexer = new UnidocLexer()
-    lexer.subscribe(new RxJSUnidocInput(input))
+export function tokenize(input: UnidocProducer<UnidocSymbol>): UnidocProducer<UnidocToken> {
+  const lexer: UnidocLexer = new UnidocLexer()
 
-    const rxOutput: RxJSUnidocOutput<UnidocToken> = new RxJSUnidocOutput()
-    rxOutput.subscribe(lexer)
+  lexer.subscribe(input)
 
-    return rxOutput.observable
-  }
+  return lexer
 }
