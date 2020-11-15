@@ -1,7 +1,5 @@
 /** eslint-env jest */
 
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
-
 import { fullyParse } from '../../sources/fullyParse'
 import { UnidocStream } from '../../sources/stream/UnidocStream'
 import { UnidocFragmentResolver } from '../../sources/stream/UnidocFragmentResolver'
@@ -9,10 +7,11 @@ import { UnidocSymbolReader } from '../../sources/reader/UnidocSymbolReader'
 import { UnidocBuffer } from '../../sources/buffer/UnidocBuffer'
 import { bufferize } from '../../sources/buffer/bufferize'
 import { UnidocEvent } from '../../sources/event/UnidocEvent'
-import { TrackedUnidocEventProducer } from '../../sources/event/TrackedUnidocEventProducer'
+import { UnidocProducer } from '../../sources/producer/UnidocProducer'
+import { UnidocProducerEvent } from '../../sources/producer/UnidocProducerEvent'
 
 describe('UnidocImportationFilter', function() {
-  it('allow to make importations with \\import tags', function() {
+  it('allow to make importations with \\import tags', function(callback) {
     const resolver: UnidocFragmentResolver = new UnidocFragmentResolver()
     resolver.set('fragment', '\\label { pweet }')
 
@@ -26,11 +25,15 @@ describe('UnidocImportationFilter', function() {
       ), resolver
     )
 
-    const output: UnidocBuffer<UnidocEvent> = bufferize(fullyParse(stream), UnidocEvent.ALLOCATOR)
+    const output: UnidocProducer<UnidocEvent> = fullyParse(stream)
+    const buffer: UnidocBuffer<UnidocEvent> = bufferize(output, UnidocEvent.ALLOCATOR)
+
+    output.addEventListener(UnidocProducerEvent.COMPLETION, function() {
+      console.log(UnidocBuffer.toString(buffer))
+      callback()
+    })
 
     stream.stream()
-
-    console.log(UnidocBuffer.toString(output))
   })
 
   it('ignore ill-formed importation tags', function() {

@@ -1,7 +1,7 @@
 import { UnidocSymbolReader } from '../reader/UnidocSymbolReader'
 
 export interface UnidocImportationResolver {
-  resolve(identifier: string): UnidocSymbolReader
+  resolve(identifier: string): Promise<UnidocSymbolReader>
 
   begin(identifier: string): void
 

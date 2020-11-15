@@ -14,7 +14,7 @@ export class UnidocFragmentResolver implements UnidocImportationResolver {
     this._fragments.set(fragment, content)
   }
 
-  public resolve(identifier: string): UnidocSymbolReader {
+  public async resolve(identifier: string): Promise<UnidocSymbolReader> {
     const fragment: string | undefined = this._fragments.get(identifier)
     if (fragment == null) {
       throw new Error(
