@@ -1,28 +1,33 @@
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
 
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { UnidocLocation } from '../location/UnidocLocation'
 import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
 
 import { UnidocSymbolReader } from './UnidocSymbolReader'
 
-export class UnidocStringReader  implements UnidocSymbolReader {
+export class UnidocStringReader implements UnidocSymbolReader {
   /**
    * The content to read.
    */
-  public readonly source : string
+  public readonly source: string
+
+  public readonly origin: UnidocOrigin
 
   /**
    * A symbol instance for symbol emission.
    */
-  private readonly _symbol : UnidocSymbol
+  private readonly _symbol: UnidocSymbol
 
   /**
    * Location into this reader's source.
    */
-  private readonly _location : UnidocLocationTracker
+  private readonly _location: UnidocLocationTracker
 
-  public constructor (source : string) {
+  public constructor(source: string, origin: UnidocOrigin = UnidocOrigin.runtime()) {
     this.source = source
+    this.origin = new UnidocOrigin()
+    this.origin.copy(origin)
     this._location = new UnidocLocationTracker()
     this._symbol = new UnidocSymbol()
   }
@@ -30,14 +35,14 @@ export class UnidocStringReader  implements UnidocSymbolReader {
   /**
   * @see UnidocSymbolReader.hasNext
   */
-  public hasNext() : boolean {
+  public hasNext(): boolean {
     return this._location.location.index < this.source.length
   }
 
   /**
   * @see UnidocSymbolReader.skip
   */
-  public skip (count : number) : UnidocStringReader {
+  public skip(count: number): UnidocStringReader {
     while (this.hasNext() && count > 0) {
       this.next()
       count -= 1
@@ -49,7 +54,7 @@ export class UnidocStringReader  implements UnidocSymbolReader {
   /**
   * @see UnidocSymbolReader.current
   */
-  public current () : UnidocSymbol {
+  public current(): UnidocSymbol {
     if (this._location.location.index === 0) {
       throw new Error('No current symbol.')
     }
@@ -60,13 +65,13 @@ export class UnidocStringReader  implements UnidocSymbolReader {
   /**
   * @see UnidocSymbolReader.next
   */
-  public next() : UnidocSymbol {
-    const nextCodePoint : number | undefined = (
+  public next(): UnidocSymbol {
+    const nextCodePoint: number | undefined = (
       this.source.codePointAt(this._location.location.index)
     )
 
     if (nextCodePoint == null) {
-      throw new Error (
+      throw new Error(
         'Unable to read the next available code point at ' +
         this._location.toString() + ' from the underlying source : "' +
         this.source + '" in memory.'
@@ -74,11 +79,11 @@ export class UnidocStringReader  implements UnidocSymbolReader {
     } else {
       this._symbol.symbol = nextCodePoint
       this._symbol.origin.clear()
-      this._symbol.origin.from.text(this._location.location).runtime()
+      this._symbol.origin.from.text(this._location.location).concat(this.origin)
 
       this._location.next(nextCodePoint)
 
-      this._symbol.origin.to.text(this._location.location).runtime()
+      this._symbol.origin.to.text(this._location.location).concat(this.origin)
 
       return this._symbol
     }
@@ -87,14 +92,14 @@ export class UnidocStringReader  implements UnidocSymbolReader {
   /**
   * @see UnidocSymbolReader.location
   */
-  public location () : UnidocLocation {
+  public location(): UnidocLocation {
     return this._location.location
   }
 
   /**
   * @see Symbol.iterator
   */
-  public * [Symbol.iterator] () : Iterator<UnidocSymbol> {
+  public *[Symbol.iterator](): Iterator<UnidocSymbol> {
     while (this.hasNext()) {
       yield this.next()
     }

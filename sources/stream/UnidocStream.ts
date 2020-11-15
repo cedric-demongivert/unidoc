@@ -4,44 +4,87 @@ import { UnidocSymbol } from '../symbol/UnidocSymbol'
 
 import { UnidocSymbolReader } from '../reader/UnidocSymbolReader'
 
-export class UnidocStream {
-  private readonly readers : Pack<UnidocSymbolReader>
-  private readonly symbol : UnidocSymbol
+import { UnidocImportationResolver } from './UnidocImportationResolver'
+import { UnidocNullResolver } from './UnidocNullResolver'
 
-  public constructor (reader : UnidocSymbolReader) {
-    this.readers = Pack.any(16)
-    this.symbol = new UnidocSymbol()
+import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
 
-    this.readers.push(reader)
+export class UnidocStream extends ListenableUnidocProducer<UnidocSymbol> {
+  /**
+  *
+  */
+  private readonly _readers: Pack<UnidocSymbolReader>
 
-    while (this.readers.size > 0 && !this.readers.last.hasNext()) {
-      this.readers.pop()
+  /**
+  *
+  */
+  private readonly _identifiers: Pack<string>
+
+  /**
+  *
+  */
+  private readonly _symbol: UnidocSymbol
+
+  /**
+  *
+  */
+  private readonly _resolver: UnidocImportationResolver
+
+  public constructor(reader: UnidocSymbolReader, resolver: UnidocImportationResolver = UnidocNullResolver.INSTANCE) {
+    super()
+
+    this._readers = Pack.any(16)
+    this._identifiers = Pack.any(16)
+    this._symbol = new UnidocSymbol()
+    this._resolver = resolver
+
+    this._readers.push(reader)
+
+    while (this._readers.size > 0 && !this._readers.last.hasNext()) {
+      this._readers.pop()
     }
   }
 
-  public import (reader : UnidocSymbolReader) : void {
-    this.readers.push(reader)
-  }
-
-  public hasNext () : boolean {
-    return this.readers.size > 0
-  }
-
-  public next () : UnidocSymbol {
-    const next : UnidocSymbol = this.readers.last.next()
-
-    this.symbol.symbol = next.symbol
-
-    while (this.readers.size > 0 && !this.readers.last.hasNext()) {
-      this.readers.pop()
+  public import(identifier: string): void {
+    if (this._identifiers.indexOf(identifier) >= 0) {
+      throw new Error(
+        'Unable to import content ' + identifier +
+        ' due to a circular dependency : ' +
+        [...this._identifiers].join(' > ') + '.'
+      )
+    } else {
+      this._readers.push(this._resolver.resolve(identifier))
+      this._identifiers.push(identifier)
+      this._resolver.begin(identifier)
     }
-
-    return this.symbol
   }
 
-  public * [Symbol.iterator] () : Iterator<UnidocSymbol> {
+  public stream(): void {
+    this.initialize()
+
     while (this.hasNext()) {
-      yield this.next()
+      this.next()
     }
+
+    this.complete()
+  }
+
+  private hasNext(): boolean {
+    return this._readers.size > 0
+  }
+
+  private next(): void {
+    const next: UnidocSymbol = this._readers.last.next()
+    this._symbol.symbol = next.symbol
+
+    while (this._readers.size > 0 && !this._readers.last.hasNext()) {
+      this._readers.pop()
+
+      if (this._readers.size > 0) {
+        this._resolver.end(this._identifiers.pop())
+      }
+    }
+
+    this.produce(next)
   }
 }

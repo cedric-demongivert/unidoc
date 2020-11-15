@@ -1,5 +1,6 @@
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
 import { UnidocLocation } from '../location/UnidocLocation'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 
 import { UnidocStringReader } from './UnidocStringReader'
 import { UnidocFileReader } from './UnidocFileReader'
@@ -42,16 +43,16 @@ export interface UnidocSymbolReader {
 }
 
 export namespace UnidocSymbolReader {
-  export function fromString(source: string): UnidocSymbolReader {
-    return new UnidocStringReader(source)
+  export function fromString(source: string, origin: UnidocOrigin = UnidocOrigin.runtime()): UnidocSymbolReader {
+    return new UnidocStringReader(source, origin)
   }
 
   export function fromFile(source: string): UnidocSymbolReader {
     return new UnidocFileReader(source)
   }
 
-  export function produceString(source: string): UnidocSymbolReaderProducer {
-    return new UnidocSymbolReaderProducer(new UnidocStringReader(source))
+  export function produceString(source: string, origin: UnidocOrigin = UnidocOrigin.runtime()): UnidocSymbolReaderProducer {
+    return new UnidocSymbolReaderProducer(new UnidocStringReader(source, origin))
   }
 
   export function asProducer(source: UnidocSymbolReader): UnidocSymbolReaderProducer {
