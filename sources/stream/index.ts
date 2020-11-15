@@ -1,3 +1,5 @@
+export { UnidocFragmentResolver } from './UnidocFragmentResolver'
 export { UnidocImportationFilter } from './UnidocImportationFilter'
-export { UnidocStream } from './UnidocStream'
 export { UnidocImportationResolver } from './UnidocImportationResolver'
+export { UnidocNullResolver } from './UnidocNullResolver'
+export { UnidocStream } from './UnidocStream'

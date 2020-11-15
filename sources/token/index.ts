@@ -1,4 +1,5 @@
+export { TrackedUnidocTokenProducer } from './TrackedUnidocTokenProducer'
 export { UnidocToken } from './UnidocToken'
-export { UnidocTokenProducer } from './UnidocTokenProducer'
 export { UnidocTokenBuffer } from './UnidocTokenBuffer'
+export { UnidocTokenProducer } from './UnidocTokenProducer'
 export { UnidocTokenType } from './UnidocTokenType'
