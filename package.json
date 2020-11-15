@@ -1,5 +1,5 @@
 {
-  "name": "unidoc",
+  "name": "@cedric-demongivert/unidoc",
   "version": "0.0.1",
   "description": "A universal scientific documentation validator and compiler.",
   "main": "index.js",
