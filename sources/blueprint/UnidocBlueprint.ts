@@ -11,6 +11,7 @@ import { UnidocTagEndBlueprint } from './UnidocTagEndBlueprint'
 import { UnidocTagStartBlueprint } from './UnidocTagStartBlueprint'
 import { UnidocWhitespaceBlueprint } from './UnidocWhitespaceBlueprint'
 import { UnidocWordBlueprint } from './UnidocWordBlueprint'
+import { UnidocSequentialBlueprint } from './UnidocSequentialBlueprint'
 
 /**
 * A blueprint is a specification that describe a class of unidoc document.
@@ -46,4 +47,20 @@ export namespace UnidocBlueprint {
   export const tagStart = UnidocTagStartBlueprint.create
   export const whitespace = UnidocWhitespaceBlueprint.create
   export const word = UnidocWordBlueprint.create
+
+  export function sequence(): UnidocBlueprint
+  export function sequence(...elements: UnidocSequentialBlueprint[]): UnidocSequentialBlueprint
+  export function sequence(...elements: UnidocSequentialBlueprint[]): UnidocSequentialBlueprint | UnidocBlueprint {
+    if (elements.length > 0) {
+      const result: UnidocSequentialBlueprint = elements[0]
+
+      for (let index = 1; index < elements.length; ++index) {
+        elements[index - 1].then(elements[index])
+      }
+
+      return result
+    } else {
+      return UnidocBlueprint.end()
+    }
+  }
 }
