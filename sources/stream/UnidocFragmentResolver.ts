@@ -3,10 +3,14 @@ import { UnidocSymbolReader } from '../reader/UnidocSymbolReader'
 
 import { UnidocImportationResolver } from './UnidocImportationResolver'
 
-export class UnidocFragmentResolver implements UnidocImportationResolver {
+import { UnidocImportation } from './UnidocImportation'
+import { UnidocResource } from './UnidocResource'
+
+export class UnidocFragmentResolver extends UnidocImportationResolver {
   private readonly _fragments: Map<string, string>
 
   public constructor() {
+    super()
     this._fragments = new Map()
   }
 
@@ -14,21 +18,24 @@ export class UnidocFragmentResolver implements UnidocImportationResolver {
     this._fragments.set(fragment, content)
   }
 
-  public async resolve(identifier: string): Promise<UnidocSymbolReader> {
-    const fragment: string | undefined = this._fragments.get(identifier)
+  public async resolve(value: UnidocImportation): Promise<UnidocResource> {
+    const fragment: string | undefined = this._fragments.get(value.resource)
+
     if (fragment == null) {
       throw new Error(
-        'Unable to resolve fragment : ' + identifier + ' because there is ' +
+        'Unable to resolve fragment : ' + value.resource + ' because there is ' +
         'no fragment registered with the given name.'
       )
     } else {
-      return UnidocSymbolReader.fromString(fragment, new UnidocOrigin().resource('fragment://' + identifier))
+      const resource: UnidocResource = new UnidocResource()
+
+      resource.resource = 'fragment://' + value.resource
+      resource.reader = UnidocSymbolReader.fromString(
+        fragment, new UnidocOrigin().resource('fragment://' + value.resource)
+      )
+      resource.origin.copy(value)
+
+      return resource
     }
-  }
-
-  public begin(identifier: string): void {
-  }
-
-  public end(identifier: string): void {
   }
 }

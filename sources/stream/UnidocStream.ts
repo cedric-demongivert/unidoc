@@ -1,25 +1,21 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
-
-import { UnidocSymbolReader } from '../reader/UnidocSymbolReader'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 
 import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
 
 import { UnidocImportationResolver } from './UnidocImportationResolver'
-import { UnidocNullResolver } from './UnidocNullResolver'
 import { UnidocStreamState } from './UnidocStreamState'
+
+import { UnidocResource } from './UnidocResource'
+import { UnidocImportation } from './UnidocImportation'
 
 export class UnidocStream extends ListenableUnidocProducer<UnidocSymbol> {
   /**
   *
   */
-  private readonly _readers: Pack<UnidocSymbolReader>
-
-  /**
-  *
-  */
-  private readonly _identifiers: Pack<string>
+  private readonly _resources: Pack<UnidocResource>
 
   /**
   *
@@ -29,80 +25,111 @@ export class UnidocStream extends ListenableUnidocProducer<UnidocSymbol> {
   /**
   *
   */
+  private readonly _import: UnidocImportation
+
+  /**
+  *
+  */
   private readonly _resolver: UnidocImportationResolver
 
+  /**
+  *
+  */
   private _state: UnidocStreamState
 
-  public constructor(reader: UnidocSymbolReader, resolver: UnidocImportationResolver = UnidocNullResolver.INSTANCE) {
+  private _oldState: UnidocStreamState
+
+  public constructor(resolver: UnidocImportationResolver) {
     super()
 
-    this._readers = Pack.any(16)
-    this._identifiers = Pack.any(16)
+    this._resources = Pack.any(16)
+    this._import = new UnidocImportation()
     this._symbol = new UnidocSymbol()
     this._resolver = resolver
     this._state = UnidocStreamState.CREATED
+    this._oldState = UnidocStreamState.CREATED
 
-    this._readers.push(reader)
-
-    while (this._readers.size > 0 && !this._readers.last.hasNext()) {
-      this._readers.pop()
-    }
+    this.executeImport = this.executeImport.bind(this)
+    this.fail = this.fail.bind(this)
   }
 
-  public import(identifier: string): void {
-    this._state = UnidocStreamState.IMPORTING
-
-    if (this._identifiers.indexOf(identifier) >= 0) {
-      this._state = UnidocStreamState.RUNNING
-      throw new Error(
-        'Unable to import content ' + identifier +
-        ' due to a circular dependency : ' +
-        [...this._identifiers].join(' > ') + '.'
-      )
-    } else {
-      this._resolver.resolve(identifier).then((reader: UnidocSymbolReader) => {
-        this._readers.push(reader)
-        this._identifiers.push(identifier)
-        this._resolver.begin(identifier)
-        this._state = UnidocStreamState.RUNNING
-        this.stream()
-      }).catch((error: Error) => {
-        console.error(error)
-        this.stream()
-      })
-    }
-  }
-
-  public stream(): void {
+  protected initializeIfNecessary(): void {
     if (this._state === UnidocStreamState.CREATED) {
       this.initialize()
       this._state = UnidocStreamState.RUNNING
     }
+  }
+
+  public import(resource: string): void
+  public import(importation: UnidocImportation): void
+  public import(parameter: string | UnidocImportation): void {
+    if (typeof parameter === 'string') {
+      this._import.resource = parameter
+      this._import.origin.at(UnidocOrigin.runtime())
+      this.resolveImport(this._import)
+    } else {
+      this.resolveImport(parameter)
+    }
+  }
+
+  private resolveImport(importation: UnidocImportation): void {
+    this._oldState = this._state
+    this._state = UnidocStreamState.IMPORTING
+    this._resolver
+      .resolve(importation)
+      .then(this.executeImport)
+      .catch(this.fail)
+  }
+
+  private executeImport(resource: UnidocResource): void {
+    this._state = this._oldState
+    this.stream(resource)
+  }
+
+  public stream(resource: UnidocResource): void {
+    this.assertThatThereIsNoCircularDependency(resource)
+    this.initializeIfNecessary()
+
+    this._resources.push(resource)
 
     while (this.hasNext() && this._state === UnidocStreamState.RUNNING) {
       this.next()
     }
 
     if (this._state === UnidocStreamState.RUNNING) {
-      this.complete()
       this._state = UnidocStreamState.COMPLETED
+      this.complete()
     }
   }
 
+  private assertThatThereIsNoCircularDependency(resource: UnidocResource): void {
+    for (const existingResource of this._resources) {
+      if (existingResource.resource === resource.resource) {
+        throw new Error(
+          'Unable to stream resource ' + resource.resource + ' imported from ' +
+          resource.origin.origin.toString() + ' because there is a circular ' +
+          'dependency : ' +
+          [...this._resources].map(x => x.resource).join(' > ') +
+          ' > ' + resource.resource + '.'
+        )
+      }
+    }
+  }
+
+  public fail(error: Error): void {
+    super.fail(error)
+  }
+
   private hasNext(): boolean {
-    return this._readers.size > 0
+    return this._resources.size > 0
   }
 
   private next(): void {
-    const next: UnidocSymbol = this._readers.last.next()
+    const next: UnidocSymbol = this._resources.last.reader.next()
     this._symbol.symbol = next.symbol
 
-    while (this._readers.size > 0 && !this._readers.last.hasNext()) {
-      this._readers.pop()
-
-      if (this._readers.size > 0) {
-        this._resolver.end(this._identifiers.pop())
-      }
+    while (this._resources.size > 0 && !this._resources.last.reader.hasNext()) {
+      this._resources.pop()
     }
 
     this.produce(next)

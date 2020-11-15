@@ -10,8 +10,8 @@ import { UnidocEventType } from '../event/UnidocEventType'
 
 import { UnidocBuffer } from '../buffer/UnidocBuffer'
 
-import { UnidocStream } from './UnidocStream'
 import { UnidocImportationFilterState } from './UnidocImportationFilterState'
+import { UnidocImportationProducer } from './UnidocImportationProducer'
 
 const EMPTY_STRING: string = ''
 const IMPORTATION_TAG: string = 'import'
@@ -22,18 +22,19 @@ export class UnidocImportationFilter
 {
   private _output: UnidocEventProducer
 
-  private _buffer: UnidocBuffer<UnidocEvent>
+  public readonly importations: UnidocImportationProducer
 
-  private _stream: UnidocStream
+  private _buffer: UnidocBuffer<UnidocEvent>
 
   private _nextIdentifier: string
 
   private _state: UnidocImportationFilterState
 
-  public constructor(stream: UnidocStream) {
+  public constructor() {
     super()
+    this.importations = new UnidocImportationProducer()
+
     this._output = new UnidocEventProducer()
-    this._stream = stream
     this._nextIdentifier = EMPTY_STRING
     this._buffer = UnidocBuffer.create(UnidocEvent.ALLOCATOR, 16)
     this._state = UnidocImportationFilterState.CONTENT
@@ -41,6 +42,8 @@ export class UnidocImportationFilter
 
   public handleInitialization(): void {
     this._output.initialize()
+    this.importations.initialize()
+
     this._buffer.clear()
     this._nextIdentifier = EMPTY_STRING
     this._state = UnidocImportationFilterState.CONTENT
@@ -68,6 +71,7 @@ export class UnidocImportationFilter
   private handleProductionAfterContent(value: UnidocEvent): void {
     if (value.type === UnidocEventType.START_TAG && value.tag === IMPORTATION_TAG) {
       this._buffer.push(value)
+      this.importations.from(value.origin.from)
       this._state = UnidocImportationFilterState.IMPORTATION_START
     } else {
       this._output.produce(value)
@@ -92,6 +96,7 @@ export class UnidocImportationFilter
       this._state = UnidocImportationFilterState.IMPORTATION_TRAILING_WHITESPACE
     } else if (value.type === UnidocEventType.END_TAG) {
       if (value.tag === IMPORTATION_TAG) {
+        this.importations.to(value.origin.to)
         this.emitValidImportation()
       } else {
         this.handleInvalidImportationTag(value)
@@ -110,6 +115,7 @@ export class UnidocImportationFilter
       this._state = UnidocImportationFilterState.IMPORTATION_TRAILING_WHITESPACE
     } else if (value.type === UnidocEventType.END_TAG) {
       if (value.tag === IMPORTATION_TAG) {
+        this.importations.to(value.origin.to)
         this.emitValidImportation()
       } else {
         this.handleInvalidImportationTag(value)
@@ -134,13 +140,16 @@ export class UnidocImportationFilter
   private emitValidImportation(): void {
     this._buffer.clear()
     this._state = UnidocImportationFilterState.CONTENT
-    this._stream.import(this._nextIdentifier)
+    this.importations.ofResource(this._nextIdentifier)
     this._nextIdentifier = ''
+    this.importations.produce()
   }
 
 
   public handleCompletion(): void {
+    this.importations.complete()
     this._output.complete()
+
     this._buffer.clear()
     this._nextIdentifier = EMPTY_STRING
     this._state = UnidocImportationFilterState.CONTENT

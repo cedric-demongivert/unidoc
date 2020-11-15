@@ -1,9 +1,8 @@
-import { UnidocSymbolReader } from '../reader/UnidocSymbolReader'
+import { UnidocImportation } from './UnidocImportation'
+import { UnidocResource } from './UnidocResource'
 
-export interface UnidocImportationResolver {
-  resolve(identifier: string): Promise<UnidocSymbolReader>
-
-  begin(identifier: string): void
-
-  end(identifier: string): void
+export class UnidocImportationResolver {
+  public async resolve(value: UnidocImportation): Promise<UnidocResource> {
+    throw new Error('UnidocImportationResolver#resolve was not implemented.')
+  }
 }

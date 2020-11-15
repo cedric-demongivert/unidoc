@@ -14,16 +14,16 @@ describe('UnidocImportationFilter', function() {
   it('allow to make importations with \\import tags', function(callback) {
     const resolver: UnidocFragmentResolver = new UnidocFragmentResolver()
     resolver.set('fragment', '\\label { pweet }')
-
-    const stream: UnidocStream = new UnidocStream(
-      UnidocSymbolReader.fromString(
-        '\\import { fragment }\r\n' +
-        '\\import { fragment}\r\n' +
-        '\\import {fragment }\r\n' +
-        '\\import {\t fragment \t\t }\r\n' +
-        '\\import {fragment}'
-      ), resolver
+    resolver.set(
+      'main',
+      '\\import { fragment }\r\n' +
+      '\\import { fragment}\r\n' +
+      '\\import {fragment }\r\n' +
+      '\\import {\t fragment \t\t }\r\n' +
+      '\\import {fragment}'
     )
+
+    const stream: UnidocStream = new UnidocStream(resolver)
 
     const output: UnidocProducer<UnidocEvent> = fullyParse(stream)
     const buffer: UnidocBuffer<UnidocEvent> = bufferize(output, UnidocEvent.ALLOCATOR)
@@ -33,27 +33,30 @@ describe('UnidocImportationFilter', function() {
       callback()
     })
 
-    stream.stream()
+    stream.import('main')
   })
 
-  it('ignore ill-formed importation tags', function() {
+  it('ignore ill-formed importation tags', function(callback) {
     const resolver: UnidocFragmentResolver = new UnidocFragmentResolver()
     resolver.set('fragment', '\\label { pweet }')
-
-    const stream: UnidocStream = new UnidocStream(
-      UnidocSymbolReader.fromString(
-        '\\import {  }\r\n' +
-        '\\import {}\r\n' +
-        '\\import { fragment fragment }\r\n' +
-        '\\import {\\import{ fragment }}\r\n' +
-        '\\import {\\pwet}'
-      ), resolver
+    resolver.set(
+      'main',
+      '\\import { }\r\n' +
+      '\\import { fragment fragment }\r\n' +
+      '\\import {\\import}\r\n' +
+      '\\import { fragment \\import}'
     )
 
-    const output: UnidocBuffer<UnidocEvent> = bufferize(fullyParse(stream), UnidocEvent.ALLOCATOR)
+    const stream: UnidocStream = new UnidocStream(resolver)
 
-    stream.stream()
+    const output: UnidocProducer<UnidocEvent> = fullyParse(stream)
+    const buffer: UnidocBuffer<UnidocEvent> = bufferize(output, UnidocEvent.ALLOCATOR)
 
-    console.log(UnidocBuffer.toString(output))
+    output.addEventListener(UnidocProducerEvent.COMPLETION, function() {
+      console.log(UnidocBuffer.toString(buffer))
+      callback()
+    })
+
+    stream.import('main')
   })
 })

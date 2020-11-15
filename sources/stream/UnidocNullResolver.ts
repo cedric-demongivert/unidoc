@@ -1,18 +1,11 @@
-import { UnidocSymbolReader } from '../reader/UnidocSymbolReader'
-
 import { UnidocImportationResolver } from './UnidocImportationResolver'
 
-export class UnidocNullResolver implements UnidocImportationResolver {
-  public async resolve(identifier: string): Promise<UnidocSymbolReader> {
-    throw 'A null resolver can\'t resolve unidoc symbol source identifier.'
-  }
+import { UnidocResource } from './UnidocResource'
+import { UnidocImportation } from './UnidocImportation'
 
-  public begin(identifier: string): void {
-
-  }
-
-  public end(identifier: string): void {
-
+export class UnidocNullResolver extends UnidocImportationResolver {
+  public async resolve(value: UnidocImportation): Promise<UnidocResource> {
+    throw 'A null resolver can\'t resolve unidoc resources.'
   }
 }
 
