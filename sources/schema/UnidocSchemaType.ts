@@ -76,7 +76,6 @@ export namespace UnidocSchemaType {
     WORD,
     DISJUNCTION,
     MANY,
-    OPTIONAL,
     NAMMED,
     SET,
     SEQUENCE,
@@ -91,7 +90,6 @@ export namespace UnidocSchemaType {
       case WORD: return 'WORD'
       case DISJUNCTION: return 'DISJUNCTION'
       case MANY: return 'MANY'
-      case OPTIONAL: return 'OPTIONAL'
       case NAMMED: return 'NAMMED'
       case SET: return 'SET'
       case SEQUENCE: return 'SEQUENCE'

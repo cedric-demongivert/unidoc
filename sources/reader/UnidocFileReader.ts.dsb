@@ -8,32 +8,32 @@ import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
 
 import { UnidocSymbolReader } from './UnidocSymbolReader'
 
-export class UnidocFileReader  implements UnidocSymbolReader {
+export class UnidocFileReader implements UnidocSymbolReader {
   /**
    * The content to read.
    */
-  public readonly source : string
+  public readonly source: string
 
   /**
    * The underlying stream.
    */
-  public readonly stream : ReadStream
+  public readonly stream: ReadStream
 
   /**
    * A symbol instance for symbol emission.
    */
-  private readonly _symbol : UnidocSymbol
+  private readonly _symbol: UnidocSymbol
 
   /**
    * Location into this reader's source.
    */
-  private readonly _location : UnidocLocationTracker
+  private readonly _location: UnidocLocationTracker
 
-  public constructor (source : string) {
+  public constructor(source: string) {
     this.source = 'file://' + source
     this.stream = createReadStream(source, {
       flags: 'r',
-      encoding: 'utf32',
+      encoding: 'utf8', // @todo CHECK FOR UTF32 OPTION
       autoClose: true,
       emitClose: false,
       mode: 0o666,
@@ -49,14 +49,14 @@ export class UnidocFileReader  implements UnidocSymbolReader {
   /**
   * @see UnidocSymbolReader.hasNext
   */
-  public hasNext() : boolean {
+  public hasNext(): boolean {
     return this.stream.readable
   }
 
   /**
   * @see UnidocSymbolReader.skip
   */
-  public skip (count : number) : UnidocFileReader {
+  public skip(count: number): UnidocFileReader {
     while (this.hasNext() && count > 0) {
       this.next()
       count -= 1
@@ -68,7 +68,7 @@ export class UnidocFileReader  implements UnidocSymbolReader {
   /**
   * @see UnidocSymbolReader.current
   */
-  public current () : UnidocSymbol {
+  public current(): UnidocSymbol {
     if (this._location.location.index === 0) {
       throw new Error('No current symbol.')
     }
@@ -79,11 +79,11 @@ export class UnidocFileReader  implements UnidocSymbolReader {
   /**
   * @see UnidocSymbolReader.next
   */
-  public next() : UnidocSymbol {
-    const nextCodePoint : number | undefined = this.stream.read(1)
+  public next(): UnidocSymbol {
+    const nextCodePoint: number | undefined = this.stream.read(1)
 
     if (nextCodePoint == null) {
-      throw new Error (
+      throw new Error(
         'Unable to read the next available code point at ' +
         this._location.toString() + ' from the underlying source : "' +
         this.source + '" in memory.'
@@ -104,14 +104,14 @@ export class UnidocFileReader  implements UnidocSymbolReader {
   /**
   * @see UnidocSymbolReader.location
   */
-  public location () : UnidocLocation {
+  public location(): UnidocLocation {
     return this._location.location
   }
 
   /**
   * @see Symbol.iterator
   */
-  public * [Symbol.iterator] () : Iterator<UnidocSymbol> {
+  public *[Symbol.iterator](): Iterator<UnidocSymbol> {
     while (this.hasNext()) {
       yield this.next()
     }

@@ -3,7 +3,7 @@ import { UnidocLocation } from '../location/UnidocLocation'
 import { UnidocOrigin } from '../origin/UnidocOrigin'
 
 import { UnidocStringReader } from './UnidocStringReader'
-import { UnidocFileReader } from './UnidocFileReader'
+//import { UnidocFileReader } from './UnidocFileReader'
 import { UnidocSymbolReaderProducer } from './UnidocSymbolReaderProducer'
 
 export interface UnidocSymbolReader {
@@ -47,9 +47,9 @@ export namespace UnidocSymbolReader {
     return new UnidocStringReader(source, origin)
   }
 
-  export function fromFile(source: string): UnidocSymbolReader {
+  /*export function fromFile(source: string): UnidocSymbolReader {
     return new UnidocFileReader(source)
-  }
+  }*/
 
   export function produceString(source: string, origin: UnidocOrigin = UnidocOrigin.runtime()): UnidocSymbolReaderProducer {
     return new UnidocSymbolReaderProducer(new UnidocStringReader(source, origin))
