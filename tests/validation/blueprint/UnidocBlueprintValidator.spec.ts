@@ -1101,7 +1101,7 @@ describe('UnidocBlueprintValidator', function() {
       output.subscribe(selector)
 
       const blueprint: UnidocBlueprint = (
-        UnidocBlueprint.lienientSequence()
+        UnidocBlueprint.sequence.lenient()
           .ofContent(
             UnidocBlueprint.tagStart().ofTag('red').then(
               UnidocBlueprint.tagEnd().ofTag('red')
@@ -1160,7 +1160,7 @@ describe('UnidocBlueprintValidator', function() {
       output.subscribe(selector)
 
       const blueprint: UnidocBlueprint.LenientSequence = (
-        UnidocBlueprint.lienientSequence()
+        UnidocBlueprint.sequence.lenient()
           .ofContent(
             UnidocBlueprint.tagStart().ofTag('red').then(
               UnidocBlueprint.tagEnd().ofTag('red')
@@ -1230,7 +1230,7 @@ describe('UnidocBlueprintValidator', function() {
       output.subscribe(selector)
 
       const blueprint: UnidocBlueprint.LenientSequence = (
-        UnidocBlueprint.lienientSequence()
+        UnidocBlueprint.sequence.lenient()
           .ofContent(
             UnidocBlueprint.tagStart().ofTag('red').then(
               UnidocBlueprint.tagEnd().ofTag('red')
@@ -1310,7 +1310,7 @@ describe('UnidocBlueprintValidator', function() {
       output.subscribe(selector)
 
       const blueprint: UnidocBlueprint.LenientSequence = (
-        UnidocBlueprint.lienientSequence()
+        UnidocBlueprint.sequence.lenient()
           .ofContent(
             UnidocBlueprint.tagStart().ofTag('red').then(
               UnidocBlueprint.tagEnd().ofTag('red')

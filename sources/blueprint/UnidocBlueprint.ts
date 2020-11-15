@@ -65,39 +65,9 @@ export namespace UnidocBlueprint {
 
     return result
   }
-}
 
-export function any(...elements: UnidocBlueprint[]): UnidocAnyBlueprint {
-  const result: UnidocAnyBlueprint = UnidocAnyBlueprint.create()
-
-  if (elements.length > 0) {
-    for (let index = 0; index < elements.length; ++index) {
-      result.ofContent(elements[index])
-    }
-  }
-
-  return result
-}
-
-export function sequence(): UnidocBlueprint
-export function sequence(...elements: UnidocSequentialBlueprint[]): UnidocSequentialBlueprint
-export function sequence(...elements: UnidocSequentialBlueprint[]): UnidocSequentialBlueprint | UnidocBlueprint {
-  if (elements.length > 0) {
-    const result: UnidocSequentialBlueprint = elements[0]
-
-    for (let index = 1; index < elements.length; ++index) {
-      elements[index - 1].then(elements[index])
-    }
-
-    return result
-  } else {
-    return UnidocBlueprint.end()
-  }
-}
-
-export namespace sequence {
-  export function lenient(...elements: UnidocBlueprint[]): UnidocLenientSequenceBlueprint {
-    const result: UnidocLenientSequenceBlueprint = UnidocLenientSequenceBlueprint.create()
+  export function any(...elements: UnidocBlueprint[]): UnidocAnyBlueprint {
+    const result: UnidocAnyBlueprint = UnidocAnyBlueprint.create()
 
     if (elements.length > 0) {
       for (let index = 0; index < elements.length; ++index) {
@@ -106,5 +76,35 @@ export namespace sequence {
     }
 
     return result
+  }
+
+  export function sequence(): UnidocBlueprint
+  export function sequence(...elements: UnidocSequentialBlueprint[]): UnidocSequentialBlueprint
+  export function sequence(...elements: UnidocSequentialBlueprint[]): UnidocSequentialBlueprint | UnidocBlueprint {
+    if (elements.length > 0) {
+      const result: UnidocSequentialBlueprint = elements[0]
+
+      for (let index = 1; index < elements.length; ++index) {
+        elements[index - 1].then(elements[index])
+      }
+
+      return result
+    } else {
+      return UnidocBlueprint.end()
+    }
+  }
+
+  export namespace sequence {
+    export function lenient(...elements: UnidocBlueprint[]): UnidocLenientSequenceBlueprint {
+      const result: UnidocLenientSequenceBlueprint = UnidocLenientSequenceBlueprint.create()
+
+      if (elements.length > 0) {
+        for (let index = 0; index < elements.length; ++index) {
+          result.ofContent(elements[index])
+        }
+      }
+
+      return result
+    }
   }
 }
