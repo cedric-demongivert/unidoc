@@ -1,12 +1,12 @@
 {
   "name": "@cedric-demongivert/unidoc",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A universal scientific documentation validator and compiler.",
   "main": "index.js",
   "repository": "https://gitlab.com/FlorentinTh/unidoc.git",
   "author": "Cédric DEMONGIVERT <cedric.demongivert@gmail.com>",
   "license": "Apache-2",
-  "private": true,
+  "private": false,
   "scripts": {
     "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
     "watch": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
@@ -15,7 +15,8 @@
     "preversion": "npm install && npm test",
     "version": "npm run production && git add --all",
     "postversion": "git push && git push --tags",
-    "test": "jest --coverage"
+    "test": "jest --coverage",
+    "push": "npm publish ./distribution --access public"
   },
   "devDependencies": {
     "@types/jest": "^25.1.0",
