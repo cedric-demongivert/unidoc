@@ -55,6 +55,11 @@ export namespace UnidocBlueprintType {
   export const END: UnidocBlueprintType = 9
 
   /**
+  * A blueprint that describe a tag.
+  */
+  export const TAG: UnidocBlueprintType = 10
+
+  /**
   * Default blueprint type
   */
   export const DEFAULT: UnidocBlueprintType = TAG_START

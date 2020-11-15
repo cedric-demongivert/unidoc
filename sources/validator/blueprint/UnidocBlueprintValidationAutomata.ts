@@ -7,6 +7,7 @@ import { UnidocBranchAutomata } from '../tree/UnidocBranchAutomata'
 import { UnidocBranchValidator } from '../tree/UnidocBranchValidator'
 
 import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
+import { UnidocTagEndBlueprint } from '../../blueprint/UnidocTagEndBlueprint'
 import { UnidocBlueprintType } from '../../blueprint/UnidocBlueprintType'
 
 import { RequiredContent } from './messages/RequiredContent'
@@ -24,10 +25,13 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
   private readonly _states: Pack<UnidocBlueprintValidationState>
   private _recoveries: number
 
+  private readonly _tagEnd: UnidocTagEndBlueprint
+
   public constructor(blueprint: UnidocBlueprint) {
     this._blueprint = blueprint
     this._recoveries = 0
     this._states = Pack.instance(UnidocBlueprintValidationState.ALLOCATOR, 12)
+    this._tagEnd = new UnidocTagEndBlueprint()
   }
 
   /**
@@ -62,6 +66,8 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
         case UnidocBlueprintType.LENIENT_SEQUENCE:
           this.processLenientSequence(branch)
           break
+        case UnidocBlueprintType.TAG:
+          return this.validateTag(branch, event)
         case UnidocBlueprintType.TAG_START:
           return this.validateTagStart(branch, event)
         case UnidocBlueprintType.TAG_END:
@@ -75,8 +81,12 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
           return this.validateWhitespace(branch, event)
         case UnidocBlueprintType.END:
           if (this._states.size > 0) {
-            this.processEnd(branch)
-            break
+            if (this._states.last.blueprint.type === UnidocBlueprintType.TAG) {
+              return this.validateEndOfTag(branch, event)
+            } else {
+              this.processEnd(branch)
+              break
+            }
           } else {
             return this.validateEnd(branch, event)
           }
@@ -182,6 +192,7 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
         case UnidocBlueprintType.LENIENT_SEQUENCE:
           this.processLenientSequence(branch)
           break
+        case UnidocBlueprintType.TAG:
         case UnidocBlueprintType.TAG_START:
         case UnidocBlueprintType.TAG_END:
         case UnidocBlueprintType.WORD:
@@ -190,7 +201,11 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
           return this.completeWithRequiredContent(branch)
         case UnidocBlueprintType.END:
           if (this._states.size > 0) {
-            this.processEnd(branch)
+            if (this._states.last.blueprint.type === UnidocBlueprintType.TAG) {
+              this.completeEndOfTag(branch)
+            } else {
+              this.processEnd(branch)
+            }
             break
           }
           return
@@ -233,6 +248,23 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
     } else {
       this._blueprint = blueprint.next
     }
+  }
+
+  private validateTag(branch: UnidocBranchValidator, event?: UnidocEvent): void {
+    if (event == null) return
+
+    const blueprint: UnidocBlueprint.Tag = this._blueprint as UnidocBlueprint.Tag
+
+    if (event.type !== UnidocEventType.START_TAG) {
+      this.throwUnexpectedContent(branch)
+    } else if (!blueprint.matcher.validate(event.tag)) {
+      this.throwUnexpectedContent(branch)
+    }
+
+    this._states.size += 1
+    this._states.last.blueprint = blueprint
+    this._states.last.tag = event.tag
+    this._blueprint = blueprint.content
   }
 
   private processSet(branch: UnidocBranchValidator): void {
@@ -436,6 +468,40 @@ export class UnidocBlueprintValidationAutomata implements UnidocBranchAutomata {
       this._states.pop()
       this._blueprint = blueprint.next
     }
+  }
+
+  private completeEndOfTag(branch: UnidocBranchValidator): void {
+    const state: UnidocBlueprintValidationState = this._states.last
+    const blueprint: UnidocBlueprint.Tag = state.blueprint as UnidocBlueprint.Tag
+
+    this._blueprint = this._tagEnd
+    this._tagEnd.tag = state.tag
+    this._tagEnd.next = blueprint.next
+
+    this.completeWithRequiredContent(branch)
+
+    this._states.pop()
+    this._blueprint = blueprint.next
+  }
+
+  private validateEndOfTag(branch: UnidocBranchValidator, event?: UnidocEvent): void {
+    if (event == null) return
+
+    const state: UnidocBlueprintValidationState = this._states.last
+    const blueprint: UnidocBlueprint.Tag = state.blueprint as UnidocBlueprint.Tag
+
+    this._blueprint = this._tagEnd
+    this._tagEnd.tag = state.tag
+    this._tagEnd.next = blueprint.next
+
+    if (event.type !== UnidocEventType.END_TAG) {
+      this.throwUnexpectedContent(branch)
+    } else if (event.tag !== state.tag) {
+      this.throwUnexpectedContent(branch)
+    }
+
+    this._states.pop()
+    this._blueprint = blueprint.next
   }
 
   private emitPreferredContentWarning(branch: UnidocBranchValidator, blueprint: UnidocBlueprint): void {

@@ -43,6 +43,20 @@ export class UnidocTagEndBlueprint implements UnidocSequentialBlueprint {
   public toString(): string {
     return 'UnidocBlueprint:TagEnd ' + this.tag
   }
+
+  public equals(other: any): boolean {
+    if (other == null) return false
+    if (other === this) return true
+
+    if (other instanceof UnidocTagEndBlueprint) {
+      return (
+        other.tag === this.tag &&
+        other.next === this.next
+      )
+    }
+
+    return false
+  }
 }
 
 export namespace UnidocTagEndBlueprint {

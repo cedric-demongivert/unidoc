@@ -7,6 +7,7 @@ export { UnidocLenientSequenceBlueprint } from './UnidocLenientSequenceBlueprint
 export { UnidocManyBlueprint } from './UnidocManyBlueprint'
 export { UnidocSequentialBlueprint } from './UnidocSequentialBlueprint'
 export { UnidocSetBlueprint } from './UnidocSetBlueprint'
+export { UnidocTagBlueprint } from './UnidocTagBlueprint'
 export { UnidocTagEndBlueprint } from './UnidocTagEndBlueprint'
 export { UnidocTagStartBlueprint } from './UnidocTagStartBlueprint'
 export { UnidocWhitespaceBlueprint } from './UnidocWhitespaceBlueprint'

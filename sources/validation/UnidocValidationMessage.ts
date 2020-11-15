@@ -130,7 +130,13 @@ export class UnidocValidationMessage {
       ) return false
 
       for (const [key, data] of this.data) {
-        if (other.data.get(key) !== data) {
+        const value: any = other.data.get(key)
+
+        if (value.equals) {
+          if (!value.equals(data)) {
+            return false
+          }
+        } else if (value !== data) {
           return false
         }
       }

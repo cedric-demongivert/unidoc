@@ -6,6 +6,7 @@ import { UnidocEndBlueprint } from './UnidocEndBlueprint'
 import { UnidocLenientSequenceBlueprint } from './UnidocLenientSequenceBlueprint'
 import { UnidocManyBlueprint } from './UnidocManyBlueprint'
 import { UnidocSetBlueprint } from './UnidocSetBlueprint'
+import { UnidocTagBlueprint } from './UnidocTagBlueprint'
 import { UnidocTagEndBlueprint } from './UnidocTagEndBlueprint'
 import { UnidocTagStartBlueprint } from './UnidocTagStartBlueprint'
 import { UnidocWhitespaceBlueprint } from './UnidocWhitespaceBlueprint'
@@ -28,11 +29,13 @@ export namespace UnidocBlueprint {
   export type LenientSequence = UnidocLenientSequenceBlueprint
   export type Many = UnidocManyBlueprint
   export type Set = UnidocSetBlueprint
+  export type Tag = UnidocTagBlueprint
   export type TagEnd = UnidocTagEndBlueprint
   export type TagStart = UnidocTagStartBlueprint
   export type Whitespace = UnidocWhitespaceBlueprint
   export type Word = UnidocWordBlueprint
 
+  export const tag = UnidocTagBlueprint.create
   export const any = UnidocAnyBlueprint.create
   export const anything = UnidocAnythingBlueprint.create
   export const end = UnidocEndBlueprint.create

@@ -4,14 +4,18 @@ import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
 import { UnidocEndBlueprint } from '../../blueprint/UnidocEndBlueprint'
 
+const EMPTY_STRING: string = ''
+
 export class UnidocBlueprintValidationState {
   public blueprint: UnidocBlueprint
   public current: number
+  public tag: string
   public readonly checked: Pack<number>
 
   public constructor() {
     this.blueprint = UnidocEndBlueprint.INSTANCE
     this.current = 0
+    this.tag = EMPTY_STRING
     this.checked = Pack.uint8(16)
   }
 
@@ -19,6 +23,7 @@ export class UnidocBlueprintValidationState {
     this.blueprint = toCopy.blueprint
     this.current = toCopy.current
     this.checked.copy(toCopy.checked)
+    this.tag = toCopy.tag
   }
 
   public clone(): UnidocBlueprintValidationState {
@@ -30,6 +35,7 @@ export class UnidocBlueprintValidationState {
   public clear(): void {
     this.blueprint = UnidocEndBlueprint.INSTANCE
     this.current = 0
+    this.tag = EMPTY_STRING
     this.checked.clear()
   }
 }

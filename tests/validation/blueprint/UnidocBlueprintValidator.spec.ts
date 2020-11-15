@@ -6,6 +6,8 @@ import { UnidocValidationTrunckSelector } from '../../../sources/validation/Unid
 import { UnidocBlueprintValidator } from '../../../sources/validator/blueprint/UnidocBlueprintValidator'
 import { UnidocBlueprint } from '../../../sources/blueprint/UnidocBlueprint'
 
+import { Predicate } from '../../../sources/predicate/Predicate'
+
 import { UnexpectedContent } from '../../../sources/validator/blueprint/messages/UnexpectedContent'
 import { RequiredContent } from '../../../sources/validator/blueprint/messages/RequiredContent'
 import { UnnecessaryContent } from '../../../sources/validator/blueprint/messages/UnnecessaryContent'
@@ -1361,6 +1363,239 @@ describe('UnidocBlueprintValidator', function() {
       }
 
       tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+  })
+
+  describe('tag block', function() {
+    it('accept a tag', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.tag()
+          .withTypeThatMatch(Predicate.match(/red|green|blue/i))
+          .then(
+            UnidocBlueprint.tag()
+              .withTypeThatMatch(Predicate.match(/red|green|blue/i))
+              .then(
+                UnidocBlueprint.tag()
+                  .withTypeThatMatch(Predicate.match(/red|green|blue/i))
+              )
+          )
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('red')
+        .produceTagEnd('red')
+        .produceTagStart('green')
+        .produceTagEnd('green')
+        .produceTagStart('blue')
+        .produceTagEnd('blue')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 6; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('throw if a tag does not match', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.tag()
+          .withTypeThatMatch(Predicate.match(/red|green|blue/i))
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('brown')
+        .produceTagEnd('brown')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      tree.branches.first
+        .validate(inputBuffer.get(0))
+        .asMessageOfType(UnexpectedContent.TYPE)
+        .ofCode(UnexpectedContent.CODE)
+        .withData(UnexpectedContent.Data.BLUEPRINT, blueprint)
+        .produce()
+        .validate(inputBuffer.get(1))
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('throw if a tag closing does not match', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.tag()
+          .withTypeThatMatch(Predicate.match(/red|green|blue/i))
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('red')
+        .produceTagEnd('green')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      tree.branches.first
+        .validate(inputBuffer.get(0))
+        .validate(inputBuffer.get(1))
+        .asMessageOfType(UnexpectedContent.TYPE)
+        .ofCode(UnexpectedContent.CODE)
+        .withData(
+          UnexpectedContent.Data.BLUEPRINT,
+          UnidocBlueprint.tagEnd().ofTag('red')
+        )
+        .produce()
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('throw if a tag was not opened', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.tag()
+          .withTypeThatMatch(Predicate.match(/red|green|blue/i))
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      tree.branches.first
+        .asMessageOfType(RequiredContent.TYPE)
+        .ofCode(RequiredContent.CODE)
+        .withData(RequiredContent.Data.BLUEPRINT, blueprint)
+        .produce()
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('throw if a tag was not closed', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.tag()
+          .withTypeThatMatch(Predicate.match(/red|green|blue/i))
+      )
+      validator.validateWith(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('red')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      tree.branches.first
+        .validate(inputBuffer.get(0))
+        .asMessageOfType(RequiredContent.TYPE)
+        .ofCode(RequiredContent.CODE)
+        .withData(
+          UnexpectedContent.Data.BLUEPRINT,
+          UnidocBlueprint.tagEnd().ofTag('red')
+        )
+        .produce()
+
+      tree.complete()
+
+      console.log(output.toString())
 
       expect(expectation.expect(output)).toBeTruthy()
     })
