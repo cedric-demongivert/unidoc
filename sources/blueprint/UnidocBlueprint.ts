@@ -66,6 +66,18 @@ export namespace UnidocBlueprint {
     return result
   }
 
+  export function optional(element?: UnidocBlueprint): UnidocManyBlueprint {
+    const result: UnidocManyBlueprint = UnidocManyBlueprint.create()
+
+    result.optional()
+
+    if (element) {
+      result.ofContent(element)
+    }
+
+    return result
+  }
+
   export function any(...elements: UnidocBlueprint[]): UnidocAnyBlueprint {
     const result: UnidocAnyBlueprint = UnidocAnyBlueprint.create()
 
