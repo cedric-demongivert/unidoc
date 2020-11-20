@@ -16,3 +16,15 @@ export interface UnidocSequentialBlueprint extends UnidocBlueprint {
   */
   then(value: UnidocBlueprint): UnidocSequentialBlueprint
 }
+
+export namespace UnidocSequentialBlueprint {
+  export function last(blueprint: UnidocSequentialBlueprint): UnidocSequentialBlueprint {
+    let result: UnidocSequentialBlueprint = blueprint
+
+    while ((result.next as any).next) {
+      result = result.next as UnidocSequentialBlueprint
+    }
+
+    return result
+  }
+}

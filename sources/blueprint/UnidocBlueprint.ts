@@ -97,7 +97,7 @@ export namespace UnidocBlueprint {
       const result: UnidocSequentialBlueprint = elements[0]
 
       for (let index = 1; index < elements.length; ++index) {
-        elements[index - 1].then(elements[index])
+        UnidocSequentialBlueprint.last(elements[index - 1]).then(elements[index])
       }
 
       return result
