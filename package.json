@@ -32,7 +32,7 @@
     "typescript": "~3.5.0"
   },
   "dependencies": {
-    "@cedric-demongivert/gl-tool-collection": "^0.24.1",
+    "@cedric-demongivert/gl-tool-collection": "^0.24.2",
     "rxjs": "^6.5.4"
   }
 }

@@ -1,18 +1,41 @@
 import { UnidocBlueprintType } from './UnidocBlueprintType'
 import { UnidocBlueprint } from './UnidocBlueprint'
 
+/**
+*
+*/
 export class UnidocEndBlueprint implements UnidocBlueprint {
   /**
   * @see UnidocBlueprint.type
   */
   public readonly type: UnidocBlueprintType
 
+  /**
+  *
+  */
   public constructor() {
     this.type = UnidocBlueprintType.END
   }
 
+  /**
+  * @see UnidocBlueprint.equals
+  */
+  public equals(other: any): boolean {
+    if (other == null) return false
+    if (other === this) return true
+
+    if (other instanceof UnidocEndBlueprint) {
+      return true
+    }
+
+    return false
+  }
+
+  /**
+  * @see UnidocBlueprint.toString
+  */
   public toString(): string {
-    return 'UnidocBlueprint:End'
+    return '| ' + this.constructor.name
   }
 }
 

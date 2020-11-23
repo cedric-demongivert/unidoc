@@ -6,45 +6,38 @@ import { UnidocBlueprint } from './UnidocBlueprint'
 /**
 *
 */
-export class UnidocSetBlueprint implements UnidocBlueprint {
+export class UnidocDisjunctionBlueprint implements UnidocBlueprint {
   /**
   * @see UnidocBlueprint.type
   */
   public readonly type: UnidocBlueprintType
 
   /**
-  *
+  * The list of operands of the ANY blueprint.
   */
-  public operands: Pack<UnidocBlueprint>
+  public readonly operands: Pack<UnidocBlueprint>
 
   /**
+  * Instantiate a new empty ANY document blueprint.
   *
+  * @param [capacity = 8] - The capacity of the underlying list of operands to instantiate.
   */
   public constructor(capacity: number = 8) {
-    this.type = UnidocBlueprintType.SET
+    this.type = UnidocBlueprintType.DISJUNCTION
     this.operands = Pack.any(capacity)
   }
 
-  /**
-  *
-  */
-  public with(content: UnidocBlueprint): UnidocSetBlueprint {
-    this.operands.push(content)
+  public or(value: UnidocBlueprint): UnidocDisjunctionBlueprint {
+    this.operands.push(value)
     return this
   }
 
-  /**
-  *
-  */
-  public copy(toCopy: UnidocSetBlueprint): void {
-    this.operands.copy(toCopy.operands)
-  }
-
-  /**
-  *
-  */
   public clear(): void {
     this.operands.clear()
+  }
+
+  public copy(toCopy: UnidocDisjunctionBlueprint): void {
+    this.operands.copy(toCopy.operands)
   }
 
   /**
@@ -54,7 +47,7 @@ export class UnidocSetBlueprint implements UnidocBlueprint {
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof UnidocSetBlueprint) {
+    if (other instanceof UnidocDisjunctionBlueprint) {
       if (other.operands.size !== this.operands.size) {
         return false
       }
@@ -84,7 +77,7 @@ export class UnidocSetBlueprint implements UnidocBlueprint {
     const visited: Map<UnidocBlueprint, string> = maybeVisited || new Map()
 
     if (visited.has(this)) {
-      return '| @' + visited.get(this)
+      return '> @' + visited.get(this)
     } else {
       visited.set(this, visited.size.toString())
     }
@@ -103,9 +96,10 @@ export class UnidocSetBlueprint implements UnidocBlueprint {
         )
       }
     } else {
-      result += '\r\n\t...\r\n'
+      result += '\r\n\t...'
     }
 
+    result += '\r\n'
     result += '- '
     result += visited.get(this)
     result += ': '
@@ -115,11 +109,8 @@ export class UnidocSetBlueprint implements UnidocBlueprint {
   }
 }
 
-export namespace UnidocSetBlueprint {
-  /**
-  *
-  */
-  export function create(): UnidocSetBlueprint {
-    return new UnidocSetBlueprint()
+export namespace UnidocDisjunctionBlueprint {
+  export function create(): UnidocDisjunctionBlueprint {
+    return new UnidocDisjunctionBlueprint()
   }
 }

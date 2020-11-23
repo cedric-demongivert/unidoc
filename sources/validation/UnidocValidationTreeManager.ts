@@ -194,6 +194,10 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
     fork.branch.global = this._nextBranch
     this._nextBranch += 1
 
+    if (this._branchIdentifiers.size === this._branchIdentifiers.capacity) {
+      this._branchIdentifiers.reallocate(this._branchIdentifiers.size * 2)
+    }
+
     fork.branch.local = this._branchIdentifiers.next()
 
     this._event.fromBranch(branch).asFork(fork.branch)

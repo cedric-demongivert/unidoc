@@ -1,74 +1,167 @@
-import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
-import { UnidocProducerEvent } from '../../producer/UnidocProducerEvent'
-import { UnidocEvent } from '../../event/UnidocEvent'
-import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
+import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocTreeValidator } from '../tree/UnidocTreeValidator'
+import { UnidocEvent } from '../../event/UnidocEvent'
+
+import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
+import { UnidocProducerEvent } from '../../producer/UnidocProducerEvent'
+import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
+
+import { UnidocValidationTreeManager } from '../../validation/UnidocValidationTreeManager'
+import { UnidocValidationMessageType } from '../../validation/UnidocValidationMessageType'
 
 import { UnidocValidator } from '../UnidocValidator'
 
-import { UnidocBlueprintValidationAutomata } from './UnidocBlueprintValidationAutomata'
+import { UnidocBlueprintValidationProcess } from './UnidocBlueprintValidationProcess'
 
 export class UnidocBlueprintValidator
   extends SubscribableUnidocConsumer<UnidocEvent>
   implements UnidocValidator {
-  private readonly _tree: UnidocTreeValidator
+  private _pass: Pack<UnidocBlueprintValidationProcess>
+  private _nextPass: Pack<UnidocBlueprintValidationProcess>
 
-  public constructor() {
+  private _manager: UnidocValidationTreeManager
+
+  public constructor(capacity: number = 32) {
     super()
-    this._tree = new UnidocTreeValidator()
+    this._pass = Pack.any(capacity)
+    this._nextPass = Pack.any(capacity)
+    this._manager = new UnidocValidationTreeManager()
   }
 
-  public validateWith(blueprint: UnidocBlueprint): void {
-    this._tree.execute(new UnidocBlueprintValidationAutomata(blueprint))
+  public fromProcess(process: UnidocBlueprintValidationProcess): UnidocBlueprintValidator {
+    this._manager.fromBranch(process.branch)
+    return this
   }
 
-  /**
-  * @see UnidocConsumer.handleInitialization
-  */
+  public asMessageOfType(type: UnidocValidationMessageType): UnidocBlueprintValidator {
+    this._manager.asMessageOfType(type)
+    return this
+  }
+
+  public asVerboseMessage(): UnidocBlueprintValidator {
+    this._manager.asVerboseMessage()
+    return this
+  }
+
+  public asInformationMessage(): UnidocBlueprintValidator {
+    this._manager.asInformationMessage()
+    return this
+  }
+
+  public asWarningMessage(): UnidocBlueprintValidator {
+    this._manager.asWarningMessage()
+    return this
+  }
+
+  public asErrorMessage(): UnidocBlueprintValidator {
+    this._manager.asErrorMessage()
+    return this
+  }
+
+  public asFailureMessage(): UnidocBlueprintValidator {
+    this._manager.asFailureMessage()
+    return this
+  }
+
+  public ofCode(code: string): UnidocBlueprintValidator {
+    this._manager.ofCode(code)
+    return this
+  }
+
+  public withData(key: string, value: any): UnidocBlueprintValidator {
+    this._manager.withData(key, value)
+    return this
+  }
+
+  public produce(): UnidocBlueprintValidator {
+    this._manager.produce()
+    return this
+  }
+
   public handleInitialization(): void {
-    this._tree.handleInitialization()
+    this._manager.initialize()
   }
 
-  /**
-  * @see UnidocConsumer.handleProduction
-  */
   public handleProduction(value: UnidocEvent): void {
-    this._tree.handleProduction(value)
+    this.validate(value)
   }
 
-  /**
-  * @see UnidocConsumer.handleCompletion
-  */
   public handleCompletion(): void {
-    this._tree.handleCompletion()
+    for (const process of this._pass) {
+      process.continue()
+      process.complete()
+    }
+
+    this._pass.clear()
+    this._manager.complete()
   }
 
-  /**
-  * @see UnidocConsumer.handleFailure
-  */
   public handleFailure(error: Error): void {
-    this._tree.handleFailure(error)
+    console.error(error)
+  }
+
+  public validate(event: UnidocEvent) {
+    if (this._pass.size > 0) {
+      for (const process of this._pass) {
+        process.continue()
+        this._manager.validate(process.branch, event)
+        process.validate(event)
+
+        if (process.running) {
+          this._nextPass.push(process)
+        } else {
+          this._manager.completeBranch(process.branch)
+        }
+      }
+
+      this._pass.clear()
+      this.swap()
+    }
+  }
+
+  public execute(blueprint: UnidocBlueprint): void {
+    const process: UnidocBlueprintValidationProcess = (
+      new UnidocBlueprintValidationProcess(this)
+    )
+
+    process.enter(blueprint)
+    process.branch.set(0, 0)
+
+    this._pass.clear()
+    this._nextPass.clear()
+    this._pass.push(process)
+  }
+
+  public fork(process: UnidocBlueprintValidationProcess, fork: UnidocBlueprintValidationProcess): void {
+    fork.branch.copy(this._manager.fork(process.branch).branch)
+    this._manager.initializeBranch(fork.branch)
+    this._pass.push(fork)
+  }
+
+  private swap(): void {
+    const temporary: Pack<UnidocBlueprintValidationProcess> = this._pass
+    this._pass = this._nextPass
+    this._nextPass = temporary
   }
 
   /**
   * @see UnidocProducer.addEventListener
   */
-  public addEventListener(event: UnidocProducerEvent, listener: any) {
-    this._tree.addEventListener(event, listener)
+  public addEventListener(event: UnidocProducerEvent, listener: any): void {
+    this._manager.addEventListener(event, listener)
   }
 
   /**
   * @see UnidocProducer.removeEventListener
   */
-  public removeEventListener(event: UnidocProducerEvent, listener: any) {
-    this._tree.removeEventListener(event, listener)
+  public removeEventListener(event: UnidocProducerEvent, listener: any): void {
+    this._manager.removeEventListener(event, listener)
   }
 
   /**
   * @see UnidocProducer.removeAllEventListener
   */
-  public removeAllEventListener(...parameters: [any?]) {
-    this._tree.removeAllEventListener(...parameters)
+  public removeAllEventListener(...parameters: [any?]): void {
+    this._manager.removeAllEventListener(...parameters)
   }
 }

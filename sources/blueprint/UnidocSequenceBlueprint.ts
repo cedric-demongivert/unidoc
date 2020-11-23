@@ -6,7 +6,7 @@ import { UnidocBlueprint } from './UnidocBlueprint'
 /**
 *
 */
-export class UnidocSetBlueprint implements UnidocBlueprint {
+export class UnidocSequenceBlueprint implements UnidocBlueprint {
   /**
   * @see UnidocBlueprint.type
   */
@@ -21,22 +21,22 @@ export class UnidocSetBlueprint implements UnidocBlueprint {
   *
   */
   public constructor(capacity: number = 8) {
-    this.type = UnidocBlueprintType.SET
+    this.type = UnidocBlueprintType.SEQUENCE
     this.operands = Pack.any(capacity)
   }
 
   /**
-  *
+  * @see UnidocSequentialBlueprint.then
   */
-  public with(content: UnidocBlueprint): UnidocSetBlueprint {
-    this.operands.push(content)
+  public then(value: UnidocBlueprint): UnidocSequenceBlueprint {
+    this.operands.push(value)
     return this
   }
 
   /**
   *
   */
-  public copy(toCopy: UnidocSetBlueprint): void {
+  public copy(toCopy: UnidocSequenceBlueprint): void {
     this.operands.copy(toCopy.operands)
   }
 
@@ -54,12 +54,12 @@ export class UnidocSetBlueprint implements UnidocBlueprint {
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof UnidocSetBlueprint) {
+    if (other instanceof UnidocSequenceBlueprint) {
       if (other.operands.size !== this.operands.size) {
         return false
       }
 
-      const visited: Set<UnidocBlueprint> = maybeVisited || new Set()
+      const visited: Set<UnidocBlueprint> = maybeVisited || new Set<UnidocBlueprint>()
 
       if (!visited.has(this)) {
         visited.add(this)
@@ -115,11 +115,14 @@ export class UnidocSetBlueprint implements UnidocBlueprint {
   }
 }
 
-export namespace UnidocSetBlueprint {
-  /**
-  *
-  */
-  export function create(): UnidocSetBlueprint {
-    return new UnidocSetBlueprint()
+export namespace UnidocSequenceBlueprint {
+  export const EMPTY_SEQUENCE: UnidocSequenceBlueprint = new UnidocSequenceBlueprint(0)
+
+  export function empty(): UnidocSequenceBlueprint {
+    return EMPTY_SEQUENCE
+  }
+
+  export function create(): UnidocSequenceBlueprint {
+    return new UnidocSequenceBlueprint()
   }
 }
