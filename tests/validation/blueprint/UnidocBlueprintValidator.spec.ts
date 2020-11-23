@@ -1322,70 +1322,69 @@ describe('UnidocBlueprintValidator', function() {
     })
   })
 
-  /*
+  describe('combinations', function() {
+    it('accept circular combinations', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
 
-describe('combinations', function() {
-  it('accept circular combinations', function() {
-    const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
-    const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
-    selector.subscribe(validator)
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
 
-    const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
-    output.subscribe(selector)
-
-    const tag: UnidocBlueprint.Tag = (
-      UnidocBlueprint.tag().withTypeThatMatch(Predicate.match(/red|green|blue/i))
-    )
-
-    const blueprint: UnidocBlueprint = (
-      UnidocBlueprint.sequence(
-        UnidocBlueprint.optional(tag),
-        UnidocBlueprint.optional(tag),
-        UnidocBlueprint.optional(tag)
+      const tag: UnidocBlueprint.Tag = (
+        UnidocBlueprint.tag().thatMatch(UnidocPredicate.is(
+          UnidocSelector.tagName(),
+          UnidocPredicate.match(/red|green|blue/i)
+        ))
       )
-    )
 
-    tag.withContent(blueprint)
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.sequence(
+          UnidocBlueprint.optional(tag),
+          UnidocBlueprint.optional(tag),
+          UnidocBlueprint.optional(tag)
+        )
+      )
 
-    validator.validateWith(blueprint)
+      tag.withContent(blueprint)
 
-    const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
-    const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
-    inputBuffer.subscribe(input)
-    validator.subscribe(input)
+      validator.execute(blueprint)
 
-    input.initialize()
-      .produceTagStart('red')
-      .produceTagStart('blue')
-      .produceTagEnd('blue')
-      .produceTagEnd('red')
-      .produceTagStart('green')
-      .produceTagStart('green')
-      .produceTagStart('red')
-      .produceTagEnd('red')
-      .produceTagEnd('green')
-      .produceTagEnd('green')
-      .produceTagStart('blue')
-      .produceTagEnd('blue')
-      .complete()
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
 
-    const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
-    const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+      input.initialize()
+        .produceTagStart('red')
+        .produceTagStart('blue')
+        .produceTagEnd('blue')
+        .produceTagEnd('red')
+        .produceTagStart('green')
+        .produceTagStart('green')
+        .produceTagStart('red')
+        .produceTagEnd('red')
+        .produceTagEnd('green')
+        .produceTagEnd('green')
+        .produceTagStart('blue')
+        .produceTagEnd('blue')
+        .complete()
 
-    expectation.subscribe(tree)
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
 
-    tree.initialize()
+      expectation.subscribe(tree)
 
-    for (let index = 0; index < 12; ++index) {
-      tree.branches.first
-        .validate(inputBuffer.get(index))
-    }
+      tree.initialize()
 
-    tree.complete()
+      for (let index = 0; index < 12; ++index) {
+        tree.branches.first
+          .validate(inputBuffer.get(index))
+      }
 
-    console.log(output.toString())
+      tree.complete()
 
-    expect(expectation.expect(output)).toBeTruthy()
+      expect(expectation.expect(output)).toBeTruthy()
+    })
   })
-})*/
 })
