@@ -41,10 +41,12 @@ export class UnidocEventBlueprintValidationState extends UnidocBlueprintValidati
           .withData(UnexpectedContent.Data.BLUEPRINT, this.blueprint)
           .produce()
 
-        this.process.recover()
+        if (this.process.recover()) {
+          this.process.exit()
+        }
+      } else {
+        this.process.exit()
       }
-
-      this.process.exit()
     }
   }
 
@@ -64,8 +66,9 @@ export class UnidocEventBlueprintValidationState extends UnidocBlueprintValidati
         )
         .produce()
 
-      this.process.recover()
-      this.process.exit()
+      if (this.process.recover()) {
+        this.process.exit()
+      }
     }
   }
 

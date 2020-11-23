@@ -1386,5 +1386,53 @@ describe('UnidocBlueprintValidator', function() {
 
       expect(expectation.expect(output)).toBeTruthy()
     })
+
+    it('case 001', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.sequence(
+          UnidocBlueprint.tagStart('identifier'),
+          UnidocBlueprint.many(UnidocBlueprint.whitespace()),
+          UnidocBlueprint.many(UnidocBlueprint.word()).atLeast(1),
+          UnidocBlueprint.many(UnidocBlueprint.whitespace()),
+          UnidocBlueprint.tagEnd('identifier')
+        )
+      )
+      validator.execute(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+        .produceTagStart('identifier')
+        .produceWhitespace(' ')
+        .produceWhitespace('roberto::test::debanderas')
+        .produceWhitespace(' ')
+        .produceTagEnd('identifier')
+        .complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+
+      for (let index = 0; index < 5; ++index) {
+        tree.branches.first.validate(inputBuffer.get(index))
+      }
+
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
   })
 })

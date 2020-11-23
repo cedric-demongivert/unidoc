@@ -93,9 +93,11 @@ export class UnidocBlueprintValidationProcess {
   /**
   * Called after the emission of an error.
   */
-  public recover(): void {
+  public recover(): boolean {
     if (this.recoveries < MAX_ALLOWED_RECOVERIES) {
       this.recoveries += 1
+
+      return true
     } else {
       this.asMessageOfType(TooManyErrors.TYPE)
         .ofCode(TooManyErrors.CODE)
@@ -103,6 +105,8 @@ export class UnidocBlueprintValidationProcess {
         .produce()
 
       this.stop()
+
+      return false
     }
   }
 
