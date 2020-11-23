@@ -103,10 +103,10 @@ export class UnidocSetBlueprint implements UnidocBlueprint {
         )
       }
     } else {
-      result += '\r\n\t...\r\n'
+      result += '\r\n\t...'
     }
 
-    result += '- '
+    result += '\r\n- '
     result += visited.get(this)
     result += ': '
     result += this.constructor.name

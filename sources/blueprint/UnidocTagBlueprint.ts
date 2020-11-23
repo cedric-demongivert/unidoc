@@ -119,10 +119,10 @@ export class UnidocTagBlueprint implements UnidocBlueprint {
           .replace(/^(\r\n|\r|\n)/gm, '$1\t')
       )
     } else {
-      result += '\r\n\t...\r\n'
+      result += '\r\n\t...'
     }
 
-    result += '- '
+    result += '\r\n- '
     result += visited.get(this)
     result += ': '
     result += this.constructor.name
