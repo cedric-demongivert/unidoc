@@ -193,11 +193,139 @@ export namespace UnidocBlueprint {
     )
   }
 
+  const WORD: UnidocBlueprint = event(UnidocPredicate.isWord())
+  const WHITESPACE: UnidocBlueprint = event(UnidocPredicate.isWhitespace())
+  const WHITESPACES: UnidocBlueprint = UnidocBlueprint.many(WHITESPACE)
+
   export function word(): UnidocBlueprint {
-    return event(UnidocPredicate.isWord())
+    return WORD
   }
 
   export function whitespace(): UnidocBlueprint {
-    return event(UnidocPredicate.isWhitespace())
+    return WHITESPACE
+  }
+
+  export function whitespaces(): UnidocBlueprint {
+    return WHITESPACES
+  }
+
+  export namespace whitespaced {
+    /**
+    *
+    */
+    export function disjunction(...operands: UnidocBlueprint[]): UnidocBlueprint {
+      const result: UnidocDisjunctionBlueprint = UnidocDisjunctionBlueprint.create()
+
+      if (operands) {
+        for (const operand of operands) {
+          result.or(operand)
+        }
+      }
+
+      return UnidocBlueprint.sequence(
+        WHITESPACES,
+        result
+      )
+    }
+
+    /**
+    *
+    */
+    export function many(operand: UnidocBlueprint): UnidocBlueprint {
+      const result: UnidocManyBlueprint = UnidocManyBlueprint.create()
+
+      if (operand) {
+        result.of(
+          UnidocBlueprint.sequence(
+            WHITESPACES,
+            operand
+          )
+        )
+      }
+
+      return result
+    }
+
+    /**
+    *
+    */
+    export function optional(operand: UnidocBlueprint): UnidocBlueprint {
+      const result: UnidocManyBlueprint = UnidocManyBlueprint.create()
+
+      result.optional()
+
+      if (operand) {
+        result.of(
+          UnidocBlueprint.sequence(
+            WHITESPACES,
+            operand
+          )
+        )
+      }
+
+      return result
+    }
+
+    /**
+    *
+    */
+    export function sequence(...operands: UnidocBlueprint[]): UnidocBlueprint {
+      const result: UnidocSequenceBlueprint = UnidocSequenceBlueprint.create()
+
+      if (operands) {
+        for (const operand of operands) {
+          result.then(
+            UnidocBlueprint.sequence(
+              WHITESPACES,
+              operand
+            )
+          )
+        }
+      }
+
+      return result
+    }
+
+    export namespace sequence {
+      /**
+      *
+      */
+      export function lenient(...operands: UnidocBlueprint[]): UnidocBlueprint {
+        const result: UnidocLenientSequenceBlueprint = UnidocLenientSequenceBlueprint.create()
+
+        if (operands) {
+          for (const operand of operands) {
+            result.then(
+              UnidocBlueprint.sequence(
+                WHITESPACES,
+                operand
+              )
+            )
+          }
+        }
+
+        return result
+      }
+    }
+
+    /**
+    *
+    */
+    export function set(...operands: UnidocBlueprint[]): UnidocBlueprint {
+      const result: UnidocSetBlueprint = UnidocSetBlueprint.create()
+
+      if (operands) {
+        for (const operand of operands) {
+          result.with(
+            UnidocBlueprint.sequence(
+              WHITESPACES,
+              operand
+            )
+          )
+        }
+      }
+
+      return result
+    }
   }
 }
