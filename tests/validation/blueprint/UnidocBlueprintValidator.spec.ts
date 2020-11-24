@@ -15,6 +15,7 @@ import { UnexpectedContent } from '../../../sources/validator/blueprint/messages
 import { RequiredContent } from '../../../sources/validator/blueprint/messages/RequiredContent'
 import { UnnecessaryContent } from '../../../sources/validator/blueprint/messages/UnnecessaryContent'
 import { PreferredContent } from '../../../sources/validator/blueprint/messages/PreferredContent'
+import { TooManyErrors } from '../../../sources/validator/blueprint/messages/TooManyErrors'
 
 describe('UnidocBlueprintValidator', function() {
   describe('event instruction', function() {
@@ -159,7 +160,6 @@ describe('UnidocBlueprintValidator', function() {
 
       input.initialize()
         .produceTagStart('other')
-        .produceTagEnd('other')
         .complete()
 
       const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
@@ -167,14 +167,12 @@ describe('UnidocBlueprintValidator', function() {
 
       expectation.subscribe(tree).initialize()
 
-      for (let index = 0; index < 2; ++index) {
-        tree.branches.first
-          .validate(inputBuffer.get(index))
-          .asMessageOfType(UnnecessaryContent.TYPE)
-          .ofCode(UnnecessaryContent.CODE)
-          .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
-          .produce()
-      }
+      tree.branches.first
+        .validate(inputBuffer.get(0))
+        .asMessageOfType(UnnecessaryContent.TYPE)
+        .ofCode(UnnecessaryContent.CODE)
+        .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
+        .produce()
 
       tree.complete()
 
@@ -298,7 +296,7 @@ describe('UnidocBlueprintValidator', function() {
 
       input.initialize()
 
-      for (let index = 0; index < 3; ++index) {
+      for (let index = 0; index < 2; ++index) {
         input.produceWord('test')
       }
 
@@ -311,7 +309,7 @@ describe('UnidocBlueprintValidator', function() {
 
       tree.initialize()
 
-      for (let index = 0; index < 3; ++index) {
+      for (let index = 0; index < 2; ++index) {
         tree.branches.first
           .validate(inputBuffer.get(index))
       }
@@ -420,10 +418,10 @@ describe('UnidocBlueprintValidator', function() {
         .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
         .produce()
         .validate(inputBuffer.get(4))
-        .asMessageOfType(UnnecessaryContent.TYPE)
-        .ofCode(UnnecessaryContent.CODE)
-        .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
-        .produce()
+      /*.asMessageOfType(UnnecessaryContent.TYPE)
+      .ofCode(UnnecessaryContent.CODE)
+      .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
+      .produce() <--- SHTARB */
 
       tree.complete()
 
@@ -748,9 +746,9 @@ describe('UnidocBlueprintValidator', function() {
       validator.subscribe(input)
 
       input.initialize()
-        .produceTagStart('green')
         .produceTagStart('red')
         .produceTagStart('blue')
+        .produceTagStart('green')
         .complete()
 
       const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
@@ -762,19 +760,20 @@ describe('UnidocBlueprintValidator', function() {
 
       tree.branches.first
         .validate(inputBuffer.get(0))
-        .asMessageOfType(UnexpectedContent.TYPE)
-        .ofCode(UnexpectedContent.CODE)
-        .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.operands.get(0))
-        .produce()
-
-      tree.branches.first
         .validate(inputBuffer.get(1))
         .asMessageOfType(UnexpectedContent.TYPE)
         .ofCode(UnexpectedContent.CODE)
         .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.operands.get(1))
         .produce()
-
-      tree.branches.first.validate(inputBuffer.get(2))
+        .validate(inputBuffer.get(2))
+        .asMessageOfType(UnexpectedContent.TYPE)
+        .ofCode(UnexpectedContent.CODE)
+        .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.operands.get(2))
+        .produce()
+        .asMessageOfType(TooManyErrors.TYPE)
+        .ofCode(TooManyErrors.CODE)
+        .withData(TooManyErrors.Data.RECOVERIES, 1)
+        .produce()
 
       tree.complete()
 

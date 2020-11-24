@@ -209,7 +209,29 @@ export namespace UnidocBlueprint {
     return WHITESPACES
   }
 
+  export function whitespaced(content: UnidocBlueprint): UnidocBlueprint {
+    return UnidocBlueprint.sequence(
+      WHITESPACES,
+      content,
+      WHITESPACES
+    )
+  }
+
   export namespace whitespaced {
+    export function head(content: UnidocBlueprint): UnidocBlueprint {
+      return UnidocBlueprint.sequence(
+        WHITESPACES,
+        content
+      )
+    }
+
+    export function tail(content: UnidocBlueprint): UnidocBlueprint {
+      return UnidocBlueprint.sequence(
+        content,
+        WHITESPACES
+      )
+    }
+
     /**
     *
     */

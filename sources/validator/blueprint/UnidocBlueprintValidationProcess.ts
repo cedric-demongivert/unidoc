@@ -12,7 +12,7 @@ import { UnidocBlueprintValidationState } from './UnidocBlueprintValidationState
 import { UnidocBlueprintValidator } from './UnidocBlueprintValidator'
 import { UnidocBlueprintResolver } from './UnidocBlueprintResolver'
 
-const MAX_ALLOWED_RECOVERIES: number = 2
+const MAX_ALLOWED_RECOVERIES: number = 1
 
 export class UnidocBlueprintValidationProcess {
   /**
