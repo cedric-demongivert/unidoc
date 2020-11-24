@@ -297,11 +297,19 @@ export class UnidocValidationTrunckSelector
     left.countMessages(leftMessages)
     right.countMessages(rightMessages)
 
+    let invert: boolean = false
+
     for (let index = 0; index < UnidocValidationMessageType.ALL.length; ++index) {
       const type: UnidocValidationMessageType = UnidocValidationMessageType.ALL.length - index - 1
 
-      if (leftMessages.get(type) !== rightMessages.get(type)) {
-        return leftMessages.get(type) < rightMessages.get(type)
+      if (leftMessages.get(type) < rightMessages.get(type)) {
+        return !invert
+      } else if (leftMessages.get(type) === rightMessages.get(type)) {
+        if (leftMessages.get(type) > 0) {
+          invert = true
+        }
+      } else {
+        return invert
       }
     }
 

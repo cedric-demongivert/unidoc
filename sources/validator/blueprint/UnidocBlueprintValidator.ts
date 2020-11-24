@@ -104,8 +104,11 @@ export class UnidocBlueprintValidator
     if (this._pass.size > 0) {
       for (const process of this._pass) {
         process.continue()
-        this._manager.validate(process.branch, event)
-        process.validate(event)
+
+        if (process.running) {
+          this._manager.validate(process.branch, event)
+          process.validate(event)
+        }
 
         if (process.running) {
           this._nextPass.push(process)

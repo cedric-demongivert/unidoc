@@ -325,7 +325,7 @@ describe('UnidocBlueprintValidator', function() {
       expect(expectation.expect(output)).toBeTruthy()
     })
 
-    it('it validate trees that contains more than a maximum number of repeats', function() {
+    it('it validate trees that contains less than a maximum number of repeats', function() {
       const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
       const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
       selector.subscribe(validator)
@@ -371,7 +371,7 @@ describe('UnidocBlueprintValidator', function() {
       expect(expectation.expect(output)).toBeTruthy()
     })
 
-    it('it emit errors when a tree contains more than a maximum number of repeats', function() {
+    it('emit errors when a tree contains more than a maximum number of repeats', function() {
       const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
       const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
       selector.subscribe(validator)
@@ -379,11 +379,10 @@ describe('UnidocBlueprintValidator', function() {
       const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
       output.subscribe(selector)
 
-      const blueprint: UnidocBlueprint = (
-        UnidocBlueprint.many(
-          UnidocBlueprint.word()
-        ).upTo(3)
-      )
+      const blueprint: UnidocBlueprint = UnidocBlueprint.many(
+        UnidocBlueprint.word()
+      ).upTo(3)
+
       validator.execute(blueprint)
 
       const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
@@ -417,11 +416,6 @@ describe('UnidocBlueprintValidator', function() {
         .ofCode(UnnecessaryContent.CODE)
         .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
         .produce()
-        .validate(inputBuffer.get(4))
-      /*.asMessageOfType(UnnecessaryContent.TYPE)
-      .ofCode(UnnecessaryContent.CODE)
-      .withData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
-      .produce() <--- SHTARB */
 
       tree.complete()
 
@@ -519,7 +513,6 @@ describe('UnidocBlueprintValidator', function() {
         .ofCode(UnexpectedContent.CODE)
         .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.operands.get(2))
         .produce()
-        .validate(inputBuffer.get(2))
 
       tree.complete()
 
@@ -765,15 +758,6 @@ describe('UnidocBlueprintValidator', function() {
         .ofCode(UnexpectedContent.CODE)
         .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.operands.get(1))
         .produce()
-        .validate(inputBuffer.get(2))
-        .asMessageOfType(UnexpectedContent.TYPE)
-        .ofCode(UnexpectedContent.CODE)
-        .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.operands.get(2))
-        .produce()
-        .asMessageOfType(TooManyErrors.TYPE)
-        .ofCode(TooManyErrors.CODE)
-        .withData(TooManyErrors.Data.RECOVERIES, 1)
-        .produce()
 
       tree.complete()
 
@@ -871,8 +855,6 @@ describe('UnidocBlueprintValidator', function() {
         .ofCode(UnexpectedContent.CODE)
         .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.operands.get(1))
         .produce()
-
-      tree.branches.first.validate(inputBuffer.get(2))
 
       tree.complete()
 
@@ -1076,17 +1058,21 @@ describe('UnidocBlueprintValidator', function() {
 
       tree.branches.first
         .validate(inputBuffer.get(0))
+        .asMessageOfType(PreferredContent.TYPE)
+        .ofCode(PreferredContent.CODE)
+        .withData(PreferredContent.Data.BLUEPRINT, blueprint.operands.get(0))
+        .produce()
+        .validate(inputBuffer.get(1))
+        .asMessageOfType(PreferredContent.TYPE)
+        .ofCode(PreferredContent.CODE)
+        .withData(PreferredContent.Data.BLUEPRINT, blueprint.operands.get(0))
+        .produce()
+        .validate(inputBuffer.get(2))
         .asMessageOfType(UnexpectedContent.TYPE)
         .ofCode(UnexpectedContent.CODE)
         .withData(UnexpectedContent.Data.BLUEPRINT, blueprint.operands.get(0))
         .produce()
-
-      for (let index = 1; index < 3; ++index) {
-        tree.branches.first
-          .validate(inputBuffer.get(index))
-      }
-
-      tree.complete()
+        .complete()
 
       expect(expectation.expect(output)).toBeTruthy()
     })
@@ -1181,7 +1167,6 @@ describe('UnidocBlueprintValidator', function() {
         .ofCode(UnexpectedContent.CODE)
         .withData(UnexpectedContent.Data.BLUEPRINT, blueprint)
         .produce()
-        .validate(inputBuffer.get(1))
 
       tree.complete()
 

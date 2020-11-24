@@ -52,7 +52,7 @@ export class UnidocManyBlueprintValidationState extends UnidocBlueprintValidatio
           .withData(UnnecessaryContent.Data.BLUEPRINT, this.blueprint)
           .produce()
 
-        this.process.recover()
+        this.process.stop()
       }
 
       this.current += 1

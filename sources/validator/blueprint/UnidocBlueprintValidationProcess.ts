@@ -6,13 +6,9 @@ import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
 import { UnidocValidationBranchIdentifier } from '../../validation/UnidocValidationBranchIdentifier'
 import { UnidocValidationMessageType } from '../../validation/UnidocValidationMessageType'
 
-import { TooManyErrors } from './messages/TooManyErrors'
-
 import { UnidocBlueprintValidationState } from './UnidocBlueprintValidationState'
 import { UnidocBlueprintValidator } from './UnidocBlueprintValidator'
 import { UnidocBlueprintResolver } from './UnidocBlueprintResolver'
-
-const MAX_ALLOWED_RECOVERIES: number = 1
 
 export class UnidocBlueprintValidationProcess {
   /**
@@ -88,26 +84,6 @@ export class UnidocBlueprintValidationProcess {
 
   public produce(): void {
     this.validator.produce()
-  }
-
-  /**
-  * Called after the emission of an error.
-  */
-  public recover(): boolean {
-    if (this.recoveries < MAX_ALLOWED_RECOVERIES) {
-      this.recoveries += 1
-
-      return true
-    } else {
-      this.asMessageOfType(TooManyErrors.TYPE)
-        .ofCode(TooManyErrors.CODE)
-        .withData(TooManyErrors.Data.RECOVERIES, MAX_ALLOWED_RECOVERIES)
-        .produce()
-
-      this.stop()
-
-      return false
-    }
   }
 
   /**

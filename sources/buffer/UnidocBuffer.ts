@@ -50,13 +50,15 @@ export namespace UnidocBuffer {
   export function expect(result: UnidocBuffer<any> | null | undefined, expectation: UnidocBuffer<any> | null | undefined): void {
     if (result == null || expectation == null) {
       if (expectation === result) {
-        throw new Error('Received different values.')
+        throw new Error('Received different values, received ' +
+          stringify(result) + ' but expected ' + stringify(expectation) + '.')
       }
     } else if (result != expectation) {
       if (result.size !== expectation.size) {
         throw new Error(
           'Received a buffer of size ' + result.size + ' instead of a buffer ' +
-          'of size ' + expectation.size + '.'
+          'of size ' + expectation.size + ', received ' +
+          toString(result) + ' but expected ' + toString(expectation) + '.'
         )
       }
 
@@ -68,13 +70,17 @@ export namespace UnidocBuffer {
           if (resultItem !== expectedItem) {
             throw new Error(
               'Difference between buffers at index ' + index + ' : ' +
-              stringify(resultItem) + ' != ' + stringify(expectedItem) + '.'
+              stringify(resultItem) + ' != ' + stringify(expectedItem) + ', ' +
+              'received ' + toString(result) + ' but expected ' +
+              toString(expectation) + '.'
             )
           }
         } else if (!resultItem.equals(expectedItem)) {
           throw new Error(
             'Difference between buffers at index ' + index + ' : ' +
-            stringify(resultItem) + ' != ' + stringify(expectedItem) + '.'
+            stringify(resultItem) + ' != ' + stringify(expectedItem) + ', ' +
+            'received ' + toString(result) + ' but expected ' +
+            toString(expectation) + '.'
           )
         }
       }

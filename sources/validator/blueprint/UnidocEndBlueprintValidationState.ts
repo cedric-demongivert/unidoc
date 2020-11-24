@@ -27,7 +27,7 @@ export class UnidocEndBlueprintValidationState extends UnidocBlueprintValidation
         .withData(UnnecessaryContent.Data.BLUEPRINT, UnidocBlueprint.end())
         .produce()
 
-      this.process.recover()
+      this.process.stop()
     }
   }
 

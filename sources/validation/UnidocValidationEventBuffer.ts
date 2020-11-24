@@ -1,6 +1,7 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
+import { UnidocBuffer } from '../buffer/UnidocBuffer'
 import { SubscribableUnidocConsumer } from '../consumer/SubscribableUnidocConsumer'
 
 import { UnidocValidationEvent } from './UnidocValidationEvent'
@@ -176,36 +177,8 @@ export class UnidocValidationEventBuffer extends SubscribableUnidocConsumer<Unid
   }
 
   public expect(other: any): boolean {
-    if (other == null) {
-      throw "Comparing with null."
-    }
-
-    if (other === this) {
-      return true
-    }
-
-    if (other instanceof UnidocValidationEventBuffer) {
-      if (other.events.size !== this._events.size) {
-        throw (
-          "Different number of events " + other.events.size + " != " +
-          this.events.size + "."
-        )
-      }
-
-      for (let index = 0, size = this._events.size; index < size; ++index) {
-        if (!other.events.get(index).equals(this._events.get(index))) {
-          throw (
-            "Difference between buffers at event number " + index + ' :\r\n' +
-            other.events.get(index) + '\r\nis not equal to :\r\n' +
-            this._events.get(index)
-          )
-        }
-      }
-
-      return true
-    }
-
-    throw "Different type of buffers."
+    UnidocBuffer.expect(other instanceof UnidocValidationEventBuffer ? other._events : other, this._events)
+    return true
   }
 }
 

@@ -102,7 +102,7 @@ export class UnidocTagBlueprintValidationState extends UnidocBlueprintValidation
         .withData(UnexpectedContent.Data.BLUEPRINT, this.blueprint)
         .produce()
 
-      this.process.recover()
+      this.process.stop()
     }
   }
 
@@ -116,7 +116,7 @@ export class UnidocTagBlueprintValidationState extends UnidocBlueprintValidation
         .withData(RequiredContent.Data.BLUEPRINT, this.blueprint)
         .produce()
 
-      this.process.recover()
+      this.process.stop()
     }
   }
 
