@@ -38,8 +38,6 @@ describe('UnidocDisjunctionBlueprint', function() {
         new UnidocDisjunctionBlueprint().or(new UnidocDisjunctionBlueprint())
       )
 
-      console.log(blueprint.toString(1))
-
       expect(blueprint.toString(1)).toBe(
         '+ 0: ' + UnidocDisjunctionBlueprint.name + '\r\n' +
         '\t+ 1: ' + UnidocDisjunctionBlueprint.name + '\r\n' +

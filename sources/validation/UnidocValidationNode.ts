@@ -99,6 +99,15 @@ export class UnidocValidationNode {
     this._fork = null
   }
 
+  public * branch(): Iterable<UnidocValidationEvent> {
+    let node: UnidocValidationNode | null = this
+
+    while (node != null) {
+      yield node.event
+      node = node.next || node.fork
+    }
+  }
+
   public * events(): Iterable<UnidocValidationEvent> {
     let node: UnidocValidationNode | null = this
 

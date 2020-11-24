@@ -6,6 +6,8 @@ import { UnidocValidationTrunckSelector } from '../../../sources/validation/Unid
 import { UnidocBlueprintValidator } from '../../../sources/validator/blueprint/UnidocBlueprintValidator'
 import { UnidocBlueprint } from '../../../sources/blueprint/UnidocBlueprint'
 
+import { UnidocProducerEvent } from '../../../sources/producer/UnidocProducerEvent'
+
 import { UnidocPredicate } from '../../../sources/predicate/UnidocPredicate'
 import { UnidocSelector } from '../../../sources/selector/UnidocSelector'
 
@@ -1094,7 +1096,7 @@ describe('UnidocBlueprintValidator', function() {
   })
 
   describe('tag block', function() {
-    it.only('accept a tag', function() {
+    it('accept a tag', function() {
       const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
       const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
       selector.subscribe(validator)
@@ -1338,13 +1340,7 @@ describe('UnidocBlueprintValidator', function() {
         ))
       )
 
-      const blueprint: UnidocBlueprint = (
-        UnidocBlueprint.sequence(
-          UnidocBlueprint.optional(tag),
-          UnidocBlueprint.optional(tag),
-          UnidocBlueprint.optional(tag)
-        )
-      )
+      const blueprint: UnidocBlueprint = UnidocBlueprint.many(tag).upTo(3)
 
       tag.withContent(blueprint)
 
@@ -1387,7 +1383,7 @@ describe('UnidocBlueprintValidator', function() {
       expect(expectation.expect(output)).toBeTruthy()
     })
 
-    it('case 001', function() {
+    /*it.only('case 002', function() {
       const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
       const selector: UnidocValidationTrunckSelector = new UnidocValidationTrunckSelector()
       selector.subscribe(validator)
@@ -1412,12 +1408,17 @@ describe('UnidocBlueprintValidator', function() {
       validator.subscribe(input)
 
       input.initialize()
-        .produceTagStart('identifier')
-        .produceWhitespace(' ')
-        .produceWhitespace('roberto::test::debanderas')
-        .produceWhitespace(' ')
-        .produceTagEnd('identifier')
-        .complete()
+
+      for (let index = 0; index < 100; ++index) {
+        input
+          .produceTagStart('identifier')
+          .produceWhitespace(' ')
+          .produceWhitespace('roberto::test::debanderas')
+          .produceWhitespace(' ')
+          .produceTagEnd('identifier')
+      }
+
+      input.complete()
 
       const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
       const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
@@ -1433,6 +1434,6 @@ describe('UnidocBlueprintValidator', function() {
       tree.complete()
 
       expect(expectation.expect(output)).toBeTruthy()
-    })
+    })*/
   })
 })

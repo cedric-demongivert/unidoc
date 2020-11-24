@@ -14,6 +14,19 @@ import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 
 const ROOT_BRANCH: UnidocValidationBranchIdentifier = new UnidocValidationBranchIdentifier().set(0, 0)
 
+function createStop(value: number) {
+  let index: number = 0
+
+  return function stop(): void {
+    index += 1
+
+    if (index >= value) {
+      throw new Error()
+    }
+  }
+}
+
+
 export class UnidocValidationTrunckSelector
   extends SubscribableUnidocConsumer<UnidocValidationEvent>
   implements UnidocValidationSelector {
@@ -91,7 +104,6 @@ export class UnidocValidationTrunckSelector
     while (node != null && node.fork == null) {
       const next: UnidocValidationNode | null = node.next
 
-      this.duplicate(node.event)
       node.delete()
       this._nodes.push(node)
 
@@ -99,6 +111,7 @@ export class UnidocValidationTrunckSelector
         this._branches.set(node.event.branch.local, null)
       }
 
+      this.duplicate(node.event)
       node = next
     }
 
@@ -181,7 +194,7 @@ export class UnidocValidationTrunckSelector
     node.event.copy(event)
 
     if (branch != null) {
-      branch.next = node
+      branch.next = node // branch === node ????
     }
 
     if (this._root == null) {
