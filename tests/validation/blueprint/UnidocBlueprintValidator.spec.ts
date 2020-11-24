@@ -160,8 +160,6 @@ describe('UnidocBlueprintValidator', function() {
       input.initialize()
         .produceTagStart('other')
         .produceTagEnd('other')
-        .produceWord('other')
-        .produceWhitespace(' ')
         .complete()
 
       const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
@@ -169,7 +167,7 @@ describe('UnidocBlueprintValidator', function() {
 
       expectation.subscribe(tree).initialize()
 
-      for (let index = 0; index < 4; ++index) {
+      for (let index = 0; index < 2; ++index) {
         tree.branches.first
           .validate(inputBuffer.get(index))
           .asMessageOfType(UnnecessaryContent.TYPE)
