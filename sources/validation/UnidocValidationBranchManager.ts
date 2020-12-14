@@ -3,7 +3,6 @@ import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 import { UnidocEvent } from '../event/UnidocEvent'
 
 import { UnidocValidationBranchIdentifier } from './UnidocValidationBranchIdentifier'
-import { UnidocValidationEvent } from './UnidocValidationEvent'
 import { UnidocValidationMessage } from './UnidocValidationMessage'
 import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 import { UnidocValidationTreeManager } from './UnidocValidationTreeManager'
@@ -18,14 +17,6 @@ export class UnidocValidationBranchManager {
   }
 
   /**
-  * Initilize this branch.
-  */
-  public initialize(): UnidocValidationBranchManager {
-    this.tree.initializeBranch(this.branch)
-    return this
-  }
-
-  /**
   * Notify the validation of the given event by this branch.
   *
   * @param event - The event that is validated.
@@ -35,43 +26,29 @@ export class UnidocValidationBranchManager {
     return this
   }
 
-  public asMessageOfType(type: UnidocValidationMessageType): UnidocValidationBranchManager {
-    this.tree.fromBranch(this.branch).asMessageOfType(type)
+
+  public documentCompletion(): UnidocValidationBranchManager {
+    this.tree.documentCompletion(this.branch)
     return this
   }
 
-  public asVerboseMessage(): UnidocValidationBranchManager {
-    this.tree.fromBranch(this.branch).asVerboseMessage()
+  public prepareNewMessage(): UnidocValidationBranchManager {
+    this.tree.prepareNewMessage(this.branch)
     return this
   }
 
-  public asInformationMessage(): UnidocValidationBranchManager {
-    this.tree.fromBranch(this.branch).asInformationMessage()
+  public setMessageType(type: UnidocValidationMessageType): UnidocValidationBranchManager {
+    this.tree.setMessageType(type)
     return this
   }
 
-  public asWarningMessage(): UnidocValidationBranchManager {
-    this.tree.fromBranch(this.branch).asWarningMessage()
+  public setMessageCode(code: string): UnidocValidationBranchManager {
+    this.tree.setMessageCode(code)
     return this
   }
 
-  public asErrorMessage(): UnidocValidationBranchManager {
-    this.tree.fromBranch(this.branch).asErrorMessage()
-    return this
-  }
-
-  public asFailureMessage(): UnidocValidationBranchManager {
-    this.tree.fromBranch(this.branch).asFailureMessage()
-    return this
-  }
-
-  public ofCode(code: string): UnidocValidationBranchManager {
-    this.tree.ofCode(code)
-    return this
-  }
-
-  public withData(key: string, value: any): UnidocValidationBranchManager {
-    this.tree.withData(key, value)
+  public setMessageData(key: string, value: any): UnidocValidationBranchManager {
+    this.tree.setMessageData(key, value)
     return this
   }
 
@@ -95,6 +72,17 @@ export class UnidocValidationBranchManager {
   }
 
   /**
+  * Merge this branch into another one and return the resulting branch.
+  *
+  * @param target - The branch to merge into.
+  *
+  * @return The resulting branch.
+  */
+  public merge(target: UnidocValidationBranchIdentifier): UnidocValidationBranchManager {
+    return this.tree.merge(this.branch, target)
+  }
+
+  /**
   * @see ListenableUnidocProducer.produce
   */
   public produce(): UnidocValidationBranchManager {
@@ -105,14 +93,20 @@ export class UnidocValidationBranchManager {
   /**
   * @see ListenableUnidocProducer.complete
   */
-  public complete(): void {
-    this.tree.completeBranch(this.branch)
+  public terminate(): void {
+    this.tree.terminate(this.branch)
   }
 
+  /**
+  *
+  */
   public clear(): void {
     this.branch.clear()
   }
 
+  /**
+  *
+  */
   public copy(toCopy: UnidocValidationBranchManager): void {
     this.branch.copy(toCopy.branch)
   }

@@ -14,34 +14,57 @@ import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 
 const ROOT_BRANCH: UnidocValidationBranchIdentifier = new UnidocValidationBranchIdentifier().set(0, 0)
 
-function createStop(value: number) {
-  let index: number = 0
-
-  return function stop(): void {
-    index += 1
-
-    if (index >= value) {
-      throw new Error()
-    }
-  }
-}
-
-
-export class UnidocValidationTrunckSelector
+export class UnidocValidationTrunkSelector
   extends SubscribableUnidocConsumer<UnidocValidationEvent>
   implements UnidocValidationSelector {
+  /**
+  *
+  */
   private readonly _output: StaticUnidocProducer<UnidocValidationEvent>
+
+  /**
+  *
+  */
   private readonly _event: UnidocValidationEvent
+
+  /**
+  *
+  */
   private _index: number
+
+  /**
+  *
+  */
   private _lastBatch: number
 
+  /**
+  *
+  */
   private readonly _nodes: Pack<UnidocValidationNode>
+
+  /**
+  *
+  */
   private readonly _branches: Pack<UnidocValidationNode | null>
+
+  /**
+  *
+  */
   private _root: UnidocValidationNode | null
 
+  /**
+  *
+  */
   private readonly _leftMessages: Pack<number>
+
+  /**
+  *
+  */
   private readonly _rightMessages: Pack<number>
 
+  /**
+  *
+  */
   public constructor(capacity: number = 32) {
     super()
     this._output = new StaticUnidocProducer()
@@ -61,6 +84,20 @@ export class UnidocValidationTrunckSelector
     }
   }
 
+  /**
+  *
+  */
+  private isSprout(branch: UnidocValidationNode | null): branch is UnidocValidationNode {
+    return (
+      branch != null &&
+      branch.event.type === UnidocValidationEventType.FORK &&
+      branch.fork == null
+    )
+  }
+
+  /**
+  *
+  */
   private chop(branch: number): void {
     let node: UnidocValidationNode | null = this._branches.get(branch)
     this._branches.set(branch, null)
@@ -82,13 +119,17 @@ export class UnidocValidationTrunckSelector
     }
   }
 
+  /**
+  *
+  */
   private chopDeadBranches(event: UnidocValidationEvent): void {
     switch (event.type) {
       case UnidocValidationEventType.FORK:
       case UnidocValidationEventType.VALIDATION:
+      case UnidocValidationEventType.DOCUMENT_COMPLETION:
         for (let index = 0; index < this._branches.size; ++index) {
           const branch: UnidocValidationNode | null = this._branches.get(index)
-          if (branch != null && branch.event.type === UnidocValidationEventType.COMPLETION) {
+          if (branch != null && branch.event.type === UnidocValidationEventType.TERMINATION) {
             this.chop(index)
           }
         }
@@ -98,6 +139,9 @@ export class UnidocValidationTrunckSelector
     }
   }
 
+  /**
+  *
+  */
   private dump(): void {
     let node: UnidocValidationNode | null = this._root
 
@@ -118,6 +162,9 @@ export class UnidocValidationTrunckSelector
     this._root = node
   }
 
+  /**
+  *
+  */
   private allocateNode(): UnidocValidationNode {
     if (this._nodes.size > 0) {
       return this._nodes.pop()
@@ -133,7 +180,7 @@ export class UnidocValidationTrunckSelector
     this._output.initialize()
     this._index = 0
 
-    this.produce(this._event.fromBranch(ROOT_BRANCH).asInitialization())
+    this.produce(this._event.fromBranch(ROOT_BRANCH).asCreation())
   }
 
   /**
@@ -146,8 +193,8 @@ export class UnidocValidationTrunckSelector
       case UnidocValidationEventType.FORK:
         this.handleProductionOfFork(event)
         break
-      case UnidocValidationEventType.INITIALIZATION:
-        this.handleProductionOfInitialization(event)
+      case UnidocValidationEventType.MERGE:
+        this.handleProductionOfMerge(event)
         break
       default:
         this.handleProductionOfEvent(event)
@@ -157,22 +204,27 @@ export class UnidocValidationTrunckSelector
     this.dump()
   }
 
-  private handleProductionOfInitialization(event: UnidocValidationEvent): void {
-    const branch: UnidocValidationNode | null = this._branches.get(event.branch.local)
-
-    if (branch == null) {
-      this.handleProductionOfEvent(event)
-    } else {
-      branch.event.copy(event)
-    }
+  /**
+  *
+  */
+  private handleProductionOfMerge(event: UnidocValidationEvent): void {
+    throw new Error('handleProductionOfMerge is not implemented yet.')
   }
 
+  /**
+  *
+  */
   private handleProductionOfFork(event: UnidocValidationEvent): void {
     const branch: UnidocValidationNode | null = this._branches.get(event.branch.local)
-    const node: UnidocValidationNode = this.allocateNode()
-    node.event.copy(event)
+    const node: UnidocValidationNode = (
+      this.isSprout(branch) ? branch : this.allocateNode()
+    )
+    const fork: UnidocValidationNode = this.allocateNode()
 
-    if (branch != null) {
+    node.event.copy(event)
+    fork.event.copy(event)
+
+    if (branch != null && node !== branch) {
       branch.next = node
     }
 
@@ -180,21 +232,25 @@ export class UnidocValidationTrunckSelector
       this._root = node
     }
 
-    const fork: UnidocValidationNode = this.allocateNode()
-
     node.fork = fork
 
     this._branches.set(event.branch.local, node)
-    this._branches.set(event.fork.local, fork)
+    this._branches.set(event.target.local, fork)
   }
 
+  /**
+  *
+  */
   private handleProductionOfEvent(event: UnidocValidationEvent): void {
     const branch: UnidocValidationNode | null = this._branches.get(event.branch.local)
-    const node: UnidocValidationNode = this.allocateNode()
+    const node: UnidocValidationNode = (
+      this.isSprout(branch) ? branch : this.allocateNode()
+    )
+
     node.event.copy(event)
 
-    if (branch != null) {
-      branch.next = node // branch === node ????
+    if (branch != null && node !== branch) {
+      branch.next = node
     }
 
     if (this._root == null) {
@@ -204,11 +260,15 @@ export class UnidocValidationTrunckSelector
     this._branches.set(event.branch.local, node)
   }
 
+  /**
+  *
+  */
   private duplicate(event: UnidocValidationEvent): void {
     switch (event.type) {
       case UnidocValidationEventType.FORK:
-      case UnidocValidationEventType.INITIALIZATION:
-      case UnidocValidationEventType.COMPLETION:
+      case UnidocValidationEventType.CREATION:
+      case UnidocValidationEventType.TERMINATION:
+      case UnidocValidationEventType.MERGE:
         break
       default:
         event.branch.copy(ROOT_BRANCH)
@@ -217,6 +277,9 @@ export class UnidocValidationTrunckSelector
     }
   }
 
+  /**
+  *
+  */
   private produce(event: UnidocValidationEvent): void {
     event.index = this._index
     this._index += 1
@@ -233,26 +296,17 @@ export class UnidocValidationTrunckSelector
       this.dump()
     }
 
-    this._event.fromBranch(ROOT_BRANCH).asCompletion()
+    this._event.fromBranch(ROOT_BRANCH).asTermination()
     this._event.batch = this._lastBatch
     this.produce(this._event)
 
     this._output.complete()
   }
 
+  /**
+  *
+  */
   private keepBestBranch(): void {
-    // console.log('Keep best branch from : ')
-    // for (let index = 0; index < this._branches.size; ++index) {
-    //   let branch: UnidocValidationNode | null = this._branches.get(index)
-    //   if (branch != null) {
-    //     let result: string = ''
-    //     for (const event of branch.events()) {
-    //       result += (result.length > 0 ? '\r\n' : '') + event.toString()
-    //     }
-    //     console.log(result)
-    //   }
-    // }
-
     let best: UnidocValidationNode | null = this._branches.get(0)
     let bestIndex: number = 0
 
@@ -272,17 +326,11 @@ export class UnidocValidationTrunckSelector
         }
       }
     }
-
-    // console.log('That is : ')
-    // if (best != null) {
-    //   let result: string = ''
-    //   for (const event of best.events()) {
-    //     result += (result.length > 0 ? '\r\n' : '') + event.toString()
-    //   }
-    //   console.log(result)
-    // }
   }
 
+  /**
+  *
+  */
   private isLeftBetterThanRight(left: UnidocValidationNode, right: UnidocValidationNode): boolean {
     if (left.event.batch !== right.event.batch) {
       return left.event.batch > right.event.batch

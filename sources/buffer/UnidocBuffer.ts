@@ -2,9 +2,13 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
+import { bufferize as bufferizeImport } from './bufferize'
+
 export type UnidocBuffer<T> = Pack<T>
 
 export namespace UnidocBuffer {
+  export const bufferize = bufferizeImport
+
   /**
   * Instantiate a new buffer for storing a given type of value.
   *

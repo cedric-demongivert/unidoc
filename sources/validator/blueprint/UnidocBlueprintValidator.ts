@@ -1,4 +1,4 @@
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
+import { UnidocBuffer } from '../../buffer/UnidocBuffer'
 
 import { UnidocEvent } from '../../event/UnidocEvent'
 
@@ -7,79 +7,54 @@ import { UnidocProducerEvent } from '../../producer/UnidocProducerEvent'
 import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
 
 import { UnidocValidationTreeManager } from '../../validation/UnidocValidationTreeManager'
-import { UnidocValidationMessageType } from '../../validation/UnidocValidationMessageType'
 
 import { UnidocValidator } from '../UnidocValidator'
 
-import { UnidocBlueprintValidationProcess } from './UnidocBlueprintValidationProcess'
+import { UnidocBlueprintExecutionEvent } from './event/UnidocBlueprintExecutionEvent'
+
+import { UnidocValidationGraph } from './UnidocValidationGraph'
+import { UnidocBlueprintValidationExecutor } from './UnidocBlueprintValidationExecutor'
+
+/*
+function createStop(count: number): any {
+  let index: number = 0
+  let buffer: string[] = []
+  return function stop(process?: UnidocBlueprintValidationProcess): void {
+    index += 1
+    if (process == null) {
+      buffer.push('------------------------------------')
+    } else if (process.states.size > 0) {
+      buffer.push('executing ' + process.states.last.toString() + '...')
+    } else {
+      buffer.push('executing empty state...')
+    }
+    if (index >= count) {
+      throw new Error(buffer.join('\r\n'))
+    }
+  }
+}
+*/
+
+//const stop: any = createStop(200)
 
 export class UnidocBlueprintValidator
   extends SubscribableUnidocConsumer<UnidocEvent>
   implements UnidocValidator {
-  private _pass: Pack<UnidocBlueprintValidationProcess>
-  private _nextPass: Pack<UnidocBlueprintValidationProcess>
-
+  private _pass: UnidocBuffer<UnidocBlueprintExecutionEvent>
+  private _graph: UnidocValidationGraph
   private _manager: UnidocValidationTreeManager
+  private _executor: UnidocBlueprintValidationExecutor
 
   public constructor(capacity: number = 32) {
     super()
-    this._pass = Pack.any(capacity)
-    this._nextPass = Pack.any(capacity)
+    this._pass = UnidocBuffer.create(UnidocBlueprintExecutionEvent.ALLOCATOR, capacity)
+    this._graph = new UnidocValidationGraph()
     this._manager = new UnidocValidationTreeManager()
-  }
-
-  public fromProcess(process: UnidocBlueprintValidationProcess): UnidocBlueprintValidator {
-    this._manager.fromBranch(process.branch)
-    return this
-  }
-
-  public asMessageOfType(type: UnidocValidationMessageType): UnidocBlueprintValidator {
-    this._manager.asMessageOfType(type)
-    return this
-  }
-
-  public asVerboseMessage(): UnidocBlueprintValidator {
-    this._manager.asVerboseMessage()
-    return this
-  }
-
-  public asInformationMessage(): UnidocBlueprintValidator {
-    this._manager.asInformationMessage()
-    return this
-  }
-
-  public asWarningMessage(): UnidocBlueprintValidator {
-    this._manager.asWarningMessage()
-    return this
-  }
-
-  public asErrorMessage(): UnidocBlueprintValidator {
-    this._manager.asErrorMessage()
-    return this
-  }
-
-  public asFailureMessage(): UnidocBlueprintValidator {
-    this._manager.asFailureMessage()
-    return this
-  }
-
-  public ofCode(code: string): UnidocBlueprintValidator {
-    this._manager.ofCode(code)
-    return this
-  }
-
-  public withData(key: string, value: any): UnidocBlueprintValidator {
-    this._manager.withData(key, value)
-    return this
-  }
-
-  public produce(): UnidocBlueprintValidator {
-    this._manager.produce()
-    return this
+    this._executor = new UnidocBlueprintValidationExecutor(this._manager)
   }
 
   public handleInitialization(): void {
-    this._manager.initialize()
+    this._pass.first.ofBranch(this._manager.initialize().branch)
   }
 
   public handleProduction(value: UnidocEvent): void {
@@ -87,13 +62,12 @@ export class UnidocBlueprintValidator
   }
 
   public handleCompletion(): void {
-    for (const process of this._pass) {
-      process.continue()
-      process.complete()
-    }
+    this._executor.continue(this._pass)
+    this._executor.complete(this._pass)
 
     this._pass.clear()
     this._manager.complete()
+    this._graph.clear()
   }
 
   public handleFailure(error: Error): void {
@@ -101,50 +75,19 @@ export class UnidocBlueprintValidator
   }
 
   public validate(event: UnidocEvent) {
-    if (this._pass.size > 0) {
-      for (const process of this._pass) {
-        process.continue()
-
-        if (process.running) {
-          this._manager.validate(process.branch, event)
-          process.validate(event)
-        }
-
-        if (process.running) {
-          this._nextPass.push(process)
-        } else {
-          this._manager.completeBranch(process.branch)
-        }
-      }
-
-      this._pass.clear()
-      this.swap()
-    }
+    this._executor.continue(this._pass)
+    this._executor.event(this._pass, event)
   }
 
   public execute(blueprint: UnidocBlueprint): void {
-    const process: UnidocBlueprintValidationProcess = (
-      new UnidocBlueprintValidationProcess(this)
-    )
-
-    process.enter(blueprint)
-    process.branch.set(0, 0)
-
+    this._graph.clear()
     this._pass.clear()
-    this._nextPass.clear()
-    this._pass.push(process)
-  }
+    this._manager.reset()
 
-  public fork(process: UnidocBlueprintValidationProcess, fork: UnidocBlueprintValidationProcess): void {
-    fork.branch.copy(this._manager.fork(process.branch).branch)
-    this._manager.initializeBranch(fork.branch)
-    this._pass.push(fork)
-  }
+    this._graph.blueprint = blueprint
 
-  private swap(): void {
-    const temporary: Pack<UnidocBlueprintValidationProcess> = this._pass
-    this._pass = this._nextPass
-    this._nextPass = temporary
+    this._pass.size += 1
+    this._pass.first.asStart(this._graph)
   }
 
   /**

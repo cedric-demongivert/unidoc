@@ -141,6 +141,11 @@ export class UnidocEvent {
     return String.fromCodePoint(...buffer)
   }
 
+  public ofIndex(index: number): UnidocEvent {
+    this.index = index
+    return this
+  }
+
   /**
   * Configure this event as a new word event.
   *
@@ -350,6 +355,13 @@ export class UnidocEvent {
 }
 
 export namespace UnidocEvent {
+  /**
+  * Create a new unidoc event.
+  */
+  export function create(): UnidocEvent {
+    return new UnidocEvent()
+  }
+
   /**
   * Create a word unidoc event.
   */

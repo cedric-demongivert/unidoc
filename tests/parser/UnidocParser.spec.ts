@@ -1,6 +1,6 @@
 /** eslint-env jest */
 
-import '../buffer-extension'
+import '../jest/buffer-extension'
 
 import { UnidocParser } from '../../sources/parser/UnidocParser'
 import { TrackedUnidocTokenProducer } from '../../sources/token/TrackedUnidocTokenProducer'

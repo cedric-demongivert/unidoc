@@ -50,6 +50,10 @@ export class UnidocValidationBranchIdentifier {
     return result
   }
 
+  public toLongString(): string {
+    return 'global #' + this.global + ' local #' + this.local
+  }
+
   /**
   * @see Object.toString
   */

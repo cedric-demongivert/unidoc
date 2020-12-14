@@ -1,6 +1,6 @@
 /** eslint-env jest */
 
-import { UnidocBuffer } from '../sources/buffer/UnidocBuffer'
+import { UnidocBuffer } from '../../sources/buffer/UnidocBuffer'
 
 declare global {
   namespace jest {

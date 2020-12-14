@@ -75,25 +75,34 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   public initialize(): UnidocValidationBranchManager {
     super.initialize()
 
-    this._nextBatch.clear()
-    this._branchIdentifiers.add(0)
-    this._branches.size += 1
-    this._branches.last.branch.set(0, 0)
-    this._nextBranch = 1
-    this._nextBatch.set(0, 0)
-    this.initializeBranch(this._branches.last.branch)
+    this._nextBranch = 0
+    this._nextIndex = 0
+    this._branchIdentifiers.clear()
+    this._branches.clear()
 
-    return this._branches.last
+    return this.create()
   }
 
   /**
-  * Mark the given branch as initialized.
+  * Create a new branch and return it's manager.
   *
-  * @param branch - The branch to initialize.
+  * @return The manager of the branch that was created.
   */
-  public initializeBranch(branch: UnidocValidationBranchIdentifier): void {
-    this._event.fromBranch(branch).asInitialization()
+  public create(): UnidocValidationBranchManager {
+    const identifier: number = this._branchIdentifiers.next()
+
+    this._branches.size += 1
+
+    const result: UnidocValidationBranchManager = this._branches.last
+    result.branch.set(this._nextBranch, identifier)
+
+    this._nextBranch += 1
+    this._nextBatch.set(identifier, 0)
+
+    this._event.fromBranch(result.branch).asCreation()
     this.produce(this._event)
+
+    return result
   }
 
   /**
@@ -101,8 +110,8 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   *
   * @param branch - The branch to complete.
   */
-  public completeBranch(branch: UnidocValidationBranchIdentifier): void {
-    this._event.fromBranch(branch).asCompletion()
+  public terminate(branch: UnidocValidationBranchIdentifier): void {
+    this._event.fromBranch(branch).asTermination()
     this.produce(this._event)
 
     const index: number = this._branchIdentifiers.indexOf(branch.local)
@@ -122,47 +131,34 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
     return this
   }
 
-  public fromBranch(branch: UnidocValidationBranchIdentifier): UnidocValidationTreeManager {
-    this._event.fromBranch(branch)
+  /**
+  * Notify the document completion.
+  *
+  * @param branch - The branch that does the validation.
+  */
+  public documentCompletion(branch: UnidocValidationBranchIdentifier): UnidocValidationTreeManager {
+    this._event.fromBranch(branch).asDocumentCompletion()
+    this.produce(this._event)
     return this
   }
 
-  public asMessageOfType(type: UnidocValidationMessageType): UnidocValidationTreeManager {
+  public prepareNewMessage(branch: UnidocValidationBranchIdentifier): UnidocValidationTreeManager {
+    this._event.fromBranch(branch)
+    this._event.asMessage()
+    return this
+  }
+
+  public setMessageType(type: UnidocValidationMessageType): UnidocValidationTreeManager {
     this._event.asMessageOfType(type)
     return this
   }
 
-  public asVerboseMessage(): UnidocValidationTreeManager {
-    this._event.asVerboseMessage()
-    return this
-  }
-
-  public asInformationMessage(): UnidocValidationTreeManager {
-    this._event.asInformationMessage()
-    return this
-  }
-
-  public asWarningMessage(): UnidocValidationTreeManager {
-    this._event.asWarningMessage()
-    return this
-  }
-
-  public asErrorMessage(): UnidocValidationTreeManager {
-    this._event.asErrorMessage()
-    return this
-  }
-
-  public asFailureMessage(): UnidocValidationTreeManager {
-    this._event.asFailureMessage()
-    return this
-  }
-
-  public ofCode(code: string): UnidocValidationTreeManager {
+  public setMessageCode(code: string): UnidocValidationTreeManager {
     this._event.ofCode(code)
     return this
   }
 
-  public withData(key: string, value: any): UnidocValidationTreeManager {
+  public setMessageData(key: string, value: any): UnidocValidationTreeManager {
     this._event.withData(key, value)
     return this
   }
@@ -180,11 +176,18 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   }
 
   /**
-  * Fork the given branch and return a new branch number.
+  *
+  */
+  public getManagerOf(branch: UnidocValidationBranchIdentifier): UnidocValidationBranchManager {
+    return this._branches.get(this._branchIdentifiers.indexOf(branch.local))
+  }
+
+  /**
+  * Fork the given branch and return the resulting branch manager.
   *
   * @param branch - The identifier of the branch to fork.
   *
-  * @return The forked branch.
+  * @return The resulting branch manager.
   */
   public fork(branch: UnidocValidationBranchIdentifier): UnidocValidationBranchManager {
     this._branches.size += 1
@@ -208,6 +211,25 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   }
 
   /**
+  * Merge a branch into another and return the manager of the resulting branch.
+  *
+  * @param from - The identifier of the source branch.
+  * @param to - The identifier of the destination branch.
+  *
+  * @return The manager of the resulting branch.
+  */
+  public merge(from: UnidocValidationBranchIdentifier, to: UnidocValidationBranchIdentifier): UnidocValidationBranchManager {
+    this._event.fromBranch(from).asMerge(to)
+    this.produce(this._event)
+
+    const index: number = this._branchIdentifiers.indexOf(from.local)
+    this._branchIdentifiers.delete(from.local)
+    this._branches.warp(index)
+
+    return this._branches.get(this._branchIdentifiers.indexOf(to.local))
+  }
+
+  /**
   * @see ListenableUnidocProducer.produce
   */
   public produce(event: UnidocValidationEvent = this._event): UnidocValidationTreeManager {
@@ -216,7 +238,10 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
 
     const local: number = event.branch.local
 
-    if (event.type === UnidocValidationEventType.VALIDATION) {
+    if (
+      event.type === UnidocValidationEventType.VALIDATION ||
+      event.type === UnidocValidationEventType.DOCUMENT_COMPLETION
+    ) {
       this._nextBatch.set(local, event.event.index + 1)
     }
     event.batch = this._nextBatch.get(local)
@@ -230,12 +255,24 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   */
   public complete(): void {
     while (this._branches.size > 0) {
-      this.completeBranch(this._branches.first.branch)
+      this.terminate(this._branches.first.branch)
     }
 
     super.complete()
   }
 
+  /**
+  * Reset this manager instance to it's initial state.
+  */
+  public reset(): void {
+    this._nextBranch = 0
+    this._nextIndex = 0
+    this._event.clear()
+  }
+
+  /**
+  * Reset this manager to it's instantiation state.
+  */
   public clear(): void {
     this._nextBranch = 0
     this._nextIndex = 0

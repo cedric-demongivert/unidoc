@@ -14,7 +14,8 @@ export class UnidocValidationEvent {
   public index: number
 
   /**
-  * Batch index of this event that is related to the number of validation events that precede it.
+  * Batch index of this event that is equal to the number of validation events
+  * that precede it.
   */
   public batch: number
 
@@ -29,95 +30,179 @@ export class UnidocValidationEvent {
   public type: UnidocValidationEventType
 
   /**
-  * The fork identifier if this is a UnidocValidationEventType.FORK event.
+  * The target identifier if this is an UnidocValidationEventType.FORK or an
+  * UnidocValidationEventType.MERGE event.
   */
-  public readonly fork: UnidocValidationBranchIdentifier
+  public readonly target: UnidocValidationBranchIdentifier
 
   /**
-  * The event that is validated if this is a UnidocValidationEventType.VALIDATION event.
+  * The event that is validated if this is a
+  * UnidocValidationEventType.VALIDATION event.
   */
   public readonly event: UnidocEvent
 
   /**
-  * The message that is published if this is a UnidocValidationEventType.MESSAGE event.
+  * The message that is published if this is a UnidocValidationEventType.MESSAGE
+  * event.
   */
   public readonly message: UnidocValidationMessage
 
   /**
-  * Instantiate a new message instance.
+  * Instantiate a new event instance.
   */
   public constructor() {
     this.index = 0
     this.batch = 0
     this.branch = new UnidocValidationBranchIdentifier()
     this.type = UnidocValidationEventType.DEFAULT
-    this.fork = new UnidocValidationBranchIdentifier()
+    this.target = new UnidocValidationBranchIdentifier()
     this.event = new UnidocEvent()
     this.message = new UnidocValidationMessage()
   }
 
   /**
-  * Clear this message instance in order to reuse it.
+  * Clear this event instance in order to reuse it.
   */
   public clear(): void {
     this.index = 0
     this.batch = 0
     this.branch.clear()
     this.type = UnidocValidationEventType.DEFAULT
-    this.fork.clear()
+    this.target.clear()
     this.message.clear()
     this.event.clear()
   }
 
+  /**
+  * Set the branch that emitted this event.
+  *
+  * @param branch - The branch that emitted this event.
+  *
+  * @return This event instance for chaining purposes.
+  */
   public fromBranch(branch: UnidocValidationBranchIdentifier): UnidocValidationEvent {
-    this.clear()
     this.branch.copy(branch)
     return this
   }
 
-  public asFork(fork: UnidocValidationBranchIdentifier): UnidocValidationEvent {
+  public ofIndex(index: number): UnidocValidationEvent {
+    this.index = index
+    return this
+  }
+
+  public ofBatch(batch: number): UnidocValidationEvent {
+    this.batch = batch
+    return this
+  }
+
+  /**
+  * Transform this event instance into a fork event.
+  *
+  * @param target - The branch in which the original branch forked.
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asFork(target: UnidocValidationBranchIdentifier): UnidocValidationEvent {
     this.event.clear()
     this.message.clear()
-    this.fork.copy(fork)
+    this.target.copy(target)
     this.type = UnidocValidationEventType.FORK
     return this
   }
 
-  public asInitialization(): UnidocValidationEvent {
+  /**
+  * Transform this event instance into a merge event.
+  *
+  * @param target - The branch in which the original branch merged.
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asMerge(target: UnidocValidationBranchIdentifier): UnidocValidationEvent {
     this.event.clear()
     this.message.clear()
-    this.fork.clear()
-    this.type = UnidocValidationEventType.INITIALIZATION
+    this.target.copy(target)
+    this.type = UnidocValidationEventType.MERGE
     return this
   }
 
-  public asCompletion(): UnidocValidationEvent {
+  /**
+  * Transform this event instance into a branch creation event.
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asCreation(): UnidocValidationEvent {
     this.event.clear()
     this.message.clear()
-    this.fork.clear()
-    this.type = UnidocValidationEventType.COMPLETION
+    this.target.clear()
+    this.type = UnidocValidationEventType.CREATION
     return this
   }
 
+  /**
+  * Transform this event instance into a branch termination event.
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asTermination(): UnidocValidationEvent {
+    this.event.clear()
+    this.message.clear()
+    this.target.clear()
+    this.type = UnidocValidationEventType.TERMINATION
+    return this
+  }
+
+  /**
+  * Transform this event instance into a validation event.
+  *
+  * @param event - The unidoc event that is validated at this point.
+  *
+  * @return This event instance for chaining purposes.
+  */
   public asValidation(event: UnidocEvent): UnidocValidationEvent {
     this.message.clear()
-    this.fork.clear()
+    this.target.clear()
     this.event.copy(event)
     this.type = UnidocValidationEventType.VALIDATION
     return this
   }
 
-  public asMessage(event: UnidocValidationMessage): UnidocValidationEvent {
+  /**
+  * Transform this event instance into a document completion event.
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asDocumentCompletion(): UnidocValidationEvent {
+    this.message.clear()
+    this.target.clear()
     this.event.clear()
-    this.fork.clear()
-    this.message.copy(event)
+    this.type = UnidocValidationEventType.DOCUMENT_COMPLETION
+    return this
+  }
+
+  /**
+  * Transform this event instance into a message event.
+  *
+  * @param [message] - The message to publish.
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asMessage(message?: UnidocValidationMessage): UnidocValidationEvent {
+    this.event.clear()
+    this.target.clear()
+
+    if (message) {
+      this.message.copy(message)
+    } else {
+      this.message.clear()
+    }
+
     this.type = UnidocValidationEventType.MESSAGE
     return this
   }
 
   public asMessageOfType(type: UnidocValidationMessageType): UnidocValidationEvent {
     this.event.clear()
-    this.fork.clear()
+    this.target.clear()
     this.message.clear()
     this.message.type = type
     this.type = UnidocValidationEventType.MESSAGE
@@ -164,7 +249,7 @@ export class UnidocValidationEvent {
     this.batch = toCopy.batch
     this.branch.copy(toCopy.branch)
     this.type = toCopy.type
-    this.fork.copy(toCopy.fork)
+    this.target.copy(toCopy.target)
     this.message.copy(toCopy.message)
     this.event.copy(toCopy.event)
   }
@@ -199,17 +284,15 @@ export class UnidocValidationEvent {
     result += ')'
 
     switch (this.type) {
-      case UnidocValidationEventType.INITIALIZATION:
-        result += ' initialization'
+      case UnidocValidationEventType.CREATION:
+        result += ' creation'
         break
-      case UnidocValidationEventType.COMPLETION:
-        result += ' completion'
+      case UnidocValidationEventType.TERMINATION:
+        result += ' termination'
         break
       case UnidocValidationEventType.FORK:
-        result += ' fork into branch global '
-        result += this.fork.global.toString().padEnd(5)
-        result += ' local #'
-        result += this.fork.local.toString().padEnd(5)
+        result += ' fork into branch '
+        result += this.target.toLongString()
         break
       case UnidocValidationEventType.MESSAGE:
         result += ' '
@@ -218,6 +301,13 @@ export class UnidocValidationEvent {
       case UnidocValidationEventType.VALIDATION:
         result += ' validating '
         result += this.event
+        break
+      case UnidocValidationEventType.DOCUMENT_COMPLETION:
+        result += ' document completion'
+        break
+      case UnidocValidationEventType.MERGE:
+        result += ' merge into branch '
+        result += this.target.toLongString()
         break
       default:
         throw new Error(
@@ -238,13 +328,15 @@ export class UnidocValidationEvent {
     if (other === this) return true
 
     if (other instanceof UnidocValidationEvent) {
-      return this.index === other.index &&
+      return (
+        this.index === other.index &&
         this.batch === other.batch &&
         this.branch.equals(other.branch) &&
         this.type === other.type &&
-        this.fork.equals(other.fork) &&
+        this.target.equals(other.target) &&
         this.message.equals(other.message) &&
         this.event.equals(other.event)
+      )
     }
 
     return false
@@ -264,6 +356,14 @@ export namespace UnidocValidationEvent {
   export function copy(toCopy: undefined): undefined
   export function copy(toCopy: UnidocValidationEvent | null | undefined): UnidocValidationEvent | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
+  }
+
+  export function fromBranch(branch: UnidocValidationBranchIdentifier): UnidocValidationEvent {
+    return new UnidocValidationEvent().fromBranch(branch)
+  }
+
+  export function create(): UnidocValidationEvent {
+    return new UnidocValidationEvent()
   }
 
   export const ALLOCATOR: Allocator<UnidocValidationEvent> = {

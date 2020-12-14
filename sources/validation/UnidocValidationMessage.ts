@@ -18,12 +18,14 @@ export class UnidocValidationMessage {
     this.data = new Map<string, any>()
   }
 
-  public withData(key: string, value: any): void {
+  public withData(key: string, value: any): UnidocValidationMessage {
     this.data.set(key, value)
+    return this
   }
 
-  public ofCode(code: string): void {
+  public ofCode(code: string): UnidocValidationMessage {
     this.code = code
+    return this
   }
 
   /**
@@ -31,8 +33,9 @@ export class UnidocValidationMessage {
   *
   * @see UnidocValidationEventType.VERBOSE
   */
-  public asVerbose(): void {
+  public asVerbose(): UnidocValidationMessage {
     this.type = UnidocValidationMessageType.VERBOSE
+    return this
   }
 
   /**
@@ -40,8 +43,9 @@ export class UnidocValidationMessage {
   *
   * @see UnidocValidationEventType.INFORMATION
   */
-  public asInformation(): void {
+  public asInformation(): UnidocValidationMessage {
     this.type = UnidocValidationMessageType.INFORMATION
+    return this
   }
 
   /**
@@ -49,8 +53,9 @@ export class UnidocValidationMessage {
   *
   * @see UnidocValidationEventType.WARNING
   */
-  public asWarning(): void {
+  public asWarning(): UnidocValidationMessage {
     this.type = UnidocValidationMessageType.WARNING
+    return this
   }
 
   /**
@@ -58,8 +63,9 @@ export class UnidocValidationMessage {
   *
   * @see UnidocValidationEventType.ERROR
   */
-  public asError(): void {
+  public asError(): UnidocValidationMessage {
     this.type = UnidocValidationMessageType.ERROR
+    return this
   }
 
   /**
@@ -67,8 +73,9 @@ export class UnidocValidationMessage {
   *
   * @see UnidocValidationEventType.FAILURE
   */
-  public asFailure(): void {
+  public asFailure(): UnidocValidationMessage {
     this.type = UnidocValidationMessageType.FAILURE
+    return this
   }
 
   /**
@@ -160,6 +167,10 @@ export namespace UnidocValidationMessage {
   export function copy(toCopy: null): null
   export function copy(toCopy: UnidocValidationMessage | null): UnidocValidationMessage | null {
     return toCopy == null ? toCopy : toCopy.clone()
+  }
+
+  export function create(): UnidocValidationMessage {
+    return new UnidocValidationMessage()
   }
 
   export const ALLOCATOR: Allocator<UnidocValidationMessage> = {

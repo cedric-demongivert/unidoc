@@ -1,6 +1,6 @@
 /** eslint-env jest */
 
-import '../buffer-extension'
+import '../jest/buffer-extension'
 
 import { UnidocBuffer } from '../../sources/buffer/UnidocBuffer'
 import { bufferize } from '../../sources/buffer/bufferize'
