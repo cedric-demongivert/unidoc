@@ -3,7 +3,7 @@ import { OperatorFunction } from 'rxjs'
 import { UnidocValidationEvent } from './UnidocValidationEvent'
 
 import { select } from './select'
-import { UnidocValidationTrunckSelector } from './UnidocValidationTrunckSelector'
+import { UnidocValidationTrunkSelector } from './UnidocValidationTrunkSelector'
 
 /**
 * Transform a stream of symbols to a stream of tokens.
@@ -11,5 +11,5 @@ import { UnidocValidationTrunckSelector } from './UnidocValidationTrunckSelector
 * @return An operator that transform a stream of symbols to a stream of tokens.
 */
 export function selectTrunck(): OperatorFunction<UnidocValidationEvent, UnidocValidationEvent> {
-  return select(new UnidocValidationTrunckSelector())
+  return select(new UnidocValidationTrunkSelector())
 }
