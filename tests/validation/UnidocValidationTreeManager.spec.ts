@@ -107,9 +107,16 @@ describe('UnidocValidationTreeManager', function() {
 
         expectation.push(
           UnidocValidationEvent.create()
-            .ofIndex(index + 1)
+            .ofIndex(index * 2 + 1)
             .fromBranch(branch.branch)
             .asFork(fork.branch)
+        )
+
+        expectation.push(
+          UnidocValidationEvent.create()
+            .ofIndex(index * 2 + 2)
+            .fromBranch(fork.branch)
+            .asForked(branch.branch)
         )
 
         expect(manager.branches).toBeAnySequenceOf(branches)

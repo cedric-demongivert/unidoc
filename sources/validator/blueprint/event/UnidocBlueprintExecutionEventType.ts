@@ -12,29 +12,34 @@ export namespace UnidocBlueprintExecutionEventType {
   export const SUCCESS: UnidocBlueprintExecutionEventType = 1
 
   /**
+  * An event that represent the success of a diving attempt.
+  */
+  export const SKIP: UnidocBlueprintExecutionEventType = 2
+
+  /**
   * An event that represent the failure of a diving attempt.
   */
-  export const FAILURE: UnidocBlueprintExecutionEventType = 2
+  export const FAILURE: UnidocBlueprintExecutionEventType = 3
 
   /**
   * An event that represent a diving attempt.
   */
-  export const DIVE: UnidocBlueprintExecutionEventType = 3
+  export const DIVE: UnidocBlueprintExecutionEventType = 4
 
   /**
   * An event that represent the initialization of a given graph.
   */
-  export const START: UnidocBlueprintExecutionEventType = 4
+  export const START: UnidocBlueprintExecutionEventType = 5
 
   /**
   * An event that represent the waiting for the next available piece of content.
   */
-  export const EVENT: UnidocBlueprintExecutionEventType = 5
+  export const EVENT: UnidocBlueprintExecutionEventType = 6
 
   /**
   *
   */
-  export const ACCEPT_EVERYTHING: UnidocBlueprintExecutionEventType = 6
+  export const ACCEPT_EVERYTHING: UnidocBlueprintExecutionEventType = 7
 
   /**
   *
@@ -47,6 +52,7 @@ export namespace UnidocBlueprintExecutionEventType {
   export const ALL: UnidocBlueprintExecutionEventType[] = [
     ENTER,
     SUCCESS,
+    SKIP,
     FAILURE,
     DIVE,
     START,
@@ -61,6 +67,7 @@ export namespace UnidocBlueprintExecutionEventType {
     switch (value) {
       case ENTER: return 'ENTER'
       case SUCCESS: return 'SUCCESS'
+      case SKIP: return 'SKIP'
       case FAILURE: return 'FAILURE'
       case DIVE: return 'DIVE'
       case START: return 'START'

@@ -14,6 +14,29 @@ import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 
 const ROOT_BRANCH: UnidocValidationBranchIdentifier = new UnidocValidationBranchIdentifier().set(0, 0)
 
+function getNextBatchAnchor(iterator: Iterator<UnidocValidationNode>): UnidocValidationNode {
+  let result: IteratorResult<UnidocValidationNode>
+  let previous: UnidocValidationNode | null = null
+
+  while (!(result = iterator.next()).done) {
+    switch (result.value.event.type) {
+      case UnidocValidationEventType.VALIDATION:
+      case UnidocValidationEventType.DOCUMENT_COMPLETION:
+        return result.value
+      default:
+        break
+    }
+
+    previous = result.value
+  }
+
+  if (previous) {
+    return previous
+  } else {
+    throw new Error('No next batch anchor available.')
+  }
+}
+
 export class UnidocValidationTrunkSelector
   extends SubscribableUnidocConsumer<UnidocValidationEvent>
   implements UnidocValidationSelector {
@@ -87,17 +110,6 @@ export class UnidocValidationTrunkSelector
   /**
   *
   */
-  private isSprout(branch: UnidocValidationNode | null): branch is UnidocValidationNode {
-    return (
-      branch != null &&
-      branch.event.type === UnidocValidationEventType.FORK &&
-      branch.fork == null
-    )
-  }
-
-  /**
-  *
-  */
   private chop(branch: number): void {
     let node: UnidocValidationNode | null = this._branches.get(branch)
     this._branches.set(branch, null)
@@ -112,6 +124,10 @@ export class UnidocValidationTrunkSelector
     if (node != null) {
       if (node === this._root) {
         this._root = node.next || node.fork
+      }
+
+      if (this._branches.get(node.event.branch.local) === node) {
+        this._branches.set(node.event.branch.local, node.previous)
       }
 
       node.delete()
@@ -145,7 +161,7 @@ export class UnidocValidationTrunkSelector
   private dump(): void {
     let node: UnidocValidationNode | null = this._root
 
-    while (node != null && node.fork == null) {
+    while (node != null && node.event.type != UnidocValidationEventType.FORK) {
       const next: UnidocValidationNode | null = node.next
 
       node.delete()
@@ -190,6 +206,9 @@ export class UnidocValidationTrunkSelector
     this.chopDeadBranches(event)
 
     switch (event.type) {
+      case UnidocValidationEventType.FORKED:
+        this.handleProductionOfForked(event)
+        break
       case UnidocValidationEventType.FORK:
         this.handleProductionOfFork(event)
         break
@@ -208,7 +227,21 @@ export class UnidocValidationTrunkSelector
   *
   */
   private handleProductionOfMerge(event: UnidocValidationEvent): void {
-    throw new Error('handleProductionOfMerge is not implemented yet.')
+    const to: UnidocValidationNode | null = this._branches.get(event.target.local)
+    const from: UnidocValidationNode | null = this._branches.get(event.branch.local)
+
+    if (to == null || from == null) {
+      throw new Error('Unable to merge inexisting branches.')
+    }
+
+    if (this.isLeftBetterThanRight(to, from)) {
+      this.chop(event.branch.local)
+    } else {
+      this.chop(event.target.local)
+      from.rebranch(event.target)
+      this._branches.set(event.target.local, this._branches.get(event.branch.local))
+      this._branches.set(event.branch.local, null)
+    }
   }
 
   /**
@@ -216,13 +249,36 @@ export class UnidocValidationTrunkSelector
   */
   private handleProductionOfFork(event: UnidocValidationEvent): void {
     const branch: UnidocValidationNode | null = this._branches.get(event.branch.local)
-    const node: UnidocValidationNode = (
-      this.isSprout(branch) ? branch : this.allocateNode()
-    )
-    const fork: UnidocValidationNode = this.allocateNode()
+    const node: UnidocValidationNode = this.allocateNode()
 
     node.event.copy(event)
-    fork.event.copy(event)
+
+    if (branch != null) {
+      branch.next = node
+    }
+
+    if (this._root == null) {
+      this._root = node
+    }
+
+    this._branches.set(event.branch.local, node)
+  }
+
+  /**
+  *
+  */
+  private handleProductionOfForked(event: UnidocValidationEvent): void {
+    const branch: UnidocValidationNode | null = this._branches.get(event.branch.local)
+    const origin: UnidocValidationNode | null = this._branches.get(event.target.local)
+
+    if (origin == null) {
+      throw new Error('Illegal state : forked from nowhere.')
+    }
+
+    const node: UnidocValidationNode = this.allocateNode()
+
+    origin.fork = node
+    node.event.copy(event)
 
     if (branch != null && node !== branch) {
       branch.next = node
@@ -232,10 +288,7 @@ export class UnidocValidationTrunkSelector
       this._root = node
     }
 
-    node.fork = fork
-
     this._branches.set(event.branch.local, node)
-    this._branches.set(event.target.local, fork)
   }
 
   /**
@@ -243,9 +296,7 @@ export class UnidocValidationTrunkSelector
   */
   private handleProductionOfEvent(event: UnidocValidationEvent): void {
     const branch: UnidocValidationNode | null = this._branches.get(event.branch.local)
-    const node: UnidocValidationNode = (
-      this.isSprout(branch) ? branch : this.allocateNode()
-    )
+    const node: UnidocValidationNode = this.allocateNode()
 
     node.event.copy(event)
 
@@ -266,6 +317,7 @@ export class UnidocValidationTrunkSelector
   private duplicate(event: UnidocValidationEvent): void {
     switch (event.type) {
       case UnidocValidationEventType.FORK:
+      case UnidocValidationEventType.FORKED:
       case UnidocValidationEventType.CREATION:
       case UnidocValidationEventType.TERMINATION:
       case UnidocValidationEventType.MERGE:

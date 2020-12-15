@@ -68,7 +68,89 @@ export class UnidocManyValidationHandler implements UnidocBlueprintValidationHan
     this.iterate(context, context.state.getUint8(0) + 1)
   }
 
+  /**
+  * @see UnidocBlueprintValidationHandler.onSkip
+  */
+  public onSkip(context: UnidocBlueprintValidationContext): void {
+    context.skip()
+  }
+
   public iterate(context: UnidocBlueprintValidationContext, index: number): void {
+    const blueprint: UnidocManyBlueprint = context.blueprint as any
+
+    if (blueprint.minimum <= 0) {
+      if (blueprint.maximum === Number.POSITIVE_INFINITY) {
+        this.iterateLoop(context, index)
+      } else {
+        this.iterateUntil(context, index)
+      }
+    } else {
+      if (blueprint.maximum === Number.POSITIVE_INFINITY) {
+        this.iterateAtLeast(context, index)
+      } else {
+        this.iterateBetween(context, index)
+      }
+    }
+  }
+
+  /* OPTIMIZATION */
+  public iterateLoop(context: UnidocBlueprintValidationContext, index: number): void {
+    const state: UnidocState = this._state
+    const blueprint: UnidocManyBlueprint = context.blueprint as any
+
+    state.setUint8(0, 0)
+    context.dive(state, blueprint.operand)
+
+    if (index > 0) {
+      context.success()
+    } else {
+      context.skip()
+    }
+  }
+
+  /* OPTIMIZATION */
+  public iterateAtLeast(context: UnidocBlueprintValidationContext, index: number): void {
+    const state: UnidocState = this._state
+    const blueprint: UnidocManyBlueprint = context.blueprint as any
+
+    if (blueprint.minimum <= index) {
+      state.setUint8(0, blueprint.minimum)
+      context.success()
+    } else {
+      state.setUint8(0, index)
+    }
+
+    context.dive(state, blueprint.operand)
+  }
+
+  /* OPTIMIZATION */
+  public iterateUntil(context: UnidocBlueprintValidationContext, index: number): void {
+    const state: UnidocState = this._state
+    const blueprint: UnidocManyBlueprint = context.blueprint as any
+
+    if (blueprint.maximum < index) {
+      context.output
+        .prepareNewMessage()
+        .setMessageType(UnnecessaryContent.TYPE)
+        .setMessageCode(UnnecessaryContent.CODE)
+        .setMessageData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
+        .produce()
+
+      context.failure()
+    } else {
+      state.setUint8(0, index)
+      context.dive(state, blueprint.operand)
+
+      if (index > 0) {
+        context.success()
+      } else {
+        context.skip()
+      }
+    }
+  }
+
+  /* OPTIMIZATION */
+  public iterateBetween(context: UnidocBlueprintValidationContext, index: number): void {
     const state: UnidocState = this._state
     const blueprint: UnidocManyBlueprint = context.blueprint as any
 

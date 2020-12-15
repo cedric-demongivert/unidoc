@@ -64,9 +64,9 @@ export class UnidocBlueprintValidationExecutor {
     this._pending.copy(source)
     source.clear()
 
-    // console.log('------------------------ CONTINUE')
+    //console.log('------------------------ CONTINUE')
     while (this._pending.size > 0) {
-      // this.dump()
+      //this.dump()
       const resolving: UnidocBlueprintExecutionEvent = this._pending.get(0)
 
       switch (resolving.type) {
@@ -78,6 +78,9 @@ export class UnidocBlueprintValidationExecutor {
           break
         case UnidocBlueprintExecutionEventType.FAILURE:
           this.resolveFailure(resolving)
+          break
+        case UnidocBlueprintExecutionEventType.SKIP:
+          this.resolveSkip(resolving)
           break
         case UnidocBlueprintExecutionEventType.EVENT:
           source.push(resolving)
@@ -110,9 +113,9 @@ export class UnidocBlueprintValidationExecutor {
     this._pending.copy(source)
     source.clear()
 
-    // console.log('------------------------ EVENT')
+    //console.log('------------------------ EVENT')
     while (this._pending.size > 0) {
-      // this.dump()
+      //this.dump()
       const resolving: UnidocBlueprintExecutionEvent = this._pending.get(0)
 
       switch (resolving.type) {
@@ -121,6 +124,7 @@ export class UnidocBlueprintValidationExecutor {
         case UnidocBlueprintExecutionEventType.FAILURE:
         case UnidocBlueprintExecutionEventType.DIVE:
         case UnidocBlueprintExecutionEventType.START:
+        case UnidocBlueprintExecutionEventType.SKIP:
           source.push(resolving)
           break
         case UnidocBlueprintExecutionEventType.EVENT:
@@ -150,9 +154,9 @@ export class UnidocBlueprintValidationExecutor {
     source.clear()
     this._completion = true
 
-    // console.log('------------------------ COMPLETE')
+    //console.log('------------------------ COMPLETE')
     while (this._pending.size > 0) {
-      // this.dump()
+      //this.dump()
       const resolving: UnidocBlueprintExecutionEvent = this._pending.get(0)
 
       switch (resolving.type) {
@@ -164,6 +168,9 @@ export class UnidocBlueprintValidationExecutor {
           break
         case UnidocBlueprintExecutionEventType.FAILURE:
           this.resolveFailure(resolving)
+          break
+        case UnidocBlueprintExecutionEventType.SKIP:
+          this.resolveSkip(resolving)
           break
         case UnidocBlueprintExecutionEventType.EVENT:
           this.resolveCompletion(resolving)
@@ -194,8 +201,9 @@ export class UnidocBlueprintValidationExecutor {
     this._completion = false
   }
 
+
   private resolveFailure(event: UnidocBlueprintExecutionEvent): void {
-    const graph: UnidocValidationGraph | null = event.graph
+    const graph: UnidocValidationGraph = event.graph
     const pass: UnidocBlueprintValidationPass = this._pass
 
     if (graph.parent && graph.parent.parent) {
@@ -210,11 +218,7 @@ export class UnidocBlueprintValidationExecutor {
       if (pass.events.size > 0) {
         this.resolvePass(pass)
 
-        const node: UnidocValidationNode | undefined = graph.get(event.state)
-
-        if (node != null && (node.content == null || node.content.isEmpty())) {
-          node.delete()
-        }
+        // Removing unused graph ?
       } else {
         throw new Error(
           'Illegal behavior : an handler does nothing on dive failure.'
@@ -226,7 +230,7 @@ export class UnidocBlueprintValidationExecutor {
   }
 
   private resolveSuccess(event: UnidocBlueprintExecutionEvent): void {
-    const graph: UnidocValidationGraph | null = event.graph
+    const graph: UnidocValidationGraph = event.graph
     const pass: UnidocBlueprintValidationPass = this._pass
 
     if (graph.parent && graph.parent.parent) {
@@ -241,14 +245,39 @@ export class UnidocBlueprintValidationExecutor {
       if (pass.events.size > 0) {
         this.resolvePass(pass)
 
-        const node: UnidocValidationNode | undefined = graph.get(event.state)
-
-        if (node != null && (node.content == null || node.content.isEmpty())) {
-          node.delete()
-        }
+        // Removing unused graph ?
       } else {
         throw new Error(
           'Illegal behavior : an handler does nothing on dive success.'
+        )
+      }
+    } else if (!this._completion) {
+      this._pending.size += 1
+      this._pending.last.asAcceptEverything()
+      this._pending.last.ofBranch(event.branch)
+    }
+  }
+
+  private resolveSkip(event: UnidocBlueprintExecutionEvent): void {
+    const graph: UnidocValidationGraph = event.graph
+    const pass: UnidocBlueprintValidationPass = this._pass
+
+    if (graph.parent && graph.parent.parent) {
+      event.graph = graph.parent.parent
+      event.state.copy(graph.parent.state)
+
+      pass.handle(event)
+      pass.output = this._tree.getManagerOf(event.branch)
+
+      UnidocBlueprintValidationHandlers.get(event.graph.blueprint).onSkip(pass)
+
+      if (pass.events.size > 0) {
+        this.resolvePass(pass)
+
+        // Removing unused graph ?
+      } else {
+        throw new Error(
+          'Illegal behavior : an handler does nothing on dive skip.'
         )
       }
     } else if (!this._completion) {
@@ -279,6 +308,7 @@ export class UnidocBlueprintValidationExecutor {
   private resolveDive(event: UnidocBlueprintExecutionEvent): void {
     const graph: UnidocValidationGraph = event.graph
     const state: UnidocState = event.state
+
     const blueprint: UnidocBlueprint | null = event.blueprint
     const node: UnidocValidationNode | undefined = graph.get(state)
 
@@ -313,10 +343,11 @@ export class UnidocBlueprintValidationExecutor {
 
   private resolveEnter(event: UnidocBlueprintExecutionEvent): void {
     const graph: UnidocValidationGraph = event.graph
+    const state: UnidocState = event.state
     const node: UnidocValidationNode | undefined = graph.get(event.state)
 
     if (node == undefined) {
-      const node: UnidocValidationNode = graph.create(event.state)
+      const node: UnidocValidationNode = graph.create(state)
       const pass: UnidocBlueprintValidationPass = this._pass
 
       node.branch.copy(event.branch)

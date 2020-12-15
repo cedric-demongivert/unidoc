@@ -6,7 +6,6 @@ import { UnidocValidationBranchIdentifier } from '../../../validation/UnidocVali
 
 import { UnidocState } from '../UnidocState'
 import { UnidocValidationGraph } from '../UnidocValidationGraph'
-import { UnidocValidationNode } from '../UnidocValidationNode'
 
 import { UnidocBlueprintExecutionEventType } from './UnidocBlueprintExecutionEventType'
 
@@ -97,6 +96,15 @@ export class UnidocBlueprintExecutionEvent {
     return this
   }
 
+  public asSkip(graph: UnidocValidationGraph): UnidocBlueprintExecutionEvent {
+    this.type = UnidocBlueprintExecutionEventType.SKIP
+    this.state.clear()
+    this.graph = graph
+    this.blueprint = null
+
+    return this
+  }
+
   public asFailure(graph: UnidocValidationGraph): UnidocBlueprintExecutionEvent {
     this.type = UnidocBlueprintExecutionEventType.FAILURE
     this.state.clear()
@@ -165,6 +173,12 @@ export class UnidocBlueprintExecutionEvent {
       result += ' ('
       result += UnidocBlueprintType.toString(this.graph.blueprint.type)
       result += ')'
+
+      if (this.graph.blueprint.type === UnidocBlueprintType.EVENT) {
+        result += ' '
+        result += (this.graph.blueprint as any).predicate.toString()
+      }
+
       switch (this.type) {
         case UnidocBlueprintExecutionEventType.DIVE:
         case UnidocBlueprintExecutionEventType.ENTER:

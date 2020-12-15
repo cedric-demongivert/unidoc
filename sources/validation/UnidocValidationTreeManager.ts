@@ -203,8 +203,10 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
 
     fork.branch.local = this._branchIdentifiers.next()
 
-    this._event.fromBranch(branch).asFork(fork.branch)
     this._nextBatch.set(fork.branch.local, this._nextBatch.get(branch.local))
+    this._event.fromBranch(branch).asFork(fork.branch)
+    this.produce(this._event)
+    this._event.fromBranch(fork.branch).asForked(branch)
     this.produce(this._event)
 
     return fork

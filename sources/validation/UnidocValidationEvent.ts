@@ -111,6 +111,21 @@ export class UnidocValidationEvent {
   }
 
   /**
+  * Transform this event instance into a forked event.
+  *
+  * @param source
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asForked(source: UnidocValidationBranchIdentifier): UnidocValidationEvent {
+    this.event.clear()
+    this.message.clear()
+    this.target.copy(source)
+    this.type = UnidocValidationEventType.FORKED
+    return this
+  }
+
+  /**
   * Transform this event instance into a merge event.
   *
   * @param target - The branch in which the original branch merged.
@@ -289,6 +304,10 @@ export class UnidocValidationEvent {
         break
       case UnidocValidationEventType.TERMINATION:
         result += ' termination'
+        break
+      case UnidocValidationEventType.FORKED:
+        result += ' forked from branch '
+        result += this.target.toLongString()
         break
       case UnidocValidationEventType.FORK:
         result += ' fork into branch '

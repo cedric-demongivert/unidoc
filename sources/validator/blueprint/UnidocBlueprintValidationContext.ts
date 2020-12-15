@@ -41,6 +41,11 @@ export interface UnidocBlueprintValidationContext {
   success(): void
 
   /**
+  * Make the validation process exit the current blueprint validation as a success.
+  */
+  skip(): void
+
+  /**
   * Make the validation process exit the current blueprint validation as a failure.
   */
   failure(): void

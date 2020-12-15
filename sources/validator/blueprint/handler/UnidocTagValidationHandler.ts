@@ -122,6 +122,13 @@ export class UnidocTagValidationHandler implements UnidocBlueprintValidationHand
     }
   }
 
+  /**
+  * @see UnidocBlueprintValidationHandler.onSkip
+  */
+  public onSkip(context: UnidocBlueprintValidationContext): void {
+    this.onSuccess(context)
+  }
+
   private onStartingCompletion(context: UnidocBlueprintValidationContext): void {
     const blueprint: UnidocTagBlueprint = context.blueprint as any
 

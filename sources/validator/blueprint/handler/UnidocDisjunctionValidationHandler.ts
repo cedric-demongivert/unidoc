@@ -75,6 +75,13 @@ export class UnidocDisjunctionValidationHandler implements UnidocBlueprintValida
   }
 
   /**
+  * @see UnidocBlueprintValidationHandler.onSkip
+  */
+  public onSkip(context: UnidocBlueprintValidationContext): void {
+    context.skip()
+  }
+
+  /**
   * @see UnidocBlueprintValidationHandler.onEnter
   */
   public onEnter(context: UnidocBlueprintValidationContext): void {

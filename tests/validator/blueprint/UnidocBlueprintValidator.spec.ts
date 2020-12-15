@@ -617,7 +617,7 @@ describe('UnidocBlueprintValidator', function() {
         .validate(inputBuffer.get(3))
         .setMessageType(UnnecessaryContent.TYPE)
         .setMessageCode(UnnecessaryContent.CODE)
-        .setMessageData(UnnecessaryContent.Data.BLUEPRINT, blueprint)
+        .setMessageData(UnnecessaryContent.Data.BLUEPRINT, UnidocBlueprint.end())
         .produce()
 
       tree.complete()
@@ -1396,8 +1396,7 @@ describe('UnidocBlueprintValidator', function() {
       expect(expectation.expect(output)).toBeTruthy()
     })
 
-
-    it.only('does not infinite loop when a inner path of a many operator results in an empty path', function() {
+    it('does not infinite loop when a inner path of a many operator results in an empty path', function() {
       const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
       const selector: UnidocValidationTrunkSelector = new UnidocValidationTrunkSelector()
       selector.subscribe(validator)
@@ -1422,13 +1421,14 @@ describe('UnidocBlueprintValidator', function() {
         )
       )
 
-      const blueprint: UnidocBlueprint = (
+      const blueprint: UnidocBlueprint = UnidocBlueprint.sequence(
         UnidocBlueprint.many(
           UnidocBlueprint.disjunction(
             emphasize,
             text
           )
-        )
+        ),
+        UnidocBlueprint.end()
       )
       validator.execute(blueprint)
 
@@ -1456,6 +1456,7 @@ describe('UnidocBlueprintValidator', function() {
       for (const event of inputBuffer.events) {
         tree.branches.get(0).validate(event)
       }
+      tree.branches.get(0).documentCompletion()
       tree.complete()
 
       expect(expectation.expect(output)).toBeTruthy()

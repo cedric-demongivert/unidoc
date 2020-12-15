@@ -24,15 +24,6 @@ export class UnidocBlueprintValidationPass implements UnidocBlueprintValidationC
   */
   public readonly events: UnidocBuffer<UnidocBlueprintExecutionEvent>
 
-  /**
-  *
-  */
-  private didSucceed: boolean
-
-  /**
-  *
-  */
-  private didFail: boolean
 
   /**
   *
@@ -54,8 +45,6 @@ export class UnidocBlueprintValidationPass implements UnidocBlueprintValidationC
   public constructor() {
     this.event = new UnidocBlueprintExecutionEvent()
     this.events = UnidocBuffer.create(UnidocBlueprintExecutionEvent.ALLOCATOR, 32)
-    this.didSucceed = false
-    this.didFail = false
     this.output = NullUnidocValidationMessageProducer.INSTANCE
   }
 
@@ -71,8 +60,6 @@ export class UnidocBlueprintValidationPass implements UnidocBlueprintValidationC
     this.event.clear()
     this.state.clear()
     this.events.clear()
-    this.didSucceed = false
-    this.didFail = false
     this.output = NullUnidocValidationMessageProducer.INSTANCE
   }
 
@@ -104,39 +91,35 @@ export class UnidocBlueprintValidationPass implements UnidocBlueprintValidationC
   *
   */
   public success(): void {
-    if (this.didSucceed) {
-      throw new Error(
-        'Illegal handler behavior : trying to notify success multiple time.'
-      )
-    } else {
-      this.events.size += 1
+    this.events.size += 1
 
-      const event: UnidocBlueprintExecutionEvent = this.events.last
+    const event: UnidocBlueprintExecutionEvent = this.events.last
 
-      event.asSuccess(this.event.graph)
-      event.ofBranch(this.event.branch)
-
-      this.didSucceed = true
-    }
+    event.asSuccess(this.event.graph)
+    event.ofBranch(this.event.branch)
   }
 
   /**
   *
   */
   public failure(): void {
-    if (this.didFail) {
-      throw new Error(
-        'Illegal handler behavior : trying to notify failure multiple time.'
-      )
-    } else {
-      this.events.size += 1
+    this.events.size += 1
 
-      const event: UnidocBlueprintExecutionEvent = this.events.last
+    const event: UnidocBlueprintExecutionEvent = this.events.last
 
-      event.asFailure(this.event.graph)
-      event.ofBranch(this.event.branch)
+    event.asFailure(this.event.graph)
+    event.ofBranch(this.event.branch)
+  }
 
-      this.didFail = true
-    }
+  /**
+  *
+  */
+  public skip(): void {
+    this.events.size += 1
+
+    const event: UnidocBlueprintExecutionEvent = this.events.last
+
+    event.asSkip(this.event.graph)
+    event.ofBranch(this.event.branch)
   }
 }

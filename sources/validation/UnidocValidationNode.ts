@@ -1,5 +1,6 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
+import { UnidocValidationBranchIdentifier } from './UnidocValidationBranchIdentifier'
 import { UnidocValidationEvent } from './UnidocValidationEvent'
 import { UnidocValidationEventType } from './UnidocValidationEventType'
 import { UnidocValidationMessageType } from './UnidocValidationMessageType'
@@ -99,7 +100,42 @@ export class UnidocValidationNode {
     this._fork = null
   }
 
-  public * branch(): Iterable<UnidocValidationEvent> {
+  public isFork(): boolean {
+    return this.event.type === UnidocValidationEventType.FORK
+  }
+
+  public isMainBranch(branch: UnidocValidationBranchIdentifier): boolean {
+    return this.event.branch.equals(branch)
+  }
+
+  public rebranch(branch: UnidocValidationBranchIdentifier): void {
+    if (this._previous) {
+      for (const node of this._previous.nodes()) {
+        if (node.event.branch.equals(this.event.branch)) {
+          node.event.branch.equals(branch)
+        } else {
+          break
+        }
+      }
+    }
+
+    this.event.branch.equals(branch)
+  }
+
+  public rotate(): void {
+    const tmp: UnidocValidationNode | null = this._next
+    this._next = this._fork
+    this._fork = tmp
+  }
+
+  public insert(node: UnidocValidationNode): void {
+    const oldNext: UnidocValidationNode | null = this._next
+
+    this.next = node
+    node.next = oldNext
+  }
+
+  public * branch(): IterableIterator<UnidocValidationEvent> {
     let node: UnidocValidationNode | null = this
 
     while (node != null) {
@@ -108,7 +144,7 @@ export class UnidocValidationNode {
     }
   }
 
-  public * events(): Iterable<UnidocValidationEvent> {
+  public * events(): IterableIterator<UnidocValidationEvent> {
     let node: UnidocValidationNode | null = this
 
     while (node != null) {
@@ -118,14 +154,34 @@ export class UnidocValidationNode {
     }
   }
 
-  public * nodes(): Iterable<UnidocValidationNode> {
+  public * nodes(): IterableIterator<UnidocValidationNode> {
     let node: UnidocValidationNode | null = this
 
     while (node != null) {
+      const nextNode: UnidocValidationNode | null = node.previous
+
       yield node
 
-      node = node.previous
+      node = nextNode
     }
+  }
+
+  public dump(): void {
+    let result: string = '['
+
+    result += '\r\n  '
+    result += this.event.toString()
+
+    if (this._previous) {
+      for (const node of this._previous.nodes()) {
+        result += ',\r\n  '
+        result += node.event.toString()
+      }
+    }
+
+    result += '\r\n]'
+
+    console.log(result)
   }
 
   public countMessages(output: Pack<number>): void {

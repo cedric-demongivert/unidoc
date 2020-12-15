@@ -84,6 +84,16 @@ export class UnidocEventValidationHandler implements UnidocBlueprintValidationHa
   }
 
   /**
+  * @see UnidocBlueprintValidationHandler.onSkip
+  */
+  public onSkip(context: UnidocBlueprintValidationContext): void {
+    throw new Error(
+      'Notifying skip on an handler that does not dive. Do you handle ' +
+      'the validation process in a valid way ?'
+    )
+  }
+
+  /**
   * @see UnidocBlueprintValidationHandler.onEnter
   */
   public onEnter(context: UnidocBlueprintValidationContext): void {

@@ -36,16 +36,23 @@ export interface UnidocBlueprintValidationHandler {
   onCompletion(context: UnidocBlueprintValidationContext): void
 
   /**
-  * Called when a dive attempt fail.
+  * Called when a match attempt fail.
   *
   * @param context - The validation context.
   */
   onFailure(context: UnidocBlueprintValidationContext): void
 
   /**
-  * Called when a dive attempt succeed.
+  * Called when a match attempt succeed to match a sequence of event.
   *
   * @param context - The validation context.
   */
   onSuccess(context: UnidocBlueprintValidationContext): void
+
+  /**
+  * Called when a match attempt succeed to match an empty sequence of event.
+  *
+  * @param context - The validation context.
+  */
+  onSkip(context: UnidocBlueprintValidationContext): void
 }

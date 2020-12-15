@@ -11,7 +11,7 @@ export class UnidocSequenceValidationHandler implements UnidocBlueprintValidatio
   private readonly _state: UnidocState
 
   public constructor() {
-    this._state = new UnidocState(1)
+    this._state = new UnidocState(2)
   }
 
   /**
@@ -28,7 +28,7 @@ export class UnidocSequenceValidationHandler implements UnidocBlueprintValidatio
         ').'
       )
     } else {
-      this.iterate(context, 0)
+      this.iterate(context, 0, true)
     }
   }
 
@@ -63,19 +63,29 @@ export class UnidocSequenceValidationHandler implements UnidocBlueprintValidatio
   * @see UnidocBlueprintValidationHandler.onSuccess
   */
   public onSuccess(context: UnidocBlueprintValidationContext): void {
-    this.iterate(context, context.state.getUint8(0) + 1)
+    this.iterate(context, context.state.getUint8(0) + 1, false)
+  }
+
+  /**
+  * @see UnidocBlueprintValidationHandler.onSkip
+  */
+  public onSkip(context: UnidocBlueprintValidationContext): void {
+    this.iterate(context, context.state.getUint8(0) + 1, context.state.getBoolean(1))
   }
 
   /**
   * @see UnidocBlueprintValidationHandler.onEnter
   */
-  public iterate(context: UnidocBlueprintValidationContext, index: number): void {
+  public iterate(context: UnidocBlueprintValidationContext, index: number, skip: boolean): void {
     const state: UnidocState = this._state
     const blueprint: UnidocSequenceBlueprint = context.blueprint as any
 
     if (index < blueprint.operands.size) {
       state.setUint8(0, index)
+      state.setBoolean(1, skip)
       context.dive(state, blueprint.operands.get(index))
+    } else if (skip) {
+      context.skip()
     } else {
       context.success()
     }

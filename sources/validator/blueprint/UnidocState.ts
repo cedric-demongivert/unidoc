@@ -82,6 +82,15 @@ export class UnidocState {
     this._view = new DataView(this._data.buffer)
   }
 
+  public pushBoolean(value: boolean): number {
+    const cursor: number = this._size
+    this.size = cursor + Uint8Array.BYTES_PER_ELEMENT
+
+    this._view.setUint8(cursor, value ? 1 : 0)
+
+    return cursor
+  }
+
   public pushUint8(value: number): number {
     const cursor: number = this._size
     this.size = cursor + Uint8Array.BYTES_PER_ELEMENT
@@ -174,6 +183,13 @@ export class UnidocState {
     return cursor
   }
 
+  public setBoolean(cursor: number, value: boolean): void {
+    const end: number = cursor + Uint8Array.BYTES_PER_ELEMENT
+    this.size = Math.max(this._size, end)
+
+    this._view.setUint8(cursor, value ? 0 : 1)
+  }
+
   public setUint8(cursor: number, value: number): void {
     const end: number = cursor + Uint8Array.BYTES_PER_ELEMENT
     this.size = Math.max(this._size, end)
@@ -228,6 +244,10 @@ export class UnidocState {
     this.size = Math.max(this._size, end)
 
     this._view.setFloat64(cursor, value)
+  }
+
+  public getBoolean(cursor: number): boolean {
+    return this._view.getUint8(cursor) > 0
   }
 
   public getUint8(cursor: number): number {

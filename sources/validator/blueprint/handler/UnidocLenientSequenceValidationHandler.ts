@@ -11,12 +11,12 @@ import { UnidocBlueprintValidationContext } from '../UnidocBlueprintValidationCo
 import { UnidocBlueprintValidationHandler } from './UnidocBlueprintValidationHandler'
 
 function activate(state: UnidocState, operand: number): void {
-  const index: number = 1 + (operand / 8) << 0
+  const index: number = 2 + (operand / 8) << 0
   state.setUint8(index, state.getUint8(index) | (0b1 << (operand % 8)))
 }
 
 function isInactive(state: UnidocState, operand: number): boolean {
-  const index: number = 1 + (operand / 8) << 0
+  const index: number = 2 + (operand / 8) << 0
   return (state.getUint8(index) & (0b1 << (operand % 8))) === 0
 }
 
@@ -43,8 +43,9 @@ export class UnidocLenientSequenceValidationHandler implements UnidocBlueprintVa
     } else {
       const blueprint: UnidocLenientSequenceBlueprint = context.blueprint as any
       const state: UnidocState = this._state
-      state.size = Math.ceil(blueprint.operands.size / 8) + 1
+      state.size = Math.ceil(blueprint.operands.size / 8) + 2
       state.fill(0)
+      state.setBoolean(1, true)
 
       for (let index = 0; index < blueprint.operands.size; ++index) {
         state.setUint8(0, index)
@@ -84,9 +85,21 @@ export class UnidocLenientSequenceValidationHandler implements UnidocBlueprintVa
   * @see UnidocBlueprintValidationHandler.onSuccess
   */
   public onSuccess(context: UnidocBlueprintValidationContext): void {
+    this.dispatch(context, false)
+  }
+
+  /**
+  * @see UnidocBlueprintValidationHandler.onSkip
+  */
+  public onSkip(context: UnidocBlueprintValidationContext): void {
+    this.dispatch(context, context.state.getBoolean(1) && true)
+  }
+
+  public dispatch(context: UnidocBlueprintValidationContext, skip: boolean): void {
     const blueprint: UnidocLenientSequenceBlueprint = context.blueprint as any
     const state: UnidocState = this._state
     state.copy(context.state)
+    state.setBoolean(1, skip)
 
     const validated: number = state.getUint8(0)
 
@@ -115,7 +128,11 @@ export class UnidocLenientSequenceValidationHandler implements UnidocBlueprintVa
     }
 
     if (succeed) {
-      context.success()
+      if (skip) {
+        context.skip()
+      } else {
+        context.success()
+      }
     }
   }
 
