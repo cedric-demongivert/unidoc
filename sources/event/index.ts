@@ -1,5 +1,4 @@
 export { TrackedUnidocEventProducer } from './TrackedUnidocEventProducer'
 export { UnidocEvent } from './UnidocEvent'
-export { UnidocEventBuffer } from './UnidocEventBuffer'
 export { UnidocEventProducer } from './UnidocEventProducer'
 export { UnidocEventType } from './UnidocEventType'

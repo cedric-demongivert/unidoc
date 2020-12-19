@@ -79,26 +79,9 @@ export namespace DataEvent {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR: Allocator<DataEvent> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate(): DataEvent {
-      return new DataEvent()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy(source: DataEvent, destination: DataEvent): void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear(instance: DataEvent): void {
-      instance.clear()
-    }
+  export function create(): DataEvent {
+    return new DataEvent()
   }
+
+  export const ALLOCATOR: Allocator<DataEvent> = Allocator.fromFactory(create)
 }

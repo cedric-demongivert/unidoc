@@ -9,33 +9,33 @@ import { UnidocTokenType } from '../token/UnidocTokenType'
 
 import { UnidocParserStateType } from './UnidocParserStateType'
 
-const EMPTY_STRING : string = ''
+const EMPTY_STRING: string = ''
 
 export class UnidocParserState {
-  public type                : UnidocParserStateType
-  public tag                 : string
-  public identifier          : string
-  public readonly content    : Pack<CodePoint>
-  public readonly origin     : UnidocRangeOrigin
-  public readonly classes    : Set<string>
+  public type: UnidocParserStateType
+  public tag: string
+  public identifier: string
+  public readonly content: Pack<CodePoint>
+  public readonly origin: UnidocRangeOrigin
+  public readonly classes: Set<string>
 
   /**
   * Instantiate a new empty state.
   */
-  public constructor () {
-    this.type       = UnidocParserStateType.START
-    this.tag        = EMPTY_STRING
+  public constructor() {
+    this.type = UnidocParserStateType.START
+    this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
-    this.content    = Pack.uint32(128)
-    this.classes    = new Set()
-    this.origin     = new UnidocRangeOrigin()
+    this.content = Pack.uint32(128)
+    this.classes = new Set()
+    this.origin = new UnidocRangeOrigin()
     this.origin.from.text(0, 0, 0).runtime()
     this.origin.to.text(0, 0, 0).runtime()
   }
 
-  public begin (type : UnidocParserStateType, token : UnidocToken) : void
-  public begin (type : UnidocParserStateType, start : UnidocOrigin) : void
-  public begin (type : UnidocParserStateType, start : UnidocToken | UnidocOrigin) : void {
+  public begin(type: UnidocParserStateType, token: UnidocToken): void
+  public begin(type: UnidocParserStateType, start: UnidocOrigin): void
+  public begin(type: UnidocParserStateType, start: UnidocToken | UnidocOrigin): void {
     this.clear()
     this.type = type
 
@@ -63,7 +63,7 @@ export class UnidocParserState {
     }
   }
 
-  public append (token : UnidocToken) : void {
+  public append(token: UnidocToken): void {
     switch (token.type) {
       case UnidocTokenType.CLASS:
         this.classes.add(token.substring(1))
@@ -87,9 +87,9 @@ export class UnidocParserState {
   /**
   * Reset this instance in order to reuse it.
   */
-  public clear () : void {
-    this.type       = UnidocParserStateType.START
-    this.tag        = EMPTY_STRING
+  public clear(): void {
+    this.type = UnidocParserStateType.START
+    this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
     this.content.clear()
     this.classes.clear()
@@ -103,7 +103,7 @@ export class UnidocParserState {
   *
   * @param toCopy - A parser state to copy.
   */
-  public copy (toCopy : UnidocParserState) : void {
+  public copy(toCopy: UnidocParserState): void {
     this.type = toCopy.type
     this.tag = toCopy.tag
     this.identifier = toCopy.identifier
@@ -119,17 +119,17 @@ export class UnidocParserState {
   /**
   * @see Object.equals
   */
-  public equals (other : any) : boolean {
-    if (other == null)  return false
+  public equals(other: any): boolean {
+    if (other == null) return false
     if (other === this) return true
 
     if (other instanceof UnidocParserState) {
       if (
-        other.type         !== this.type         ||
-        other.tag          !== this.tag          ||
-        other.identifier   !== this.identifier   ||
-        !other.content.equals(this.content)      ||
-        !other.origin.equals(this.origin)        ||
+        other.type !== this.type ||
+        other.tag !== this.tag ||
+        other.identifier !== this.identifier ||
+        !other.content.equals(this.content) ||
+        !other.origin.equals(this.origin) ||
         other.classes.size !== this.classes.size
       ) { return false }
 
@@ -147,26 +147,9 @@ export class UnidocParserState {
 }
 
 export namespace UnidocParserState {
-  export const ALLOCATOR : Allocator<UnidocParserState> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate () : UnidocParserState {
-      return new UnidocParserState()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy (source : UnidocParserState, destination : UnidocParserState) : void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear (instance : UnidocParserState) : void {
-      instance.clear()
-    }
+  export function create(): UnidocParserState {
+    return new UnidocParserState()
   }
+
+  export const ALLOCATOR: Allocator<UnidocParserState> = Allocator.fromFactory(create)
 }

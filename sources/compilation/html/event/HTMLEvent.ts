@@ -5,13 +5,13 @@ import { HTMLTag } from './HTMLTag'
 import { HTMLAttribute } from './HTMLAttribute'
 
 export class HTMLEvent {
-  public tag                 : HTMLTag | null
-  public content             : string | null
-  public block               : boolean
-  public type                : HTMLEventType
-  public readonly attributes : Map<HTMLAttribute, string | boolean>
+  public tag: HTMLTag | null
+  public content: string | null
+  public block: boolean
+  public type: HTMLEventType
+  public readonly attributes: Map<HTMLAttribute, string | boolean>
 
-  public constructor () {
+  public constructor() {
     this.tag = null
     this.content = null
     this.block = false
@@ -19,31 +19,31 @@ export class HTMLEvent {
     this.attributes = new Map<HTMLAttribute, string | boolean>()
   }
 
-  public appendClass (clazz : string) : void {
+  public appendClass(clazz: string): void {
     if (!this.attributes.has(HTMLAttribute.CLASS)) {
       this.attributes.set(HTMLAttribute.CLASS, clazz)
     } else {
-      const value : string = this.attributes.get(HTMLAttribute.CLASS) as string
+      const value: string = this.attributes.get(HTMLAttribute.CLASS) as string
       this.attributes.set(HTMLAttribute.CLASS, value + ' ' + clazz)
     }
   }
 
-  public appendClasses (classes : Iterable<string>) : void {
+  public appendClasses(classes: Iterable<string>): void {
     for (const clazz of classes) {
       this.appendClass(clazz)
     }
   }
 
-  public prependClass (clazz : string) : void {
+  public prependClass(clazz: string): void {
     if (!this.attributes.has(HTMLAttribute.CLASS)) {
       this.attributes.set(HTMLAttribute.CLASS, clazz)
     } else {
-      const value : string = this.attributes.get(HTMLAttribute.CLASS) as string
+      const value: string = this.attributes.get(HTMLAttribute.CLASS) as string
       this.attributes.set(HTMLAttribute.CLASS, clazz + ' ' + value)
     }
   }
 
-  public prependClasses (classes : Iterable<string>) : void {
+  public prependClasses(classes: Iterable<string>): void {
     for (const clazz of classes) {
       this.prependClass(clazz)
     }
@@ -54,7 +54,7 @@ export class HTMLEvent {
   *
   * @param toCopy - The event to copy.
   */
-  public copy (toCopy : HTMLEvent) : void {
+  public copy(toCopy: HTMLEvent): void {
     this.tag = toCopy.tag
     this.content = toCopy.content
     this.block = toCopy.block
@@ -71,8 +71,8 @@ export class HTMLEvent {
   *
   * @return A clone of this instance.
   */
-  public clone () : HTMLEvent {
-    const result : HTMLEvent = new HTMLEvent()
+  public clone(): HTMLEvent {
+    const result: HTMLEvent = new HTMLEvent()
 
     result.copy(this)
 
@@ -83,7 +83,7 @@ export class HTMLEvent {
   * Reset this instance inner state to the state it was in after it's
   * instantiation.
   */
-  public clear () : void {
+  public clear(): void {
     this.tag = null
     this.content = null
     this.block = false
@@ -94,14 +94,14 @@ export class HTMLEvent {
   /**
   * @see Object.toString
   */
-  public toString () : string {
+  public toString(): string {
     switch (this.type) {
-      case HTMLEventType.WHITESPACE :
+      case HTMLEventType.WHITESPACE:
         return ':s'
-      case HTMLEventType.WORD       :
+      case HTMLEventType.WORD:
         return this.content as string
-      case HTMLEventType.START_TAG  :
-        let result : string = '<'
+      case HTMLEventType.START_TAG:
+        let result: string = '<'
         result += this.tag
 
         for (const key of this.attributes.keys()) {
@@ -114,11 +114,11 @@ export class HTMLEvent {
 
         result += '>'
         return result
-      case HTMLEventType.END_TAG    :
+      case HTMLEventType.END_TAG:
         return '</' + this.tag + '>'
-      case HTMLEventType.COMMENT    :
+      case HTMLEventType.COMMENT:
         return '<!--' + this.content + '-->'
-      default :
+      default:
         throw new Error(
           'Unhandled event type : ' + HTMLEventType.toString(this.type) + '.'
         )
@@ -128,7 +128,7 @@ export class HTMLEvent {
   /**
   * @see Object.equals
   */
-  public equals (other : any) : boolean {
+  public equals(other: any): boolean {
     if (other == null) return false
     if (other === this) return true
 
@@ -140,14 +140,14 @@ export class HTMLEvent {
       for (const key of other.attributes.keys()) {
         if (
           !this.attributes.has(key) ||
-           this.attributes.get(key) !== other.attributes.get(key)
+          this.attributes.get(key) !== other.attributes.get(key)
         ) { return false }
       }
 
       return this.tag === other.tag &&
-             this.content === other.content &&
-             this.block === other.block &&
-             this.type === other.type
+        this.content === other.content &&
+        this.block === other.block &&
+        this.type === other.type
     }
 
     return false
@@ -162,34 +162,17 @@ export namespace HTMLEvent {
   *
   * @return A deep copy of the given instance.
   */
-  export function copy (toCopy : HTMLEvent) : HTMLEvent {
+  export function copy(toCopy: HTMLEvent): HTMLEvent {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR : Allocator<HTMLEvent> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate () : HTMLEvent {
-      return new HTMLEvent()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy (source : HTMLEvent, destination : HTMLEvent) : void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear (instance : HTMLEvent) : void {
-      instance.clear()
-    }
+  export function create(): HTMLEvent {
+    return new HTMLEvent()
   }
 
-  export function equals (left : HTMLEvent, right : HTMLEvent) : boolean {
+  export const ALLOCATOR: Allocator<HTMLEvent> = Allocator.fromFactory(create)
+
+  export function equals(left: HTMLEvent, right: HTMLEvent): boolean {
     return left == null ? left == right : left.equals(right)
   }
 }

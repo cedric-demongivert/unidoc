@@ -4,44 +4,44 @@ import { UnidocLocation } from '../location/UnidocLocation'
 
 import { UnidocPathElementType } from './UnidocPathElementType'
 
-const TAG_ELEMENT_CONFIGURATION : RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
-const EMPTY_STRING : string = ''
+const TAG_ELEMENT_CONFIGURATION: RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?(\.[a-zA-Z0-9\-]+)*$/i
+const EMPTY_STRING: string = ''
 
 export class UnidocPathElement {
   /**
   * Type of this element.
   */
-  public type : UnidocPathElementType
+  public type: UnidocPathElementType
 
   /**
   * Starting UnidocLocation of this element.
   */
-  public readonly from : UnidocLocation
+  public readonly from: UnidocLocation
 
   /**
   * Ending UnidocLocation of this element, may be unknown.
   */
-  public readonly  to : UnidocLocation
+  public readonly to: UnidocLocation
 
   /**
   * The name of this element, if any.
   */
-  public name : string
+  public name: string
 
   /**
   * Identifier associated to the block or the tag, if any.
   */
-  public identifier : string
+  public identifier: string
 
   /**
   * Classes associated to the block or the tag, if any.
   */
-  public readonly classes : Set<string>
+  public readonly classes: Set<string>
 
   /**
   * Instantiate a new empty path element.
   */
-  public constructor () {
+  public constructor() {
     this.type = UnidocPathElementType.SYMBOL
     this.from = new UnidocLocation()
     this.to = new UnidocLocation()
@@ -57,7 +57,7 @@ export class UnidocPathElement {
   * @param from - Starting location of the tag, may be unknown.
   * @param [to = from] - Ending location of the tag, may be unknown.
   */
-  public asFile (url : string, from : UnidocLocation, to : UnidocLocation = from) : void {
+  public asFile(url: string, from: UnidocLocation, to: UnidocLocation = from): void {
     this.clear()
     this.type = UnidocPathElementType.FILE
     this.name = url
@@ -71,7 +71,7 @@ export class UnidocPathElement {
   * @param from - Starting location in the stream, may be unknown.
   * @param [to = from] - Ending location in the stream, may be unknown.
   */
-  public asStream (from : UnidocLocation, to : UnidocLocation = from) : void {
+  public asStream(from: UnidocLocation, to: UnidocLocation = from): void {
     this.clear()
     this.type = UnidocPathElementType.STREAM
     this.from.copy(from)
@@ -85,7 +85,7 @@ export class UnidocPathElement {
   * @param from - Starting location in memory, may be unknown.
   * @param [to = from]- Ending location in memory, may be unknown.
   */
-  public asMemory (name : string, from : UnidocLocation, to : UnidocLocation = from) : void {
+  public asMemory(name: string, from: UnidocLocation, to: UnidocLocation = from): void {
     this.clear()
     this.type = UnidocPathElementType.MEMORY
     this.name = name
@@ -98,7 +98,7 @@ export class UnidocPathElement {
   *
   * @param location - Location of the symbol in the parent document.
   */
-  public asSymbol (location : UnidocLocation) : void {
+  public asSymbol(location: UnidocLocation): void {
     this.clear()
     this.type = UnidocPathElementType.SYMBOL
     this.from.copy(location)
@@ -112,18 +112,18 @@ export class UnidocPathElement {
   * @param to - Ending location of the tag, may be unknown.
   * @param configuration - Type, identifier and classes of the tag element.
   */
-  public asTag (from : UnidocLocation, to : UnidocLocation, configuration : string = '') : void {
+  public asTag(from: UnidocLocation, to: UnidocLocation, configuration: string = ''): void {
     this.clear()
 
     this.type = UnidocPathElementType.TAG
     this.from.copy(from)
     this.to.copy(to)
 
-    const tokens : RegExpExecArray | null = TAG_ELEMENT_CONFIGURATION.exec(configuration)
+    const tokens: RegExpExecArray | null = TAG_ELEMENT_CONFIGURATION.exec(configuration)
 
     if (tokens != null) {
       for (let index = 1; index < tokens.length; ++index) {
-        const token : string = tokens[index]
+        const token: string = tokens[index]
 
         if (token.startsWith('#')) {
           this.identifier = token.substring(1)
@@ -141,7 +141,7 @@ export class UnidocPathElement {
   *
   * @param classes - Classes to add to this path element.
   */
-  public addClasses (classes : Iterable<string>) : void {
+  public addClasses(classes: Iterable<string>): void {
     for (const clazz of classes) {
       this.classes.add(clazz)
     }
@@ -152,7 +152,7 @@ export class UnidocPathElement {
   *
   * @param other - Another path element to copy.
   */
-  public copy (other : UnidocPathElement) : void {
+  public copy(other: UnidocPathElement): void {
     this.type = other.type
     this.from.copy(other.from)
     this.to.copy(other.to)
@@ -168,8 +168,8 @@ export class UnidocPathElement {
   /**
   * @return A deep copy of this path element.
   */
-  public clone () : UnidocPathElement {
-    const result : UnidocPathElement = new UnidocPathElement()
+  public clone(): UnidocPathElement {
+    const result: UnidocPathElement = new UnidocPathElement()
 
     result.copy(this)
 
@@ -180,7 +180,7 @@ export class UnidocPathElement {
   /**
   * Reset this path element to its initial state to reuse-it.
   */
-  public clear () : void {
+  public clear(): void {
     this.type = UnidocPathElementType.SYMBOL
     this.from.clear()
     this.to.clear()
@@ -192,8 +192,8 @@ export class UnidocPathElement {
   /**
   * @see Object#toString
   */
-  public toString () : string {
-    let result : string = ''
+  public toString(): string {
+    let result: string = ''
 
     if (this.type === UnidocPathElementType.SYMBOL) {
       result += 'symbol'
@@ -246,17 +246,17 @@ export class UnidocPathElement {
   /**
   * @see Object#equals
   */
-  public equals (other : any) : boolean {
+  public equals(other: any): boolean {
     if (other == null) return false
     if (other === this) return true
 
     if (other instanceof UnidocPathElement) {
       if (
-        other.type         !== this.type         ||
+        other.type !== this.type ||
         other.classes.size !== this.classes.size ||
-        other.identifier   !== this.identifier   ||
-        other.name         !== this.name         ||
-        !other.from.equals(this.from)            ||
+        other.identifier !== this.identifier ||
+        other.name !== this.name ||
+        !other.from.equals(this.from) ||
         !other.to.equals(this.to)
       ) { return false }
 
@@ -274,6 +274,10 @@ export class UnidocPathElement {
 }
 
 export namespace UnidocPathElement {
+  export function create(): UnidocPathElement {
+    return new UnidocPathElement()
+  }
+
   /**
   * Return a copy of the given path element.
   *
@@ -281,32 +285,11 @@ export namespace UnidocPathElement {
   *
   * @return A copy of the given path element.
   */
-  export function copy (toCopy : UnidocPathElement) : UnidocPathElement
-  export function copy (toCopy : null) : null
-  export function copy (toCopy : UnidocPathElement | null) : UnidocPathElement | null {
+  export function copy(toCopy: UnidocPathElement): UnidocPathElement
+  export function copy(toCopy: null): null
+  export function copy(toCopy: UnidocPathElement | null): UnidocPathElement | null {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR : Allocator<UnidocPathElement> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate () : UnidocPathElement {
-      return new UnidocPathElement()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy (source : UnidocPathElement, destination : UnidocPathElement) : void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear (instance : UnidocPathElement) : void {
-      instance.clear()
-    }
-  }
+  export const ALLOCATOR: Allocator<UnidocPathElement> = Allocator.fromFactory(create)
 }

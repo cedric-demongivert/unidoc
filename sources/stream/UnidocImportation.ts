@@ -71,26 +71,9 @@ export namespace UnidocImportation {
     return left == null ? left == right : left.equals(right)
   }
 
-  export const ALLOCATOR: Allocator<UnidocImportation> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate(): UnidocImportation {
-      return new UnidocImportation()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy(source: UnidocImportation, destination: UnidocImportation): void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear(instance: UnidocImportation): void {
-      instance.clear()
-    }
+  export function create(): UnidocImportation {
+    return new UnidocImportation()
   }
+
+  export const ALLOCATOR: Allocator<UnidocImportation> = Allocator.fromFactory(create)
 }

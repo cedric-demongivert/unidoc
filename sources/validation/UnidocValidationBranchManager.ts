@@ -130,19 +130,11 @@ export class UnidocValidationBranchManager {
 }
 
 export namespace UnidocValidationBranchManager {
+  export function create(tree: UnidocValidationTreeManager): UnidocValidationBranchManager {
+    return new UnidocValidationBranchManager(tree)
+  }
+
   export function allocator(tree: UnidocValidationTreeManager): Allocator<UnidocValidationBranchManager> {
-    return {
-      allocate(): UnidocValidationBranchManager {
-        return new UnidocValidationBranchManager(tree)
-      },
-
-      clear(instance: UnidocValidationBranchManager): void {
-        instance.clear()
-      },
-
-      copy(source: UnidocValidationBranchManager, destination: UnidocValidationBranchManager): void {
-        destination.copy(source)
-      }
-    }
+    return Allocator.fromFactory(create.bind(null, tree))
   }
 }

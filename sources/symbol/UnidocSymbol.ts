@@ -11,19 +11,19 @@ export class UnidocSymbol {
   /**
   * Unicode code point of the symbol.
   */
-  public symbol : CodePoint
+  public symbol: CodePoint
 
   /**
   * Origin of this symbol. If the origin is a range the begining is the
   * including starting location of the symbol and the termination is the
   * excluding ending location of this symbol.
   */
-  public readonly origin : UnidocRangeOrigin
+  public readonly origin: UnidocRangeOrigin
 
   /**
   * Instantiate a new empty unidoc symbol.
   */
-  public constructor () {
+  public constructor() {
     this.symbol = 0
     this.origin = new UnidocRangeOrigin(4).runtime()
   }
@@ -35,7 +35,7 @@ export class UnidocSymbol {
   *
   * @return This symbol instance for chaining purposes.
   */
-  public setSymbol (symbol : CodePoint) : UnidocSymbol {
+  public setSymbol(symbol: CodePoint): UnidocSymbol {
     this.symbol = symbol
     return this
   }
@@ -47,7 +47,7 @@ export class UnidocSymbol {
   *
   * @return This symbol instance for chaining purposes.
   */
-  public setOrigin (origin : UnidocRangeOrigin) : UnidocSymbol {
+  public setOrigin(origin: UnidocRangeOrigin): UnidocSymbol {
     this.origin.copy(origin)
     return this
   }
@@ -57,7 +57,7 @@ export class UnidocSymbol {
   *
   * @param toCopy - An existing unidoc symbol to copy.
   */
-  public copy (toCopy : UnidocSymbol) : void {
+  public copy(toCopy: UnidocSymbol): void {
     this.symbol = toCopy.symbol
     this.origin.copy(toCopy.origin)
   }
@@ -65,8 +65,8 @@ export class UnidocSymbol {
   /**
   * @return A copy of this symbol.
   */
-  public clone () : UnidocSymbol {
-    const result : UnidocSymbol = new UnidocSymbol()
+  public clone(): UnidocSymbol {
+    const result: UnidocSymbol = new UnidocSymbol()
     result.copy(this)
     return result
   }
@@ -74,7 +74,7 @@ export class UnidocSymbol {
   /**
   * Reset this instance to it's initial state.
   */
-  public clear () : void {
+  public clear(): void {
     this.symbol = 0
     this.origin.clear()
     this.origin.runtime()
@@ -83,8 +83,8 @@ export class UnidocSymbol {
   /**
   * @see Object.toString
   */
-  public toString () : string {
-    let result : string = 'symbol('
+  public toString(): string {
+    let result: string = 'symbol('
 
     result += CodePoint.toDebugString(this.symbol)
     result += ') '
@@ -96,13 +96,13 @@ export class UnidocSymbol {
   /**
   * @see Object.equals
   */
-  public equals (other : any) : boolean {
+  public equals(other: any): boolean {
     if (other == null) return false
     if (other === this) return true
 
     if (other instanceof UnidocSymbol) {
       return other.symbol === this.symbol &&
-             other.origin.equals(this.origin)
+        other.origin.equals(this.origin)
     }
 
     return false
@@ -118,7 +118,7 @@ export namespace UnidocSymbol {
   *
   * @return True if both operands are equals.
   */
-  export function equals (left : UnidocSymbol | null, right : UnidocSymbol | null) : boolean {
+  export function equals(left: UnidocSymbol | null, right: UnidocSymbol | null): boolean {
     return left == null ? left === right : left.equals(right)
   }
 
@@ -130,13 +130,13 @@ export namespace UnidocSymbol {
   *
   * @return The requested unidoc symbol instance.
   */
-  export function create (symbol : CodePoint = 0, origin : UnidocRangeOrigin = UnidocRangeOrigin.runtime()) : UnidocSymbol {
+  export function create(symbol: CodePoint = 0, origin: UnidocRangeOrigin = UnidocRangeOrigin.runtime()): UnidocSymbol {
     return new UnidocSymbol().setSymbol(symbol).setOrigin(origin)
   }
 
-  export function copy (toCopy : undefined) : undefined
-  export function copy (toCopy : null) : null
-  export function copy (toCopy : UnidocSymbol) : UnidocSymbol
+  export function copy(toCopy: undefined): undefined
+  export function copy(toCopy: null): null
+  export function copy(toCopy: UnidocSymbol): UnidocSymbol
   /**
   * Copy the given instance of unidoc symbol.
   *
@@ -144,33 +144,12 @@ export namespace UnidocSymbol {
   *
   * @return A copy of the given instance.
   */
-  export function copy (toCopy : UnidocSymbol | null | undefined) : UnidocSymbol | null | undefined {
+  export function copy(toCopy: UnidocSymbol | null | undefined): UnidocSymbol | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
   /**
   * An allocator of unidoc symbol instances.
   */
-  export const ALLOCATOR : Allocator<UnidocSymbol> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate () : UnidocSymbol {
-      return new UnidocSymbol()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy (source : UnidocSymbol, destination : UnidocSymbol) : void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear (instance : UnidocSymbol) : void {
-      instance.clear()
-    }
-  }
+  export const ALLOCATOR: Allocator<UnidocSymbol> = Allocator.fromFactory(create)
 }

@@ -441,17 +441,5 @@ export namespace UnidocValidationEvent {
     return new UnidocValidationEvent()
   }
 
-  export const ALLOCATOR: Allocator<UnidocValidationEvent> = {
-    allocate(): UnidocValidationEvent {
-      return new UnidocValidationEvent()
-    },
-
-    clear(instance: UnidocValidationEvent): void {
-      instance.clear()
-    },
-
-    copy(source: UnidocValidationEvent, destination: UnidocValidationEvent): void {
-      destination.copy(source)
-    }
-  }
+  export const ALLOCATOR: Allocator<UnidocValidationEvent> = Allocator.fromFactory(create)
 }

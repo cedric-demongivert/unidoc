@@ -222,17 +222,5 @@ export namespace UnidocBlueprintExecutionEvent {
     return new UnidocBlueprintExecutionEvent()
   }
 
-  export const ALLOCATOR: Allocator<UnidocBlueprintExecutionEvent> = {
-    allocate(): UnidocBlueprintExecutionEvent {
-      return new UnidocBlueprintExecutionEvent()
-    },
-
-    clear(instance: UnidocBlueprintExecutionEvent): void {
-      instance.clear()
-    },
-
-    copy(source: UnidocBlueprintExecutionEvent, destination: UnidocBlueprintExecutionEvent): void {
-      destination.copy(source)
-    }
-  }
+  export const ALLOCATOR: Allocator<UnidocBlueprintExecutionEvent> = Allocator.fromFactory(create)
 }

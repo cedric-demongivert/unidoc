@@ -173,17 +173,5 @@ export namespace UnidocValidationMessage {
     return new UnidocValidationMessage()
   }
 
-  export const ALLOCATOR: Allocator<UnidocValidationMessage> = {
-    allocate(): UnidocValidationMessage {
-      return new UnidocValidationMessage()
-    },
-
-    clear(instance: UnidocValidationMessage): void {
-      instance.clear()
-    },
-
-    copy(source: UnidocValidationMessage, destination: UnidocValidationMessage): void {
-      destination.copy(source)
-    }
-  }
+  export const ALLOCATOR: Allocator<UnidocValidationMessage> = Allocator.fromFactory(create)
 }

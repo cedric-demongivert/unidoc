@@ -315,6 +315,10 @@ export class UnidocToken {
 }
 
 export namespace UnidocToken {
+  export function create(capacity: number = 16): UnidocToken {
+    return new UnidocToken(capacity)
+  }
+
   /**
   * Instantiate a deep copy of the given instance.
   *
@@ -328,26 +332,5 @@ export namespace UnidocToken {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR: Allocator<UnidocToken> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate(): UnidocToken {
-      return new UnidocToken()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy(source: UnidocToken, destination: UnidocToken): void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear(instance: UnidocToken): void {
-      instance.clear()
-    }
-  }
+  export const ALLOCATOR: Allocator<UnidocToken> = Allocator.fromFactory(create)
 }

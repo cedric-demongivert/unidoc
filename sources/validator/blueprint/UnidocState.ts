@@ -1,4 +1,3 @@
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 export class UnidocState {
@@ -483,26 +482,9 @@ export namespace UnidocState {
     return result
   }
 
-  export const ALLOCATOR: Allocator<UnidocState> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate(): UnidocState {
-      return new UnidocState()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy(source: UnidocState, destination: UnidocState): void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear(instance: UnidocState): void {
-      instance.clear()
-    }
+  export function create(): UnidocState {
+    return new UnidocState()
   }
+
+  export const ALLOCATOR: Allocator<UnidocState> = Allocator.fromFactory(create)
 }

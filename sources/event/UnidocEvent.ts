@@ -412,28 +412,7 @@ export namespace UnidocEvent {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR: Allocator<UnidocEvent> = {
-    /**
-    * @see Allocator.copy
-    */
-    allocate(): UnidocEvent {
-      return new UnidocEvent()
-    },
-
-    /**
-    * @see Allocator.copy
-    */
-    copy(source: UnidocEvent, destination: UnidocEvent): void {
-      destination.copy(source)
-    },
-
-    /**
-    * @see Allocator.clear
-    */
-    clear(instance: UnidocEvent): void {
-      instance.clear()
-    }
-  }
+  export const ALLOCATOR: Allocator<UnidocEvent> = Allocator.fromFactory(create)
 
   /**
   * Return true if both object instances are equals.
