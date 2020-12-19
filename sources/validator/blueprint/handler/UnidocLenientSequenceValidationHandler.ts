@@ -10,15 +10,8 @@ import { UnidocBlueprintValidationContext } from '../UnidocBlueprintValidationCo
 
 import { UnidocBlueprintValidationHandler } from './UnidocBlueprintValidationHandler'
 
-function activate(state: UnidocState, operand: number): void {
-  const index: number = 2 + (operand / 8) << 0
-  state.setUint8(index, state.getUint8(index) | (0b1 << (operand % 8)))
-}
-
-function isInactive(state: UnidocState, operand: number): boolean {
-  const index: number = 2 + (operand / 8) << 0
-  return (state.getUint8(index) & (0b1 << (operand % 8))) === 0
-}
+const CHECKING: number = 0
+const BITSET: number = 1
 
 export class UnidocLenientSequenceValidationHandler implements UnidocBlueprintValidationHandler {
   private readonly _state: UnidocState
@@ -43,12 +36,12 @@ export class UnidocLenientSequenceValidationHandler implements UnidocBlueprintVa
     } else {
       const blueprint: UnidocLenientSequenceBlueprint = context.blueprint as any
       const state: UnidocState = this._state
-      state.size = Math.ceil(blueprint.operands.size / 8) + 2
-      state.fill(0)
-      state.setBoolean(1, true)
+      state.clear()
+      state.pushUint8(0)
+      state.pushBitset(blueprint.operands.size + 2)
 
       for (let index = 0; index < blueprint.operands.size; ++index) {
-        state.setUint8(0, index)
+        state.setUint8(CHECKING, index)
         context.dive(state, blueprint.operands.get(index))
       }
     }
@@ -78,38 +71,72 @@ export class UnidocLenientSequenceValidationHandler implements UnidocBlueprintVa
   * @see UnidocBlueprintValidationHandler.onFailure
   */
   public onFailure(context: UnidocBlueprintValidationContext): void {
-    context.failure()
+    const blueprint: UnidocLenientSequenceBlueprint = context.blueprint as any
+    const state: UnidocState = this._state
+    state.copy(context.state)
+
+    if (state.getBit(BITSET, blueprint.operands.size + 1)) {
+      context.kill()
+    } else {
+      context.failure()
+    }
   }
 
   /**
   * @see UnidocBlueprintValidationHandler.onSuccess
   */
   public onSuccess(context: UnidocBlueprintValidationContext): void {
-    this.dispatch(context, false)
+    this.dispatchAfterSuccess(context)
   }
 
-  /**
-  * @see UnidocBlueprintValidationHandler.onSkip
-  */
-  public onSkip(context: UnidocBlueprintValidationContext): void {
-    this.dispatch(context, context.state.getBoolean(1) && true)
-  }
-
-  public dispatch(context: UnidocBlueprintValidationContext, skip: boolean): void {
+  public dispatchAfterSuccess(context: UnidocBlueprintValidationContext): void {
     const blueprint: UnidocLenientSequenceBlueprint = context.blueprint as any
     const state: UnidocState = this._state
     state.copy(context.state)
-    state.setBoolean(1, skip)
 
-    const validated: number = state.getUint8(0)
+    if (state.getBit(BITSET, blueprint.operands.size + 1)) {
+      this.dispatchToNextElementUntilFailure(context)
+    } else {
+      this.dispatchToEveryPossibleElement(context)
+    }
+  }
 
-    activate(state, validated)
+  private dispatchToNextElementUntilFailure(context: UnidocBlueprintValidationContext): void {
+    const blueprint: UnidocLenientSequenceBlueprint = context.blueprint as any
+    const state: UnidocState = this._state
+
+    const validated: number = state.getUint8(CHECKING)
+
+    state.enable(BITSET, validated)
+
+    let index: number = validated + 1
+
+    while (index < blueprint.operands.size && state.getBit(BITSET, index)) {
+      index += 1
+    }
+
+    if (index < blueprint.operands.size) {
+      state.setUint8(CHECKING, index)
+      context.dive(state, blueprint.operands.get(index))
+    } else {
+      context.success()
+    }
+  }
+
+  private dispatchToEveryPossibleElement(context: UnidocBlueprintValidationContext): void {
+    const blueprint: UnidocLenientSequenceBlueprint = context.blueprint as any
+    const state: UnidocState = this._state
+
+    const validated: number = state.getUint8(CHECKING)
+
+    state.enable(BITSET, validated)
+    state.enable(BITSET, blueprint.operands.size)
 
     let mustWarn: boolean = true
     let succeed: boolean = true
 
     for (let index = 0; index < blueprint.operands.size; ++index) {
-      if (isInactive(state, index)) {
+      if (!state.getBit(BITSET, index)) {
         succeed = false
 
         if (index < validated && mustWarn) {
@@ -122,17 +149,63 @@ export class UnidocLenientSequenceValidationHandler implements UnidocBlueprintVa
             .produce()
         }
 
-        state.setUint8(0, index)
+        state.setUint8(CHECKING, index)
         context.dive(state, blueprint.operands.get(index))
       }
     }
 
     if (succeed) {
-      if (skip) {
-        context.skip()
-      } else {
-        context.success()
-      }
+      context.success()
+    }
+  }
+
+  /**
+  * @see UnidocBlueprintValidationHandler.onSkip
+  */
+  public onSkip(context: UnidocBlueprintValidationContext): void {
+    this.dispatchAfterSkip(context)
+  }
+
+  // optimization
+  public dispatchAfterSkip(context: UnidocBlueprintValidationContext): void {
+    const state: UnidocState = this._state
+    state.copy(context.state)
+
+    const skipped: number = state.getUint8(CHECKING)
+    let index: number = 0
+
+    while (index < skipped && state.getBit(BITSET, index)) {
+      index += 1
+    }
+
+    if (index === skipped) {
+      this.dispatchNext(context, skipped)
+    } else {
+      context.kill()
+    }
+  }
+
+  // optimization
+  public dispatchNext(context: UnidocBlueprintValidationContext, skipped: number): void {
+    const blueprint: UnidocLenientSequenceBlueprint = context.blueprint as any
+    const state: UnidocState = this._state
+
+    state.enable(BITSET, skipped)
+    state.enable(BITSET, blueprint.operands.size + 1) // flag for killing on any further success
+
+    let index: number = skipped + 1
+
+    while (index < blueprint.operands.size && state.getBit(BITSET, index)) {
+      index += 1
+    }
+
+    if (index < blueprint.operands.size) {
+      state.setUint8(CHECKING, index)
+      context.dive(state, blueprint.operands.get(index))
+    } else if (state.getBit(BITSET, blueprint.operands.size)) {
+      context.success()
+    } else {
+      context.skip()
     }
   }
 

@@ -69,6 +69,15 @@ export class UnidocBlueprintExecutionEvent {
     return this
   }
 
+  public asKill(): UnidocBlueprintExecutionEvent {
+    this.type = UnidocBlueprintExecutionEventType.KILL
+    this.state.clear()
+    this.graph = DEFAULT_GRAPH
+    this.blueprint = null
+
+    return this
+  }
+
   public asStart(graph: UnidocValidationGraph): UnidocBlueprintExecutionEvent {
     this.type = UnidocBlueprintExecutionEventType.START
     this.state.clear()

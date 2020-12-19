@@ -42,6 +42,16 @@ export namespace UnidocValidationEventType {
   export const TERMINATION: UnidocValidationEventType = 7
 
   /**
+  * Declare the begining of a blueprint match.
+  */
+  export const ENTER_BLUEPRINT: UnidocValidationEventType = 8
+
+  /**
+  * Declare the end of a blueprint.
+  */
+  export const EXIT_BLUEPRINT: UnidocValidationEventType = 9
+
+  /**
   * Default value.
   */
   export const DEFAULT: UnidocValidationEventType = VALIDATION
@@ -57,7 +67,9 @@ export namespace UnidocValidationEventType {
     VALIDATION,
     DOCUMENT_COMPLETION,
     MESSAGE,
-    MERGE
+    MERGE,
+    ENTER_BLUEPRINT,
+    EXIT_BLUEPRINT
   ]
 
   export function toString(value: UnidocValidationEventType): string | undefined {
@@ -70,6 +82,8 @@ export namespace UnidocValidationEventType {
       case DOCUMENT_COMPLETION: return 'DOCUMENT_COMPLETION'
       case MESSAGE: return 'MESSAGE'
       case MERGE: return 'MERGE'
+      case ENTER_BLUEPRINT: return 'ENTER_BLUEPRINT'
+      case EXIT_BLUEPRINT: return 'EXIT_BLUEPRINT'
       default: return undefined
     }
   }

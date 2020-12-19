@@ -2,6 +2,7 @@ import { IdentifierSet } from '@cedric-demongivert/gl-tool-collection'
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
+import { UnidocBlueprint } from '../blueprint/UnidocBlueprint'
 import { UnidocEvent } from '../event/UnidocEvent'
 
 import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
@@ -132,6 +133,24 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   }
 
   /**
+  *
+  */
+  public entering(branch: UnidocValidationBranchIdentifier, blueprint: UnidocBlueprint): UnidocValidationTreeManager {
+    this._event.fromBranch(branch).asEnterBlueprint(blueprint)
+    this.produce(this._event)
+    return this
+  }
+
+  /**
+  *
+  */
+  public exiting(branch: UnidocValidationBranchIdentifier, blueprint: UnidocBlueprint): UnidocValidationTreeManager {
+    this._event.fromBranch(branch).asExitBlueprint(blueprint)
+    this.produce(this._event)
+    return this
+  }
+
+  /**
   * Notify the document completion.
   *
   * @param branch - The branch that does the validation.
@@ -240,12 +259,14 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
 
     const local: number = event.branch.local
 
-    if (
-      event.type === UnidocValidationEventType.VALIDATION ||
-      event.type === UnidocValidationEventType.DOCUMENT_COMPLETION
-    ) {
+    if (event.type === UnidocValidationEventType.VALIDATION) {
       this._nextBatch.set(local, event.event.index + 1)
     }
+
+    if (event.type === UnidocValidationEventType.DOCUMENT_COMPLETION) {
+      this._nextBatch.set(local, this._nextBatch.get(local) + 1)
+    }
+
     event.batch = this._nextBatch.get(local)
 
     super.produce(event)

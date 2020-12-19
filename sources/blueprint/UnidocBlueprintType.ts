@@ -11,7 +11,7 @@ export namespace UnidocBlueprintType {
   * A blueprint that describe a specification that match unidoc documents that
   * are the repeatition of another type of unidoc document.
   */
-  export const MANY: UnidocBlueprintType = 32
+  export const MANY: UnidocBlueprintType = 2
 
   /**
   * A blueprint that describe a choice between multiple contents.

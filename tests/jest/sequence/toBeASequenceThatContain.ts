@@ -16,7 +16,7 @@ function toBeASequenceThatContain(this: any, result: any, expectation: any): any
       message: () => (
         'Expected ' + this.utils.stringify(result) +
         ' to be equal to the sequence of elements ' +
-        toSequenceString(expectation, this.utils.stringify) +
+        toSequenceString(expectation) +
         ' but the given value is not iterable.'
       ),
       pass: false
@@ -32,7 +32,7 @@ function toBeASequenceThatContain(this: any, result: any, expectation: any): any
       return {
         message: () => (
           'Expected sequence ' +
-          toSequenceString(result, this.utils.stringify) +
+          toSequenceString(result) +
           ' not to contain element ' + this.utils.stringify(expectation) +
           ' but this element exists in the given sequence at index #' + index +
           '.'
@@ -47,7 +47,7 @@ function toBeASequenceThatContain(this: any, result: any, expectation: any): any
   return {
     message: () => (
       'Expected sequence ' +
-      toSequenceString(result, this.utils.stringify) +
+      toSequenceString(result) +
       ' to contain element ' + this.utils.stringify(expectation) +
       ' but this element does not exists in the given sequence.'
     ),

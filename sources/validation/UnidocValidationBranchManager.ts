@@ -1,6 +1,7 @@
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocEvent } from '../event/UnidocEvent'
+import { UnidocBlueprint } from '../blueprint/UnidocBlueprint'
 
 import { UnidocValidationBranchIdentifier } from './UnidocValidationBranchIdentifier'
 import { UnidocValidationMessage } from './UnidocValidationMessage'
@@ -87,6 +88,22 @@ export class UnidocValidationBranchManager {
   */
   public produce(): UnidocValidationBranchManager {
     this.tree.produce()
+    return this
+  }
+
+  /**
+  *
+  */
+  public entering(blueprint: UnidocBlueprint): UnidocValidationBranchManager {
+    this.tree.entering(this.branch, blueprint)
+    return this
+  }
+
+  /**
+  *
+  */
+  public exiting(blueprint: UnidocBlueprint): UnidocValidationBranchManager {
+    this.tree.exiting(this.branch, blueprint)
     return this
   }
 

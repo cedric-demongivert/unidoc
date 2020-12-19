@@ -82,6 +82,18 @@ export class UnidocState {
     this._view = new DataView(this._data.buffer)
   }
 
+  public pushBitset(size: number): number {
+    const cursor: number = this._size
+    const bytes: number = Math.ceil(size / 8)
+    this.size = cursor + Uint8Array.BYTES_PER_ELEMENT * bytes
+
+    for (let index = 0; index < bytes; ++index) {
+      this._view.setUint8(cursor + index, 0)
+    }
+
+    return cursor
+  }
+
   public pushBoolean(value: boolean): number {
     const cursor: number = this._size
     this.size = cursor + Uint8Array.BYTES_PER_ELEMENT
@@ -183,6 +195,38 @@ export class UnidocState {
     return cursor
   }
 
+  public enable(cursor: number, bit: number): void {
+    const end: number = cursor + Math.ceil(bit / 8)
+    this.size = Math.max(this._size, end)
+
+    const byteIndex: number = cursor + Math.floor(bit / 8)
+
+    this._view.setUint8(
+      byteIndex,
+      this._view.getUint8(byteIndex) | (0b1 << (bit % 8))
+    )
+  }
+
+  public disable(cursor: number, bit: number): void {
+    const end: number = cursor + Math.ceil(bit / 8)
+    this.size = Math.max(this._size, end)
+
+    const byteIndex: number = cursor + Math.floor(bit / 8)
+
+    this._view.setUint8(
+      byteIndex,
+      this._view.getUint8(byteIndex) & ~(0b1 << (bit % 8))
+    )
+  }
+
+  public setBit(cursor: number, bit: number, value: boolean): void {
+    if (value) {
+      this.enable(cursor, bit)
+    } else {
+      this.disable(cursor, bit)
+    }
+  }
+
   public setBoolean(cursor: number, value: boolean): void {
     const end: number = cursor + Uint8Array.BYTES_PER_ELEMENT
     this.size = Math.max(this._size, end)
@@ -244,6 +288,12 @@ export class UnidocState {
     this.size = Math.max(this._size, end)
 
     this._view.setFloat64(cursor, value)
+  }
+
+  public getBit(cursor: number, bit: number): boolean {
+    return (
+      this._view.getUint8(cursor + Math.floor(bit / 8)) & (0b1 << (bit % 8))
+    ) > 0
   }
 
   public getBoolean(cursor: number): boolean {

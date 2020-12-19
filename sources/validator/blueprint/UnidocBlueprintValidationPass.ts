@@ -114,6 +114,18 @@ export class UnidocBlueprintValidationPass implements UnidocBlueprintValidationC
   /**
   *
   */
+  public kill(): void {
+    this.events.size += 1
+
+    const event: UnidocBlueprintExecutionEvent = this.events.last
+
+    event.asKill()
+    event.ofBranch(this.event.branch)
+  }
+
+  /**
+  *
+  */
   public skip(): void {
     this.events.size += 1
 

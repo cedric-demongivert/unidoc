@@ -14,29 +14,6 @@ import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 
 const ROOT_BRANCH: UnidocValidationBranchIdentifier = new UnidocValidationBranchIdentifier().set(0, 0)
 
-function getNextBatchAnchor(iterator: Iterator<UnidocValidationNode>): UnidocValidationNode {
-  let result: IteratorResult<UnidocValidationNode>
-  let previous: UnidocValidationNode | null = null
-
-  while (!(result = iterator.next()).done) {
-    switch (result.value.event.type) {
-      case UnidocValidationEventType.VALIDATION:
-      case UnidocValidationEventType.DOCUMENT_COMPLETION:
-        return result.value
-      default:
-        break
-    }
-
-    previous = result.value
-  }
-
-  if (previous) {
-    return previous
-  } else {
-    throw new Error('No next batch anchor available.')
-  }
-}
-
 export class UnidocValidationTrunkSelector
   extends SubscribableUnidocConsumer<UnidocValidationEvent>
   implements UnidocValidationSelector {
@@ -111,27 +88,30 @@ export class UnidocValidationTrunkSelector
   *
   */
   private chop(branch: number): void {
-    let node: UnidocValidationNode | null = this._branches.get(branch)
-    this._branches.set(branch, null)
+    const branches: Pack<UnidocValidationNode | null> = this._branches
+    const nodes: Pack<UnidocValidationNode> = this._nodes
+    const node: UnidocValidationNode | null = branches.get(branch)
 
-    while (node != null && node.event.type != UnidocValidationEventType.FORK) {
-      const next: UnidocValidationNode | null = node.previous
-      node.delete()
-      this._nodes.push(node)
-      node = next
-    }
+    branches.set(branch, null)
 
     if (node != null) {
-      if (node === this._root) {
-        this._root = node.next || node.fork
-      }
+      for (const nodeToChop of node.chop()) {
+        if (nodeToChop.type === UnidocValidationEventType.FORKED) {
+          if (branches.get(nodeToChop.branch.local) === nodeToChop) {
+            branches.set(nodeToChop.branch.local, nodeToChop.previous!.previous)
+          }
+        } else if (nodeToChop.type === UnidocValidationEventType.FORK) {
+          if (nodeToChop === this._root) {
+            this._root = nodeToChop.next || nodeToChop.fork
+          }
 
-      if (this._branches.get(node.event.branch.local) === node) {
-        this._branches.set(node.event.branch.local, node.previous)
-      }
+          if (branches.get(nodeToChop.branch.local) === nodeToChop) {
+            branches.set(nodeToChop.branch.local, nodeToChop.previous)
+          }
+        }
 
-      node.delete()
-      this._nodes.push(node)
+        nodes.push(nodeToChop)
+      }
     }
   }
 
@@ -143,9 +123,11 @@ export class UnidocValidationTrunkSelector
       case UnidocValidationEventType.FORK:
       case UnidocValidationEventType.VALIDATION:
       case UnidocValidationEventType.DOCUMENT_COMPLETION:
-        for (let index = 0; index < this._branches.size; ++index) {
-          const branch: UnidocValidationNode | null = this._branches.get(index)
-          if (branch != null && branch.event.type === UnidocValidationEventType.TERMINATION) {
+        const branches: Pack<UnidocValidationNode | null> = this._branches
+
+        for (let index = 0; index < branches.size; ++index) {
+          const branch: UnidocValidationNode | null = branches.get(index)
+          if (branch != null && branch.type === UnidocValidationEventType.TERMINATION) {
             this.chop(index)
           }
         }
@@ -161,7 +143,7 @@ export class UnidocValidationTrunkSelector
   private dump(): void {
     let node: UnidocValidationNode | null = this._root
 
-    while (node != null && node.event.type != UnidocValidationEventType.FORK) {
+    while (node != null && node.type !== UnidocValidationEventType.FORK) {
       const next: UnidocValidationNode | null = node.next
 
       node.delete()
@@ -227,8 +209,8 @@ export class UnidocValidationTrunkSelector
   *
   */
   private handleProductionOfMerge(event: UnidocValidationEvent): void {
-    const to: UnidocValidationNode | null = this._branches.get(event.target.local)
     const from: UnidocValidationNode | null = this._branches.get(event.branch.local)
+    const to: UnidocValidationNode | null = this._branches.get(event.target.local)
 
     if (to == null || from == null) {
       throw new Error('Unable to merge inexisting branches.')
@@ -300,7 +282,7 @@ export class UnidocValidationTrunkSelector
 
     node.event.copy(event)
 
-    if (branch != null && node !== branch) {
+    if (branch != null) {
       branch.next = node
     }
 

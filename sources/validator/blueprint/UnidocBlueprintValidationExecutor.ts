@@ -79,6 +79,9 @@ export class UnidocBlueprintValidationExecutor {
         case UnidocBlueprintExecutionEventType.FAILURE:
           this.resolveFailure(resolving)
           break
+        case UnidocBlueprintExecutionEventType.KILL:
+          this._tree.terminate(resolving.branch)
+          break
         case UnidocBlueprintExecutionEventType.SKIP:
           this.resolveSkip(resolving)
           break
@@ -136,6 +139,9 @@ export class UnidocBlueprintValidationExecutor {
           this.acceptEvent(resolving, event)
           this._pending.clear()
           return
+        case UnidocBlueprintExecutionEventType.KILL:
+          this._tree.terminate(resolving.branch)
+          break
         default:
           throw new Error(
             'Unable to resolve execution event of type #' + resolving.type +
@@ -168,6 +174,9 @@ export class UnidocBlueprintValidationExecutor {
           break
         case UnidocBlueprintExecutionEventType.FAILURE:
           this.resolveFailure(resolving)
+          break
+        case UnidocBlueprintExecutionEventType.KILL:
+          this._tree.terminate(resolving.branch)
           break
         case UnidocBlueprintExecutionEventType.SKIP:
           this.resolveSkip(resolving)

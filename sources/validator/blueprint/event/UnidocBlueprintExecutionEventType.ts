@@ -44,6 +44,11 @@ export namespace UnidocBlueprintExecutionEventType {
   /**
   *
   */
+  export const KILL: UnidocBlueprintExecutionEventType = 8
+
+  /**
+  *
+  */
   export const DEFAULT: UnidocBlueprintExecutionEventType = ENTER
 
   /**
@@ -57,7 +62,8 @@ export namespace UnidocBlueprintExecutionEventType {
     DIVE,
     START,
     EVENT,
-    ACCEPT_EVERYTHING
+    ACCEPT_EVERYTHING,
+    KILL
   ]
 
   /**
@@ -73,6 +79,7 @@ export namespace UnidocBlueprintExecutionEventType {
       case START: return 'START'
       case EVENT: return 'EVENT'
       case ACCEPT_EVERYTHING: return 'ACCEPT_EVERYTHING'
+      case KILL: return 'KILL'
       default: return undefined
     }
   }

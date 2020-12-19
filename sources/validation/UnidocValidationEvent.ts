@@ -1,6 +1,7 @@
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocEvent } from '../event/UnidocEvent'
+import { UnidocBlueprint } from '../blueprint/UnidocBlueprint'
 
 import { UnidocValidationMessage } from './UnidocValidationMessage'
 import { UnidocValidationEventType } from './UnidocValidationEventType'
@@ -48,6 +49,12 @@ export class UnidocValidationEvent {
   public readonly message: UnidocValidationMessage
 
   /**
+  * The related blueprint if this is a UnidocValidationEventType.ENTER_BLUEPRINT
+  * or UnidocValidationEventType.EXIT_BLUEPRINT.
+  */
+  public blueprint: UnidocBlueprint | null
+
+  /**
   * Instantiate a new event instance.
   */
   public constructor() {
@@ -58,6 +65,7 @@ export class UnidocValidationEvent {
     this.target = new UnidocValidationBranchIdentifier()
     this.event = new UnidocEvent()
     this.message = new UnidocValidationMessage()
+    this.blueprint = null
   }
 
   /**
@@ -71,6 +79,7 @@ export class UnidocValidationEvent {
     this.target.clear()
     this.message.clear()
     this.event.clear()
+    this.blueprint = null
   }
 
   /**
@@ -107,6 +116,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.copy(target)
     this.type = UnidocValidationEventType.FORK
+    this.blueprint = null
     return this
   }
 
@@ -122,6 +132,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.copy(source)
     this.type = UnidocValidationEventType.FORKED
+    this.blueprint = null
     return this
   }
 
@@ -137,6 +148,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.copy(target)
     this.type = UnidocValidationEventType.MERGE
+    this.blueprint = null
     return this
   }
 
@@ -150,6 +162,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.clear()
     this.type = UnidocValidationEventType.CREATION
+    this.blueprint = null
     return this
   }
 
@@ -163,6 +176,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.clear()
     this.type = UnidocValidationEventType.TERMINATION
+    this.blueprint = null
     return this
   }
 
@@ -178,6 +192,7 @@ export class UnidocValidationEvent {
     this.target.clear()
     this.event.copy(event)
     this.type = UnidocValidationEventType.VALIDATION
+    this.blueprint = null
     return this
   }
 
@@ -191,6 +206,35 @@ export class UnidocValidationEvent {
     this.target.clear()
     this.event.clear()
     this.type = UnidocValidationEventType.DOCUMENT_COMPLETION
+    this.blueprint = null
+    return this
+  }
+
+  /**
+  * Transform this event instance into a document completion event.
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asEnterBlueprint(blueprint: UnidocBlueprint): UnidocValidationEvent {
+    this.message.clear()
+    this.target.clear()
+    this.event.clear()
+    this.type = UnidocValidationEventType.ENTER_BLUEPRINT
+    this.blueprint = blueprint
+    return this
+  }
+
+  /**
+  * Transform this event instance into a document completion event.
+  *
+  * @return This event instance for chaining purposes.
+  */
+  public asExitBlueprint(blueprint: UnidocBlueprint): UnidocValidationEvent {
+    this.message.clear()
+    this.target.clear()
+    this.event.clear()
+    this.type = UnidocValidationEventType.EXIT_BLUEPRINT
+    this.blueprint = blueprint
     return this
   }
 
@@ -212,6 +256,7 @@ export class UnidocValidationEvent {
     }
 
     this.type = UnidocValidationEventType.MESSAGE
+    this.blueprint = null
     return this
   }
 
@@ -221,6 +266,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.message.type = type
     this.type = UnidocValidationEventType.MESSAGE
+    this.blueprint = null
     return this
   }
 
@@ -267,6 +313,7 @@ export class UnidocValidationEvent {
     this.target.copy(toCopy.target)
     this.message.copy(toCopy.message)
     this.event.copy(toCopy.event)
+    this.blueprint = toCopy.blueprint
   }
 
   /**
@@ -328,6 +375,14 @@ export class UnidocValidationEvent {
         result += ' merge into branch '
         result += this.target.toLongString()
         break
+      case UnidocValidationEventType.ENTER_BLUEPRINT:
+        result += ' entering blueprint '
+        result += this.blueprint ? this.blueprint.toString() : 'null'
+        break
+      case UnidocValidationEventType.EXIT_BLUEPRINT:
+        result += ' exiting blueprint '
+        result += this.blueprint ? this.blueprint.toString() : 'null'
+        break
       default:
         throw new Error(
           'Unable to stringify validation event of type #' + this.type +
@@ -354,7 +409,8 @@ export class UnidocValidationEvent {
         this.type === other.type &&
         this.target.equals(other.target) &&
         this.message.equals(other.message) &&
-        this.event.equals(other.event)
+        this.event.equals(other.event) &&
+        this.blueprint === other.blueprint
       )
     }
 

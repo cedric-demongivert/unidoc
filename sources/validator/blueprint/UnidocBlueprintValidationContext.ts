@@ -46,6 +46,11 @@ export interface UnidocBlueprintValidationContext {
   skip(): void
 
   /**
+  * 
+  */
+  kill(): void
+
+  /**
   * Make the validation process exit the current blueprint validation as a failure.
   */
   failure(): void

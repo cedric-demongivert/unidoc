@@ -18,7 +18,7 @@ function toBeAnySequenceOfElementsEqualsTo(this: any, result: any, expectation: 
       message: () => (
         'Expected ' + this.utils.stringify(result) +
         ' to be equal to the sequence of elements ' +
-        toSequenceString(expectation, this.utils.stringify(expectation)) +
+        toSequenceString(expectation) +
         ' but the given value is not iterable.'
       ),
       pass: false
@@ -54,9 +54,9 @@ function toBeAnySequenceOfElementsEqualsTo(this: any, result: any, expectation: 
       return {
         message: () => (
           'Expected sequence ' +
-          toSequenceString(result, this.utils.stringify) +
+          toSequenceString(result) +
           ' to be any sequence of elements equals to ' +
-          toSequenceString(expectation, this.utils.stringify) +
+          toSequenceString(expectation) +
           ' but an equivalent of element #' +
           expectationIndex + ' does not appear in the given sequence.'
         ),
@@ -71,9 +71,9 @@ function toBeAnySequenceOfElementsEqualsTo(this: any, result: any, expectation: 
     return {
       message: () => (
         'Expected sequence ' +
-        toSequenceString(result, this.utils.stringify) +
+        toSequenceString(result) +
         ' to be any sequence of elements equals to ' +
-        toSequenceString(expectation, this.utils.stringify) +
+        toSequenceString(expectation) +
         ' but the given sequence does contain more elements than expected.'
       ),
       pass: false
@@ -83,9 +83,9 @@ function toBeAnySequenceOfElementsEqualsTo(this: any, result: any, expectation: 
   return {
     message: () => (
       'Expected sequence ' +
-      toSequenceString(result, this.utils.stringify) +
+      toSequenceString(result) +
       ' not to be any sequence of elements equals to ' +
-      toSequenceString(expectation, this.utils.stringify) +
+      toSequenceString(expectation) +
       ' but it is.'
     ),
     pass: true

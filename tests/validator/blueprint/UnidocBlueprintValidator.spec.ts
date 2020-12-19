@@ -885,7 +885,6 @@ describe('UnidocBlueprintValidator', function() {
     })
   })
 
-
   describe('lenient sequence block', function() {
     it('accept a sequence of element', function() {
       const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
@@ -1444,6 +1443,182 @@ describe('UnidocBlueprintValidator', function() {
       input.produceWord('amet')
       input.produceTagEnd('emphasize')
       input.produceText(' at consequetur nothing to say.')
+
+      input.complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+      for (const event of inputBuffer.events) {
+        tree.branches.get(0).validate(event)
+      }
+      tree.branches.get(0).documentCompletion()
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('optimize sets with optional content ', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunkSelector = new UnidocValidationTrunkSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const letters: string[] = [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p'
+      ]
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.sequence(
+          UnidocBlueprint.set(
+            ...letters.map(function(letter: string): UnidocBlueprint {
+              return UnidocBlueprint.optional(UnidocBlueprint.tagStart(letter))
+            })
+          ),
+          UnidocBlueprint.end()
+        )
+      )
+
+      validator.execute(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      const removing: number = ((Math.random() * (letters.length - 4)) << 0) + 2
+
+      for (let index = 0; index < removing; ++index) {
+        letters.splice((Math.random() * (letters.length - 1)) << 0, 1)
+      }
+
+      input.initialize()
+
+      for (const letter of letters) {
+        input.produceTagStart(letter)
+      }
+
+      input.complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+      for (const event of inputBuffer.events) {
+        tree.branches.get(0).validate(event)
+      }
+      tree.branches.get(0).documentCompletion()
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('optimize lenient sequence with optional content ', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunkSelector = new UnidocValidationTrunkSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const letters: string[] = [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n',
+        'o', 'p'
+      ]
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.sequence(
+          UnidocBlueprint.sequence.lenient(
+            ...letters.map(function(letter: string): UnidocBlueprint {
+              return UnidocBlueprint.optional(UnidocBlueprint.tagStart(letter))
+            })
+          ),
+          UnidocBlueprint.end()
+        )
+      )
+
+      validator.execute(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      const removing: number = ((Math.random() * (letters.length - 4)) << 0) + 2
+
+      for (let index = 0; index < removing; ++index) {
+        letters.splice((Math.random() * (letters.length - 1)) << 0, 1)
+      }
+
+      input.initialize()
+
+      for (const letter of letters) {
+        input.produceTagStart(letter)
+      }
+
+      input.complete()
+
+      const expectation: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      const tree: UnidocValidationTreeManager = new UnidocValidationTreeManager()
+
+      expectation.subscribe(tree)
+
+      tree.initialize()
+      for (const event of inputBuffer.events) {
+        tree.branches.get(0).validate(event)
+      }
+      tree.branches.get(0).documentCompletion()
+      tree.complete()
+
+      expect(expectation.expect(output)).toBeTruthy()
+    })
+
+    it('optimize lenient sequence with optional content 2', function() {
+      const validator: UnidocBlueprintValidator = new UnidocBlueprintValidator()
+      const selector: UnidocValidationTrunkSelector = new UnidocValidationTrunkSelector()
+      selector.subscribe(validator)
+
+      const output: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      output.subscribe(selector)
+
+      const rawoutput: UnidocValidationEventBuffer = new UnidocValidationEventBuffer()
+      rawoutput.subscribe(validator)
+
+      const letters: string[] = [
+        'a', 'b', 'c', 'd', 'e', 'f', 'g'
+      ]
+
+      const blueprint: UnidocBlueprint = (
+        UnidocBlueprint.sequence(
+          UnidocBlueprint.sequence.lenient(
+            ...letters.map(function(letter: string): UnidocBlueprint {
+              return UnidocBlueprint.optional(UnidocBlueprint.tagStart(letter))
+            })
+          ),
+          UnidocBlueprint.end()
+        )
+      )
+
+      validator.execute(blueprint)
+
+      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const inputBuffer: UnidocEventBuffer = new UnidocEventBuffer()
+      inputBuffer.subscribe(input)
+      validator.subscribe(input)
+
+      input.initialize()
+
+      for (const letter of ['b', 'c', 'f']) {
+        input.produceTagStart(letter)
+      }
 
       input.complete()
 
