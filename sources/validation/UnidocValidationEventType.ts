@@ -72,6 +72,9 @@ export namespace UnidocValidationEventType {
     EXIT_BLUEPRINT
   ]
 
+  /**
+  *
+  */
   export function toString(value: UnidocValidationEventType): string | undefined {
     switch (value) {
       case CREATION: return 'CREATION'
@@ -86,5 +89,12 @@ export namespace UnidocValidationEventType {
       case EXIT_BLUEPRINT: return 'EXIT_BLUEPRINT'
       default: return undefined
     }
+  }
+
+  /**
+  *
+  */
+  export function toDebugString(value: UnidocValidationEventType): string {
+    return '#' + value + ' (' + (toString(value) || 'undefined') + ')'
   }
 }
