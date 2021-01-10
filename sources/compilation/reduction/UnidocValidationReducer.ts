@@ -7,6 +7,7 @@ import { UnidocObjectReducerConfiguration } from './UnidocObjectReducerConfigura
 import { UnidocSingleBlueprintReducer } from './UnidocSingleBlueprintReducer'
 import { UnidocValidationTextReducer } from './UnidocValidationTextReducer'
 import { UnidocValidationTokenReducer } from './UnidocValidationTokenReducer'
+import { UnidocMappedReducer } from './UnidocMappedReducer'
 
 export interface UnidocValidationReducer<State, Result> {
   /**
@@ -77,5 +78,12 @@ export namespace UnidocValidationReducer {
   */
   export function object<Result>(configuration: UnidocObjectReducerConfiguration): UnidocValidationReducer<any, Result> {
     return new UnidocObjectReducer(configuration)
+  }
+
+  /**
+  *
+  */
+  export function map<From, To>(reducer: UnidocValidationReducer<any, From>, mapper: (value: From) => To): UnidocValidationReducer<any, To> {
+    return new UnidocMappedReducer(reducer, mapper)
   }
 }
