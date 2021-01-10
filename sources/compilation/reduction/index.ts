@@ -1,5 +1,6 @@
 export { UnidocManyBlueprintReducer } from './UnidocManyBlueprintReducer'
 export { UnidocManyBlueprintReducerState } from './UnidocManyBlueprintReducerState'
+export { UnidocMappedReducer } from './UnidocMappedReducer'
 export { UnidocObjectReducer } from './UnidocObjectReducer'
 export { UnidocObjectReducerConfiguration } from './UnidocObjectReducerConfiguration'
 export { UnidocObjectReducerState } from './UnidocObjectReducerState'
