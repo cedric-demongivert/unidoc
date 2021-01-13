@@ -1,7 +1,6 @@
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocEvent } from '../event/UnidocEvent'
-import { UnidocBlueprint } from '../blueprint/UnidocBlueprint'
 
 import { UnidocValidationBranchIdentifier } from './UnidocValidationBranchIdentifier'
 import { UnidocValidationMessage } from './UnidocValidationMessage'
@@ -9,9 +8,19 @@ import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 import { UnidocValidationTreeManager } from './UnidocValidationTreeManager'
 
 export class UnidocValidationBranchManager {
+  /**
+  *
+  */
   public readonly tree: UnidocValidationTreeManager
+
+  /**
+  *
+  */
   public readonly branch: UnidocValidationBranchIdentifier
 
+  /**
+  *
+  */
   public constructor(tree: UnidocValidationTreeManager) {
     this.tree = tree
     this.branch = new UnidocValidationBranchIdentifier()
@@ -27,27 +36,41 @@ export class UnidocValidationBranchManager {
     return this
   }
 
-
+  /**
+  *
+  */
   public documentCompletion(): UnidocValidationBranchManager {
     this.tree.documentCompletion(this.branch)
     return this
   }
 
+  /**
+  *
+  */
   public prepareNewMessage(): UnidocValidationBranchManager {
     this.tree.prepareNewMessage(this.branch)
     return this
   }
 
+  /**
+  *
+  */
   public setMessageType(type: UnidocValidationMessageType): UnidocValidationBranchManager {
     this.tree.setMessageType(type)
     return this
   }
 
+  /**
+  *
+  */
   public setMessageCode(code: string): UnidocValidationBranchManager {
     this.tree.setMessageCode(code)
     return this
   }
 
+  /**
+  *
+  */
   public setMessageData(key: string, value: any): UnidocValidationBranchManager {
     this.tree.setMessageData(key, value)
     return this
@@ -94,16 +117,16 @@ export class UnidocValidationBranchManager {
   /**
   *
   */
-  public entering(blueprint: UnidocBlueprint): UnidocValidationBranchManager {
-    this.tree.entering(this.branch, blueprint)
+  public beginGroup(group: any): UnidocValidationBranchManager {
+    this.tree.beginGroup(this.branch, group)
     return this
   }
 
   /**
   *
   */
-  public exiting(blueprint: UnidocBlueprint): UnidocValidationBranchManager {
-    this.tree.exiting(this.branch, blueprint)
+  public endGroup(group: any): UnidocValidationBranchManager {
+    this.tree.endGroup(this.branch, group)
     return this
   }
 
@@ -130,10 +153,16 @@ export class UnidocValidationBranchManager {
 }
 
 export namespace UnidocValidationBranchManager {
+  /**
+  *
+  */
   export function create(tree: UnidocValidationTreeManager): UnidocValidationBranchManager {
     return new UnidocValidationBranchManager(tree)
   }
 
+  /**
+  *
+  */
   export function allocator(tree: UnidocValidationTreeManager): Allocator<UnidocValidationBranchManager> {
     return Allocator.fromFactory(create.bind(null, tree))
   }

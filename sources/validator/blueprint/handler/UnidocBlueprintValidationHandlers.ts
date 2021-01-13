@@ -7,6 +7,7 @@ import { UnidocBlueprintValidationHandler } from './UnidocBlueprintValidationHan
 import { UnidocDisjunctionValidationHandler } from './UnidocDisjunctionValidationHandler'
 import { UnidocEndValidationHandler } from './UnidocEndValidationHandler'
 import { UnidocEventValidationHandler } from './UnidocEventValidationHandler'
+import { UnidocGroupValidationHandler } from './UnidocGroupValidationHandler'
 import { UnidocLenientSequenceValidationHandler } from './UnidocLenientSequenceValidationHandler'
 import { UnidocManyValidationHandler } from './UnidocManyValidationHandler'
 import { UnidocSequenceValidationHandler } from './UnidocSequenceValidationHandler'
@@ -24,6 +25,7 @@ export namespace UnidocBlueprintValidationHandlers {
   HANDLERS.set(UnidocBlueprintType.SEQUENCE, UnidocSequenceValidationHandler.INSTANCE)
   HANDLERS.set(UnidocBlueprintType.SET, UnidocSetValidationHandler.INSTANCE)
   HANDLERS.set(UnidocBlueprintType.TAG, UnidocTagValidationHandler.INSTANCE)
+  HANDLERS.set(UnidocBlueprintType.GROUP, UnidocGroupValidationHandler.INSTANCE)
 
   /**
   *

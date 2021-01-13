@@ -8,6 +8,7 @@ import { UnidocBlueprintType } from './UnidocBlueprintType'
 import { UnidocDisjunctionBlueprint } from './UnidocDisjunctionBlueprint'
 import { UnidocEndBlueprint } from './UnidocEndBlueprint'
 import { UnidocEventBlueprint } from './UnidocEventBlueprint'
+import { UnidocGroupBlueprint } from './UnidocGroupBlueprint'
 import { UnidocLenientSequenceBlueprint } from './UnidocLenientSequenceBlueprint'
 import { UnidocManyBlueprint } from './UnidocManyBlueprint'
 import { UnidocSequenceBlueprint } from './UnidocSequenceBlueprint'
@@ -53,14 +54,50 @@ export interface UnidocBlueprint {
 }
 
 export namespace UnidocBlueprint {
+  /**
+  *
+  */
   export type Disjunction = UnidocDisjunctionBlueprint
+
+  /**
+  *
+  */
   export type End = UnidocEndBlueprint
+
+  /**
+  *
+  */
   export type Event = UnidocEventBlueprint
+
+  /**
+  *
+  */
   export type LenientSequence = UnidocLenientSequenceBlueprint
+
+  /**
+  *
+  */
   export type Many = UnidocManyBlueprint
+
+  /**
+  *
+  */
   export type Sequence = UnidocSequenceBlueprint
+
+  /**
+  *
+  */
   export type Set = UnidocSetBlueprint
+
+  /**
+  *
+  */
   export type Tag = UnidocTagBlueprint
+
+  /**
+  *
+  */
+  export type Group = UnidocGroupBlueprint
 
   /**
   *
@@ -99,6 +136,20 @@ export namespace UnidocBlueprint {
   export function many(operand?: UnidocBlueprint): UnidocManyBlueprint {
     const result: UnidocManyBlueprint = UnidocManyBlueprint.create()
 
+    if (operand) result.of(operand)
+
+    return result
+  }
+
+
+
+  /**
+  *
+  */
+  export function group(group: any, operand?: UnidocBlueprint): UnidocGroupBlueprint {
+    const result: UnidocGroupBlueprint = UnidocGroupBlueprint.create()
+
+    result.as(group)
     if (operand) result.of(operand)
 
     return result

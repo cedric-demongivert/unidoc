@@ -21,6 +21,14 @@ export class NullUnidocValidationMessageProducer implements UnidocValidationMess
     throw new Error("Method not implemented.")
   }
 
+  public beginGroup(group: any): UnidocValidationMessageProducer {
+    throw new Error("Method not implemented.")
+  }
+
+  public endGroup(group: any): UnidocValidationMessageProducer {
+    throw new Error("Method not implemented.")
+  }
+
   public addEventListener(event: any, listener: any) {
     throw new Error("Method not implemented.")
   }

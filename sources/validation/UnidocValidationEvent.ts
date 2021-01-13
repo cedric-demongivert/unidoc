@@ -49,10 +49,10 @@ export class UnidocValidationEvent {
   public readonly message: UnidocValidationMessage
 
   /**
-  * The related blueprint if this is a UnidocValidationEventType.ENTER_BLUEPRINT
-  * or UnidocValidationEventType.EXIT_BLUEPRINT.
+  * The related blueprint if this is a UnidocValidationEventType.BEGIN_GROUP
+  * or UnidocValidationEventType.END_GROUP.
   */
-  public blueprint: UnidocBlueprint | null
+  public group: any
 
   /**
   * Instantiate a new event instance.
@@ -65,7 +65,7 @@ export class UnidocValidationEvent {
     this.target = new UnidocValidationBranchIdentifier()
     this.event = new UnidocEvent()
     this.message = new UnidocValidationMessage()
-    this.blueprint = null
+    this.group = undefined
   }
 
   /**
@@ -79,7 +79,7 @@ export class UnidocValidationEvent {
     this.target.clear()
     this.message.clear()
     this.event.clear()
-    this.blueprint = null
+    this.group = undefined
   }
 
   /**
@@ -116,7 +116,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.copy(target)
     this.type = UnidocValidationEventType.FORK
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
@@ -132,7 +132,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.copy(source)
     this.type = UnidocValidationEventType.FORKED
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
@@ -148,7 +148,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.copy(target)
     this.type = UnidocValidationEventType.MERGE
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
@@ -162,7 +162,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.clear()
     this.type = UnidocValidationEventType.CREATION
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
@@ -176,7 +176,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.target.clear()
     this.type = UnidocValidationEventType.TERMINATION
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
@@ -192,7 +192,7 @@ export class UnidocValidationEvent {
     this.target.clear()
     this.event.copy(event)
     this.type = UnidocValidationEventType.VALIDATION
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
@@ -206,35 +206,31 @@ export class UnidocValidationEvent {
     this.target.clear()
     this.event.clear()
     this.type = UnidocValidationEventType.DOCUMENT_COMPLETION
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
   /**
-  * Transform this event instance into a document completion event.
   *
-  * @return This event instance for chaining purposes.
   */
-  public asEnterBlueprint(blueprint: UnidocBlueprint): UnidocValidationEvent {
+  public asBeginGroup(group: any): UnidocValidationEvent {
     this.message.clear()
     this.target.clear()
     this.event.clear()
-    this.type = UnidocValidationEventType.ENTER_BLUEPRINT
-    this.blueprint = blueprint
+    this.type = UnidocValidationEventType.BEGIN_GROUP
+    this.group = group
     return this
   }
 
   /**
-  * Transform this event instance into a document completion event.
   *
-  * @return This event instance for chaining purposes.
   */
-  public asExitBlueprint(blueprint: UnidocBlueprint): UnidocValidationEvent {
+  public asEndGroup(group: any): UnidocValidationEvent {
     this.message.clear()
     this.target.clear()
     this.event.clear()
-    this.type = UnidocValidationEventType.EXIT_BLUEPRINT
-    this.blueprint = blueprint
+    this.type = UnidocValidationEventType.END_GROUP
+    this.group = group
     return this
   }
 
@@ -256,7 +252,7 @@ export class UnidocValidationEvent {
     }
 
     this.type = UnidocValidationEventType.MESSAGE
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
@@ -266,7 +262,7 @@ export class UnidocValidationEvent {
     this.message.clear()
     this.message.type = type
     this.type = UnidocValidationEventType.MESSAGE
-    this.blueprint = null
+    this.group = undefined
     return this
   }
 
@@ -313,7 +309,7 @@ export class UnidocValidationEvent {
     this.target.copy(toCopy.target)
     this.message.copy(toCopy.message)
     this.event.copy(toCopy.event)
-    this.blueprint = toCopy.blueprint
+    this.group = toCopy.group
   }
 
   /**
@@ -375,13 +371,13 @@ export class UnidocValidationEvent {
         result += ' merge into branch '
         result += this.target.toLongString()
         break
-      case UnidocValidationEventType.ENTER_BLUEPRINT:
-        result += ' entering blueprint '
-        result += this.blueprint ? this.blueprint.toString() : 'null'
+      case UnidocValidationEventType.BEGIN_GROUP:
+        result += ' begining group '
+        result += this.group ? this.group.toString() : 'null'
         break
-      case UnidocValidationEventType.EXIT_BLUEPRINT:
-        result += ' exiting blueprint '
-        result += this.blueprint ? this.blueprint.toString() : 'null'
+      case UnidocValidationEventType.END_GROUP:
+        result += ' ending group '
+        result += this.group ? this.group.toString() : 'null'
         break
       default:
         throw new Error(
@@ -410,7 +406,7 @@ export class UnidocValidationEvent {
         this.target.equals(other.target) &&
         this.message.equals(other.message) &&
         this.event.equals(other.event) &&
-        this.blueprint === other.blueprint
+        this.group === other.group
       )
     }
 
@@ -433,13 +429,22 @@ export namespace UnidocValidationEvent {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
+  /**
+  *
+  */
   export function fromBranch(branch: UnidocValidationBranchIdentifier): UnidocValidationEvent {
     return new UnidocValidationEvent().fromBranch(branch)
   }
 
+  /**
+  *
+  */
   export function create(): UnidocValidationEvent {
     return new UnidocValidationEvent()
   }
 
+  /**
+  *
+  */
   export const ALLOCATOR: Allocator<UnidocValidationEvent> = Allocator.fromFactory(create)
 }

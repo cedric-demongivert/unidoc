@@ -1,6 +1,4 @@
-import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
 import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
-import { UnidocValidationEventType } from '../../validation/UnidocValidationEventType'
 
 import { UnidocValidationReducer } from './UnidocValidationReducer'
 import { UnidocObjectReducerState } from './UnidocObjectReducerState'

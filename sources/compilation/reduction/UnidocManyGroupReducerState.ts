@@ -2,7 +2,7 @@ import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
 
 import { UnidocValidationReducer } from './UnidocValidationReducer'
 
-export class UnidocManyBlueprintReducerState<State, Result> {
+export class UnidocManyGroupReducerState<State, Result> {
   /**
   *
   */
@@ -30,7 +30,7 @@ export class UnidocManyBlueprintReducerState<State, Result> {
   /**
   *
   */
-  public initialize(reducer: UnidocValidationReducer<State, Result>, event: UnidocValidationEvent): UnidocManyBlueprintReducerState<State, Result> {
+  public initialize(reducer: UnidocValidationReducer<State, Result>, event: UnidocValidationEvent): UnidocManyGroupReducerState<State, Result> {
     this.state = reducer.reduce(reducer.initialize(this.state), event)
     this.result = []
     this.depth += 1
@@ -40,7 +40,7 @@ export class UnidocManyBlueprintReducerState<State, Result> {
   /**
   *
   */
-  public enter(reducer: UnidocValidationReducer<State, Result>, event: UnidocValidationEvent): UnidocManyBlueprintReducerState<State, Result> {
+  public enter(reducer: UnidocValidationReducer<State, Result>, event: UnidocValidationEvent): UnidocManyGroupReducerState<State, Result> {
     this.state = reducer.reduce(this.state!, event)
     this.depth += 1
     return this
@@ -49,7 +49,7 @@ export class UnidocManyBlueprintReducerState<State, Result> {
   /**
   *
   */
-  public next(reducer: UnidocValidationReducer<State, Result>, event: UnidocValidationEvent): UnidocManyBlueprintReducerState<State, Result> {
+  public next(reducer: UnidocValidationReducer<State, Result>, event: UnidocValidationEvent): UnidocManyGroupReducerState<State, Result> {
     this.state = reducer.reduce(this.state!, event)
     return this
   }
@@ -57,7 +57,7 @@ export class UnidocManyBlueprintReducerState<State, Result> {
   /**
   *
   */
-  public exit(reducer: UnidocValidationReducer<State, Result>, event: UnidocValidationEvent): UnidocManyBlueprintReducerState<State, Result> {
+  public exit(reducer: UnidocValidationReducer<State, Result>, event: UnidocValidationEvent): UnidocManyGroupReducerState<State, Result> {
     this.depth -= 1
     this.state = reducer.reduce(this.state!, event)
 
@@ -82,7 +82,7 @@ export class UnidocManyBlueprintReducerState<State, Result> {
   /**
   *
   */
-  public clear(): UnidocManyBlueprintReducerState<State, Result> {
+  public clear(): UnidocManyGroupReducerState<State, Result> {
     this.depth = 0
     this.result = []
     return this

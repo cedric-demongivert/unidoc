@@ -1,10 +1,9 @@
 import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
-import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
 
-import { UnidocManyBlueprintReducer } from './UnidocManyBlueprintReducer'
+import { UnidocManyGroupReducer } from './UnidocManyGroupReducer'
 import { UnidocObjectReducer } from './UnidocObjectReducer'
 import { UnidocObjectReducerConfiguration } from './UnidocObjectReducerConfiguration'
-import { UnidocSingleBlueprintReducer } from './UnidocSingleBlueprintReducer'
+import { UnidocSingleGroupReducer } from './UnidocSingleGroupReducer'
 import { UnidocValidationTextReducer } from './UnidocValidationTextReducer'
 import { UnidocValidationTokenReducer } from './UnidocValidationTokenReducer'
 import { UnidocMappedReducer } from './UnidocMappedReducer'
@@ -57,19 +56,19 @@ export namespace UnidocValidationReducer {
   /**
   *
   */
-  export function blueprint<Result>(blueprint: UnidocBlueprint, reducer: UnidocValidationReducer<any, Result>): UnidocValidationReducer<any, Result> {
-    return new UnidocSingleBlueprintReducer(blueprint, reducer)
+  export function group<Result>(group: any, reducer: UnidocValidationReducer<any, Result>): UnidocValidationReducer<any, Result> {
+    return new UnidocSingleGroupReducer(group, reducer)
   }
 
   /**
   *
   */
-  export namespace blueprint {
+  export namespace group {
     /**
     *
     */
-    export function many<Result>(blueprint: UnidocBlueprint, reducer: UnidocValidationReducer<any, Result>): UnidocValidationReducer<any, Result[]> {
-      return new UnidocManyBlueprintReducer(blueprint, reducer)
+    export function many<Result>(group: any, reducer: UnidocValidationReducer<any, Result>): UnidocValidationReducer<any, Result[]> {
+      return new UnidocManyGroupReducer(group, reducer)
     }
   }
 

@@ -1,34 +1,39 @@
-import { UnidocSequenceBlueprint } from '../../../blueprint/UnidocSequenceBlueprint'
+import { UnidocGroupBlueprint } from '../../../blueprint/UnidocGroupBlueprint'
 import { UnidocBlueprintType } from '../../../blueprint/UnidocBlueprintType'
 import { UnidocEvent } from '../../../event/UnidocEvent'
 
-import { UnidocBlueprintValidationContext } from '../UnidocBlueprintValidationContext'
 import { UnidocState } from '../UnidocState'
+import { UnidocBlueprintValidationContext } from '../UnidocBlueprintValidationContext'
 
 import { UnidocBlueprintValidationHandler } from './UnidocBlueprintValidationHandler'
 
-export class UnidocSequenceValidationHandler implements UnidocBlueprintValidationHandler {
+export class UnidocGroupValidationHandler implements UnidocBlueprintValidationHandler {
   private readonly _state: UnidocState
 
   public constructor() {
-    this._state = new UnidocState(2)
+    this._state = new UnidocState(1)
   }
 
   /**
   * @see UnidocBlueprintValidationHandler.onStart
   */
   public onStart(context: UnidocBlueprintValidationContext): void {
-    if (context.blueprint.type !== UnidocBlueprintType.SEQUENCE) {
+    if (context.blueprint.type !== UnidocBlueprintType.GROUP) {
       throw new Error(
-        'Trying to dive into a blueprint of type #' + context.blueprint.type +
-        ' (' + UnidocBlueprintType.toString(context.blueprint.type) + ') ' +
-        'with a validation handler that is only able to dive into blueprints ' +
-        'of type #' + UnidocBlueprintType.SEQUENCE + ' (' +
-        UnidocBlueprintType.toString(UnidocBlueprintType.SEQUENCE) +
-        ').'
+        'Trying to dive into a blueprint of type ' +
+        UnidocBlueprintType.toDebugString(context.blueprint.type) +
+        ' with a validation handler that is only able to dive into ' +
+        'blueprints of type ' +
+        UnidocBlueprintType.toDebugString(UnidocBlueprintType.GROUP) + '.'
       )
     } else {
-      this.iterate(context, 0, true)
+      const state: UnidocState = this._state
+      const blueprint: UnidocGroupBlueprint = context.blueprint as any
+
+      context.output.beginGroup(blueprint.group)
+
+      state.setUint8(0, 0)
+      context.dive(state, blueprint.operand)
     }
   }
 
@@ -63,32 +68,16 @@ export class UnidocSequenceValidationHandler implements UnidocBlueprintValidatio
   * @see UnidocBlueprintValidationHandler.onSuccess
   */
   public onSuccess(context: UnidocBlueprintValidationContext): void {
-    this.iterate(context, context.state.getUint8(0) + 1, false)
+    const blueprint: UnidocGroupBlueprint = context.blueprint as any
+    context.output.endGroup(blueprint.group)
+    context.success()
   }
 
   /**
   * @see UnidocBlueprintValidationHandler.onSkip
   */
   public onSkip(context: UnidocBlueprintValidationContext): void {
-    this.iterate(context, context.state.getUint8(0) + 1, context.state.getBoolean(1))
-  }
-
-  /**
-  *
-  */
-  public iterate(context: UnidocBlueprintValidationContext, index: number, skip: boolean): void {
-    const state: UnidocState = this._state
-    const blueprint: UnidocSequenceBlueprint = context.blueprint as any
-
-    if (index < blueprint.operands.size) {
-      state.setUint8(0, index)
-      state.setBoolean(1, skip)
-      context.dive(state, blueprint.operands.get(index))
-    } else if (skip) {
-      context.skip()
-    } else {
-      context.success()
-    }
+    context.skip()
   }
 
   /**
@@ -99,8 +88,11 @@ export class UnidocSequenceValidationHandler implements UnidocBlueprintValidatio
   }
 }
 
-export namespace UnidocSequenceValidationHandler {
-  export const INSTANCE: UnidocSequenceValidationHandler = (
-    new UnidocSequenceValidationHandler()
+export namespace UnidocGroupValidationHandler {
+  /**
+  *
+  */
+  export const INSTANCE: UnidocGroupValidationHandler = (
+    new UnidocGroupValidationHandler()
   )
 }

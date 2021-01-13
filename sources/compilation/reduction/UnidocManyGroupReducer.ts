@@ -1,15 +1,14 @@
-import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
 import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
 import { UnidocValidationEventType } from '../../validation/UnidocValidationEventType'
 
 import { UnidocValidationReducer } from './UnidocValidationReducer'
-import { UnidocManyBlueprintReducerState } from './UnidocManyBlueprintReducerState'
+import { UnidocManyGroupReducerState } from './UnidocManyGroupReducerState'
 
-export class UnidocManyBlueprintReducer<State, Result> implements UnidocValidationReducer<UnidocManyBlueprintReducerState<State, Result>, Result[]> {
+export class UnidocManyGroupReducer<State, Result> implements UnidocValidationReducer<UnidocManyGroupReducerState<State, Result>, Result[]> {
   /**
   *
   */
-  private readonly _blueprint: UnidocBlueprint
+  private readonly _group: any
 
   /**
   *
@@ -19,22 +18,22 @@ export class UnidocManyBlueprintReducer<State, Result> implements UnidocValidati
   /**
   *
   */
-  public constructor(blueprint: UnidocBlueprint, reducer: UnidocValidationReducer<State, Result>) {
-    this._blueprint = blueprint
+  public constructor(group: any, reducer: UnidocValidationReducer<State, Result>) {
+    this._group = group
     this._reducer = reducer
   }
 
   /**
   * @see UnidocValidationReducer.initialize
   */
-  public initialize(state?: UnidocManyBlueprintReducerState<State, Result>): UnidocManyBlueprintReducerState<State, Result> {
-    return state == null ? new UnidocManyBlueprintReducerState() : state.clear()
+  public initialize(state?: UnidocManyGroupReducerState<State, Result>): UnidocManyGroupReducerState<State, Result> {
+    return state == null ? new UnidocManyGroupReducerState() : state.clear()
   }
 
   /**
   * @see UnidocValidationReducer.reduce
   */
-  public reduce(state: UnidocManyBlueprintReducerState<State, Result>, event: UnidocValidationEvent): UnidocManyBlueprintReducerState<State, Result> {
+  public reduce(state: UnidocManyGroupReducerState<State, Result>, event: UnidocValidationEvent): UnidocManyGroupReducerState<State, Result> {
     if (state.depth === 0) {
       return this.reduceLeading(state, event)
     } else {
@@ -45,9 +44,9 @@ export class UnidocManyBlueprintReducer<State, Result> implements UnidocValidati
   /**
   *
   */
-  public reduceLeading(state: UnidocManyBlueprintReducerState<State, Result>, event: UnidocValidationEvent): UnidocManyBlueprintReducerState<State, Result> {
-    if (event.type === UnidocValidationEventType.ENTER_BLUEPRINT) {
-      if (event.blueprint === this._blueprint) {
+  public reduceLeading(state: UnidocManyGroupReducerState<State, Result>, event: UnidocValidationEvent): UnidocManyGroupReducerState<State, Result> {
+    if (event.type === UnidocValidationEventType.BEGIN_GROUP) {
+      if (event.group === this._group) {
         return state.initialize(this._reducer, event)
       }
     }
@@ -58,7 +57,7 @@ export class UnidocManyBlueprintReducer<State, Result> implements UnidocValidati
   /**
   *
   */
-  public reduceContent(state: UnidocManyBlueprintReducerState<State, Result>, event: UnidocValidationEvent): UnidocManyBlueprintReducerState<State, Result> {
+  public reduceContent(state: UnidocManyGroupReducerState<State, Result>, event: UnidocValidationEvent): UnidocManyGroupReducerState<State, Result> {
     switch (event.type) {
       case UnidocValidationEventType.CREATION:
         return state
@@ -68,9 +67,9 @@ export class UnidocManyBlueprintReducer<State, Result> implements UnidocValidati
       case UnidocValidationEventType.DOCUMENT_COMPLETION:
       case UnidocValidationEventType.MESSAGE:
         return state.next(this._reducer, event)
-      case UnidocValidationEventType.ENTER_BLUEPRINT:
+      case UnidocValidationEventType.BEGIN_GROUP:
         return state.enter(this._reducer, event)
-      case UnidocValidationEventType.EXIT_BLUEPRINT:
+      case UnidocValidationEventType.END_GROUP:
         return state.exit(this._reducer, event)
       case UnidocValidationEventType.FORK:
       case UnidocValidationEventType.FORKED:
@@ -91,7 +90,7 @@ export class UnidocManyBlueprintReducer<State, Result> implements UnidocValidati
   /**
   * @see UnidocValidationReducer.complete
   */
-  public complete(state: UnidocManyBlueprintReducerState<State, Result>): Result[] {
+  public complete(state: UnidocManyGroupReducerState<State, Result>): Result[] {
     return state.complete(this._reducer)
   }
 }

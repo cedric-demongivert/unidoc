@@ -1017,4 +1017,49 @@ describe('UnidocBlueprintValidator', function() {
       expect(test.selectorBuffer).toEqualTheSequence(test.expectationBuffer)
     })
   })
+
+  describe('group block', function() {
+    it('wrap the fragment into a group declaration', function() {
+      const test: UnidocBlueprintValidatorTestCase = new UnidocBlueprintValidatorTestCase()
+      const blueprint: UnidocBlueprint.Group = (
+        UnidocBlueprint.group(
+          'group',
+          UnidocBlueprint.sequence.lenient(
+            UnidocBlueprint.tagStart('red'),
+            UnidocBlueprint.tagStart('green'),
+            UnidocBlueprint.tagStart('blue')
+          )
+        )
+      )
+
+      test.execute(blueprint)
+
+      test.input.initialize()
+        .produceTagStart('green')
+        .produceTagStart('red')
+        .produceTagStart('blue')
+        .complete()
+
+      test.expectation
+        .initialize()
+        .beginGroup(blueprint.group)
+        .validate(test.inputBuffer.get(0))
+        .setMessageType(PreferredContent.TYPE)
+        .setMessageCode(PreferredContent.CODE)
+        .setMessageData(PreferredContent.Data.BLUEPRINT, (blueprint.operand as any).operands.get(0))
+        .produce()
+
+      for (let index = 1; index < 3; ++index) {
+        test.expectation.branches.first.validate(test.inputBuffer.get(index))
+      }
+
+      test.expectation.branches.first
+        .endGroup(blueprint.group)
+        .documentCompletion()
+
+      test.expectation.complete()
+
+      expect(test.selectorBuffer).toEqualTheSequence(test.expectationBuffer)
+    })
+  })
 })

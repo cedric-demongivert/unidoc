@@ -42,14 +42,14 @@ export namespace UnidocValidationEventType {
   export const TERMINATION: UnidocValidationEventType = 7
 
   /**
-  * Declare the begining of a blueprint match.
+  * Declare the begining of a group match.
   */
-  export const ENTER_BLUEPRINT: UnidocValidationEventType = 8
+  export const BEGIN_GROUP: UnidocValidationEventType = 8
 
   /**
-  * Declare the end of a blueprint.
+  * Declare the end of a group match.
   */
-  export const EXIT_BLUEPRINT: UnidocValidationEventType = 9
+  export const END_GROUP: UnidocValidationEventType = 9
 
   /**
   * Default value.
@@ -68,8 +68,8 @@ export namespace UnidocValidationEventType {
     DOCUMENT_COMPLETION,
     MESSAGE,
     MERGE,
-    ENTER_BLUEPRINT,
-    EXIT_BLUEPRINT
+    BEGIN_GROUP,
+    END_GROUP
   ]
 
   /**
@@ -85,8 +85,8 @@ export namespace UnidocValidationEventType {
       case DOCUMENT_COMPLETION: return 'DOCUMENT_COMPLETION'
       case MESSAGE: return 'MESSAGE'
       case MERGE: return 'MERGE'
-      case ENTER_BLUEPRINT: return 'ENTER_BLUEPRINT'
-      case EXIT_BLUEPRINT: return 'EXIT_BLUEPRINT'
+      case BEGIN_GROUP: return 'BEGIN_GROUP'
+      case END_GROUP: return 'END_GROUP'
       default: return undefined
     }
   }

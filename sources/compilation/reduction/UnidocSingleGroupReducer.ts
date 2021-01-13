@@ -1,16 +1,15 @@
-import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
 import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
 import { UnidocValidationEventType } from '../../validation/UnidocValidationEventType'
 
 import { UnidocValidationReducer } from './UnidocValidationReducer'
-import { UnidocSingleBlueprintReducerState } from './UnidocSingleBlueprintReducerState'
-import { UnidocSingleBlueprintReducingStep } from './UnidocSingleBlueprintReducingStep'
+import { UnidocSingleGroupReducerState } from './UnidocSingleGroupReducerState'
+import { UnidocSingleGroupReducingStep } from './UnidocSingleGroupReducingStep'
 
-export class UnidocSingleBlueprintReducer<State, Result> implements UnidocValidationReducer<UnidocSingleBlueprintReducerState<State, Result>, Result> {
+export class UnidocSingleGroupReducer<State, Result> implements UnidocValidationReducer<UnidocSingleGroupReducerState<State, Result>, Result> {
   /**
   *
   */
-  private readonly _blueprint: UnidocBlueprint
+  private readonly _group: any
 
   /**
   *
@@ -20,33 +19,33 @@ export class UnidocSingleBlueprintReducer<State, Result> implements UnidocValida
   /**
   *
   */
-  public constructor(blueprint: UnidocBlueprint, reducer: UnidocValidationReducer<State, Result>) {
-    this._blueprint = blueprint
+  public constructor(group: any, reducer: UnidocValidationReducer<State, Result>) {
+    this._group = group
     this._reducer = reducer
   }
 
   /**
   * @see UnidocValidationReducer.initialize
   */
-  public initialize(state?: UnidocSingleBlueprintReducerState<State, Result>): UnidocSingleBlueprintReducerState<State, Result> {
-    return state == null ? new UnidocSingleBlueprintReducerState() : state.clear()
+  public initialize(state?: UnidocSingleGroupReducerState<State, Result>): UnidocSingleGroupReducerState<State, Result> {
+    return state == null ? new UnidocSingleGroupReducerState() : state.clear()
   }
 
   /**
   * @see UnidocValidationReducer.reduce
   */
-  public reduce(state: UnidocSingleBlueprintReducerState<State, Result>, event: UnidocValidationEvent): UnidocSingleBlueprintReducerState<State, Result> {
+  public reduce(state: UnidocSingleGroupReducerState<State, Result>, event: UnidocValidationEvent): UnidocSingleGroupReducerState<State, Result> {
     switch (state.step) {
-      case UnidocSingleBlueprintReducingStep.LEADING:
+      case UnidocSingleGroupReducingStep.LEADING:
         return this.reduceLeading(state, event)
-      case UnidocSingleBlueprintReducingStep.CONTENT:
+      case UnidocSingleGroupReducingStep.CONTENT:
         return this.reduceContent(state, event)
-      case UnidocSingleBlueprintReducingStep.TRAILING:
+      case UnidocSingleGroupReducingStep.TRAILING:
         return this.reduceTrailing(state, event)
       default:
         throw new Error(
           'Unable to reduce validation event in state ' +
-          UnidocSingleBlueprintReducingStep.toDebugString(state.step) + ' ' +
+          UnidocSingleGroupReducingStep.toDebugString(state.step) + ' ' +
           'because no procedure was defined for that.'
         )
     }
@@ -55,9 +54,9 @@ export class UnidocSingleBlueprintReducer<State, Result> implements UnidocValida
   /**
   *
   */
-  public reduceLeading(state: UnidocSingleBlueprintReducerState<State, Result>, event: UnidocValidationEvent): UnidocSingleBlueprintReducerState<State, Result> {
-    if (event.type === UnidocValidationEventType.ENTER_BLUEPRINT) {
-      if (event.blueprint === this._blueprint) {
+  public reduceLeading(state: UnidocSingleGroupReducerState<State, Result>, event: UnidocValidationEvent): UnidocSingleGroupReducerState<State, Result> {
+    if (event.type === UnidocValidationEventType.BEGIN_GROUP) {
+      if (event.group === this._group) {
         return state.initialize(this._reducer, event)
       }
     }
@@ -68,7 +67,7 @@ export class UnidocSingleBlueprintReducer<State, Result> implements UnidocValida
   /**
   *
   */
-  public reduceContent(state: UnidocSingleBlueprintReducerState<State, Result>, event: UnidocValidationEvent): UnidocSingleBlueprintReducerState<State, Result> {
+  public reduceContent(state: UnidocSingleGroupReducerState<State, Result>, event: UnidocValidationEvent): UnidocSingleGroupReducerState<State, Result> {
     switch (event.type) {
       case UnidocValidationEventType.CREATION:
         return state
@@ -78,9 +77,9 @@ export class UnidocSingleBlueprintReducer<State, Result> implements UnidocValida
       case UnidocValidationEventType.DOCUMENT_COMPLETION:
       case UnidocValidationEventType.MESSAGE:
         return state.next(this._reducer, event)
-      case UnidocValidationEventType.ENTER_BLUEPRINT:
+      case UnidocValidationEventType.BEGIN_GROUP:
         return state.enter(this._reducer, event)
-      case UnidocValidationEventType.EXIT_BLUEPRINT:
+      case UnidocValidationEventType.END_GROUP:
         return state.exit(this._reducer, event)
       case UnidocValidationEventType.FORK:
       case UnidocValidationEventType.FORKED:
@@ -101,14 +100,14 @@ export class UnidocSingleBlueprintReducer<State, Result> implements UnidocValida
   /**
   *
   */
-  public reduceTrailing(state: UnidocSingleBlueprintReducerState<State, Result>, event: UnidocValidationEvent): UnidocSingleBlueprintReducerState<State, Result> {
+  public reduceTrailing(state: UnidocSingleGroupReducerState<State, Result>, event: UnidocValidationEvent): UnidocSingleGroupReducerState<State, Result> {
     return state
   }
 
   /**
   * @see UnidocValidationReducer.complete
   */
-  public complete(state: UnidocSingleBlueprintReducerState<State, Result>): Result {
+  public complete(state: UnidocSingleGroupReducerState<State, Result>): Result {
     return state.complete(this._reducer)
   }
 }

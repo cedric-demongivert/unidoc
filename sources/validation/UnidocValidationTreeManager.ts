@@ -135,8 +135,8 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   /**
   *
   */
-  public entering(branch: UnidocValidationBranchIdentifier, blueprint: UnidocBlueprint): UnidocValidationTreeManager {
-    this._event.fromBranch(branch).asEnterBlueprint(blueprint)
+  public beginGroup(branch: UnidocValidationBranchIdentifier, group: any): UnidocValidationTreeManager {
+    this._event.fromBranch(branch).asBeginGroup(group)
     this.produce(this._event)
     return this
   }
@@ -144,8 +144,8 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
   /**
   *
   */
-  public exiting(branch: UnidocValidationBranchIdentifier, blueprint: UnidocBlueprint): UnidocValidationTreeManager {
-    this._event.fromBranch(branch).asExitBlueprint(blueprint)
+  public endGroup(branch: UnidocValidationBranchIdentifier, group: any): UnidocValidationTreeManager {
+    this._event.fromBranch(branch).asEndGroup(group)
     this.produce(this._event)
     return this
   }
@@ -161,22 +161,34 @@ export class UnidocValidationTreeManager extends ListenableUnidocProducer<Unidoc
     return this
   }
 
+  /**
+  *
+  */
   public prepareNewMessage(branch: UnidocValidationBranchIdentifier): UnidocValidationTreeManager {
     this._event.fromBranch(branch)
     this._event.asMessage()
     return this
   }
 
+  /**
+  *
+  */
   public setMessageType(type: UnidocValidationMessageType): UnidocValidationTreeManager {
     this._event.asMessageOfType(type)
     return this
   }
 
+  /**
+  *
+  */
   public setMessageCode(code: string): UnidocValidationTreeManager {
     this._event.ofCode(code)
     return this
   }
 
+  /**
+  *
+  */
   public setMessageData(key: string, value: any): UnidocValidationTreeManager {
     this._event.withData(key, value)
     return this

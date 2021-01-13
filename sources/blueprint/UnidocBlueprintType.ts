@@ -47,6 +47,11 @@ export namespace UnidocBlueprintType {
   export const TAG: UnidocBlueprintType = 8
 
   /**
+  * A blueprint that describe a group.
+  */
+  export const GROUP: UnidocBlueprintType = 9
+
+  /**
   * Default blueprint type
   */
   export const DEFAULT: UnidocBlueprintType = EVENT
@@ -62,9 +67,13 @@ export namespace UnidocBlueprintType {
     SEQUENCE,
     LENIENT_SEQUENCE,
     END,
-    TAG
+    TAG,
+    GROUP
   ]
 
+  /**
+  *
+  */
   export function toString(value: UnidocBlueprintType): string | undefined {
     switch (value) {
       case EVENT: return 'EVENT'
@@ -75,7 +84,15 @@ export namespace UnidocBlueprintType {
       case LENIENT_SEQUENCE: return 'LENIENT_SEQUENCE'
       case END: return 'END'
       case TAG: return 'TAG'
+      case GROUP: return 'GROUP'
       default: return undefined
     }
+  }
+
+  /**
+  *
+  */
+  export function toDebugString(value: UnidocBlueprintType): string {
+    return '#' + value + ' (' + (toString(value) || 'undefined') + ')'
   }
 }
