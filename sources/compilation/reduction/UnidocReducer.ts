@@ -68,6 +68,20 @@ export namespace UnidocReducer {
   /**
   *
   */
+  export function* log(): UnidocReducer<void> {
+    let current: UnidocReductionInput = yield UnidocReductionRequest.CURRENT
+
+    while (!current.isEnd()) {
+      console.log(current.toString())
+      current = yield UnidocReductionRequest.NEXT
+    }
+
+    console.log(current.toString())
+  }
+
+  /**
+  *
+  */
   export const nextTag = nextTagImport
 
   /**
