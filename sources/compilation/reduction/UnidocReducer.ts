@@ -1,6 +1,7 @@
 import { UnidocReductionInput } from './UnidocReductionInput'
 import { UnidocReductionRequest } from './UnidocReductionRequest'
 
+import { nextTag as nextTagImport } from './nextTag'
 import { reduceEvents as reduceEventsImport } from './reduceEvents'
 import { reduceMany as reduceManyImport } from './reduceMany'
 import { reduceText as reduceTextImport } from './reduceText'
@@ -10,6 +11,7 @@ import { reduceWords as reduceWordsImport } from './reduceWords'
 import { skipEndOfAnyTag as skipEndOfAnyTagImport } from './skipEndOfAnyTag'
 import { skipStart as skipStartImport } from './skipStart'
 import { skipStartOfAnyTag as skipStartOfAnyTagImport } from './skipStartOfAnyTag'
+import { skipTag as skipTagImport } from './skipTag'
 import { skipWhitespaces as skipWhitespacesImport } from './skipWhitespaces'
 
 /**
@@ -64,6 +66,11 @@ export namespace UnidocReducer {
   /**
   *
   */
+  export const nextTag = nextTagImport
+
+  /**
+  *
+  */
   export const reduceEvents = reduceEventsImport
 
   /**
@@ -105,6 +112,11 @@ export namespace UnidocReducer {
   *
   */
   export const skipStartOfAnyTag = skipStartOfAnyTagImport
+
+  /**
+  *
+  */
+  export const skipTag = skipTagImport
 
   /**
   *
