@@ -10,7 +10,14 @@ import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
 
 export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
+  /**
+  *
+  */
   private readonly _event: UnidocEvent
+
+  /**
+  *
+  */
   private _index: number
 
   /**

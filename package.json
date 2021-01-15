@@ -29,7 +29,7 @@
     "ts-loader": "^6.2.1",
     "typedoc": "^0.16.8",
     "typedoc-webpack-plugin": "^1.1.4",
-    "typescript": "~3.5.0"
+    "typescript": "^4.1.3"
   },
   "dependencies": {
     "@cedric-demongivert/gl-tool-collection": "^0.24.6",
