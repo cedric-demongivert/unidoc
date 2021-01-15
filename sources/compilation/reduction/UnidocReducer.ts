@@ -4,6 +4,7 @@ import { UnidocReductionRequest } from './UnidocReductionRequest'
 import { nextTag as nextTagImport } from './nextTag'
 import { reduceEvents as reduceEventsImport } from './reduceEvents'
 import { reduceMany as reduceManyImport } from './reduceMany'
+import { reduceTag as reduceTagImport } from './reduceTag'
 import { reduceText as reduceTextImport } from './reduceText'
 import { reduceToken as reduceTokenImport } from './reduceToken'
 import { reduceWhitespaces as reduceWhitespacesImport } from './reduceWhitespaces'
@@ -77,6 +78,11 @@ export namespace UnidocReducer {
   *
   */
   export const reduceMany = reduceManyImport
+
+  /**
+  *
+  */
+  export const reduceTag = reduceTagImport
 
   /**
   *
