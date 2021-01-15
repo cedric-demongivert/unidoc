@@ -2,6 +2,7 @@ import { UnidocReductionInput } from './UnidocReductionInput'
 import { UnidocReductionRequest } from './UnidocReductionRequest'
 
 import { nextTag as nextTagImport } from './nextTag'
+import { reduce as reduceImport } from './reduce'
 import { reduceEvents as reduceEventsImport } from './reduceEvents'
 import { reduceMany as reduceManyImport } from './reduceMany'
 import { reduceTag as reduceTagImport } from './reduceTag'
@@ -68,6 +69,11 @@ export namespace UnidocReducer {
   *
   */
   export const nextTag = nextTagImport
+
+  /**
+  *
+  */
+  export const reduce = reduceImport
 
   /**
   *
