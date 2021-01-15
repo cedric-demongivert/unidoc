@@ -13,7 +13,7 @@ import { UnidocValidationToReductionTranslator } from './UnidocValidationToReduc
 *
 * @return A producer of document events.
 */
-export function reduce<Result>(input: UnidocProducer<UnidocReductionInput>, reducer: UnidocReducer.Factory<Result>): UnidocProducer<Result | undefined> {
+export function reduce<Result>(input: UnidocProducer<UnidocReductionInput>, reducer: UnidocReducer.Factory<Result>): UnidocProducer<Result> {
   const executor: UnidocReductionExecutor<Result> = new UnidocReductionExecutor(reducer)
 
   executor.subscribe(input)
@@ -28,7 +28,7 @@ export namespace reduce {
   /**
   *
   */
-  export function validation<Result>(input: UnidocProducer<UnidocValidationEvent>, reducer: UnidocReducer.Factory<Result>): UnidocProducer<Result | undefined> {
+  export function validation<Result>(input: UnidocProducer<UnidocValidationEvent>, reducer: UnidocReducer.Factory<Result>): UnidocProducer<Result> {
     const executor: UnidocReductionExecutor<Result> = new UnidocReductionExecutor(reducer)
     const translator: UnidocValidationToReductionTranslator = new UnidocValidationToReductionTranslator()
 
@@ -41,7 +41,7 @@ export namespace reduce {
   /**
   *
   */
-  export function iterator<Result>(input: Iterator<UnidocReductionInput>, reducer: UnidocReducer<Result>): Result | undefined {
+  export function iterator<Result>(input: Iterator<UnidocReductionInput>, reducer: UnidocReducer<Result>): Result {
     let next: IteratorResult<UnidocReductionInput> = input.next()
 
     while (!next.done) {

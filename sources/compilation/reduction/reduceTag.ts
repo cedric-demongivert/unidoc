@@ -1,4 +1,7 @@
+import { UnidocEventType } from '../../event/UnidocEventType'
+
 import { UnidocReductionInput } from './UnidocReductionInput'
+import { UnidocReductionInputType } from './UnidocReductionInputType'
 import { UnidocReductionRequest } from './UnidocReductionRequest'
 
 import { UnidocReducer } from './UnidocReducer'
@@ -20,22 +23,29 @@ export function* reduceTag<T>(reducer: UnidocReducer<T>): UnidocReducer<T | unde
     let reduction: UnidocReducer.Result<T> = UnidocReducer.feed(reducer, UnidocReductionInput.START)
 
     do {
-      if (current.isStartOfAnyTag()) {
-        depth += 1
-      } else if (current.isEndOfAnyTag()) {
-        depth -= 1
-      }
-
-      if (current.isEnd()) {
-        return UnidocReducer.finish(reducer)
-      }
-
-      if (reduction.done && current.isEnd()) {
-        return reduction.value
-      } else if (current.isEnd()) {
-        return UnidocReducer.finish(reducer)
-      } else {
-        reduction = UnidocReducer.feed(reducer, current)
+      switch (current.type) {
+        case UnidocReductionInputType.END:
+          if (reduction.done) {
+            return reduction.value
+          } else {
+            return UnidocReducer.finish(reducer)
+          }
+        case UnidocReductionInputType.EVENT:
+          switch (current.event.type) {
+            case UnidocEventType.START_TAG:
+              depth += 1
+              break
+            case UnidocEventType.END_TAG:
+              depth -= 1
+              break
+            default:
+              break
+          }
+        default:
+          if (!reduction.done) {
+            reduction = UnidocReducer.feed(reducer, current)
+          }
+          break
       }
 
       current = yield UnidocReductionRequest.NEXT
@@ -60,37 +70,71 @@ export namespace reduceTag {
   /**
   *
   */
-  export function* content<T>(reducer: UnidocReducer<T>): UnidocReducer<T> {
+  export function* content<T>(reducer: UnidocReducer<T>): UnidocReducer<T | undefined> {
     yield* skipStart()
     yield* skipWhitespaces()
 
     let current: UnidocReductionInput = yield UnidocReductionRequest.CURRENT
 
     if (current.isStartOfAnyTag()) {
-      let depth: number = 1
       let reduction: UnidocReducer.Result<T> = UnidocReducer.feed(reducer, UnidocReductionInput.START)
 
-      do {
-        current = yield UnidocReductionRequest.NEXT
+      current = yield UnidocReductionRequest.NEXT
 
-        if (current.isStartOfAnyTag()) {
-          depth += 1
-        } else if (current.isEndOfAnyTag()) {
-          depth -= 1
-        }
+      switch (current.type) {
+        case UnidocReductionInputType.END:
+          if (reduction.done) {
+            return reduction.value
+          } else {
+            return UnidocReducer.finish(reducer)
+          }
+        case UnidocReductionInputType.EVENT:
+          switch (current.event.type) {
+            case UnidocEventType.END_TAG:
+              yield UnidocReductionRequest.NEXT
+              if (reduction.done) {
+                return reduction.value
+              } else {
+                return UnidocReducer.finish(reducer)
+              }
+            default:
+              break
+          }
+        default:
+          break
+      }
 
-        if (current.isEnd()) {
-          return UnidocReducer.finish(reducer)
-        }
+      let depth: number = 1
 
-        if (reduction.done && current.isEnd()) {
-          return reduction.value
-        } else if (current.isEnd()) {
-          return UnidocReducer.finish(reducer)
-        } else if (depth > 0) {
+      while (depth > 0) {
+        if (!reduction.done) {
           reduction = UnidocReducer.feed(reducer, current)
         }
-      } while (depth > 0)
+
+        current = yield UnidocReductionRequest.NEXT
+
+        switch (current.type) {
+          case UnidocReductionInputType.END:
+            if (reduction.done) {
+              return reduction.value
+            } else {
+              return UnidocReducer.finish(reducer)
+            }
+          case UnidocReductionInputType.EVENT:
+            switch (current.event.type) {
+              case UnidocEventType.START_TAG:
+                depth += 1
+                break
+              case UnidocEventType.END_TAG:
+                depth -= 1
+                break
+              default:
+                break
+            }
+          default:
+            break
+        }
+      } while (depth > 0);
 
       yield UnidocReductionRequest.NEXT
       yield* skipWhitespaces()

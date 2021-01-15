@@ -15,7 +15,7 @@ import { skipWhitespaces as skipWhitespacesImport } from './skipWhitespaces'
 /**
 *
 */
-export type UnidocReducer<T> = Generator<UnidocReductionRequest, T | undefined, UnidocReductionInput>
+export type UnidocReducer<T> = Generator<UnidocReductionRequest, T, UnidocReductionInput>
 
 /**
 *
@@ -24,12 +24,12 @@ export namespace UnidocReducer {
   /**
   *
   */
-  export type Result<T> = IteratorResult<UnidocReductionRequest, T | undefined>
+  export type Result<T> = IteratorResult<UnidocReductionRequest, T>
 
   /**
   *
   */
-  export type Factory<T> = () => UnidocReducer<T | undefined>
+  export type Factory<T> = () => UnidocReducer<T>
 
   /**
   *
@@ -47,7 +47,7 @@ export namespace UnidocReducer {
   /**
   *
   */
-  export function finish<T>(reducer: UnidocReducer<T>): T | undefined {
+  export function finish<T>(reducer: UnidocReducer<T>): T {
     const result: UnidocReducer.Result<T> = feed(reducer, UnidocReductionInput.END)
 
     if (result.done) {

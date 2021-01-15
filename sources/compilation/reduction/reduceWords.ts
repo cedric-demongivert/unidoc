@@ -11,7 +11,7 @@ const EMPTY_STRING: string = ''
 /**
 *
 */
-export function* reduceWords(): UnidocReducer<string> {
+export function* reduceWords(): UnidocReducer<string | undefined> {
   let result: string
   let current: UnidocReductionInput = yield UnidocReductionRequest.CURRENT
 
@@ -23,7 +23,7 @@ export function* reduceWords(): UnidocReducer<string> {
     }
   }
 
-  if (current.isWord()) {
+  if (current.isAnyWord()) {
     result = current.event.text
   } else {
     return undefined
@@ -31,7 +31,7 @@ export function* reduceWords(): UnidocReducer<string> {
 
   current = yield UnidocReductionRequest.NEXT
 
-  while (current.isWord()) {
+  while (current.isAnyWord()) {
     result += current.event.text
     current = yield UnidocReductionRequest.NEXT
   }

@@ -15,7 +15,7 @@ const EMPTY_STRING: string = ''
 /**
 *
 */
-function* reduceEventsToText(): UnidocReducer<string> {
+function* reduceEventsToText(): UnidocReducer<string | undefined> {
   let result: string
   let current: UnidocReductionInput
 
@@ -29,7 +29,7 @@ function* reduceEventsToText(): UnidocReducer<string> {
     }
   }
 
-  if (current.isWhitespace() || current.isWord()) {
+  if (current.isWhitespace() || current.isAnyWord()) {
     yield* skipWhitespaces()
 
     result = (yield* reduceWords()) || EMPTY_STRING
@@ -41,7 +41,7 @@ function* reduceEventsToText(): UnidocReducer<string> {
 
       current = yield UnidocReductionRequest.CURRENT
 
-      if (current.isWord()) {
+      if (current.isAnyWord()) {
         result += ' '
         result += yield* reduceWords()
       } else {
@@ -60,6 +60,6 @@ function* reduceEventsToText(): UnidocReducer<string> {
 /**
 *
 */
-export function reduceText(): UnidocReducer<string> {
+export function reduceText(): UnidocReducer<string | undefined> {
   return reduceEvents(reduceEventsToText())
 }

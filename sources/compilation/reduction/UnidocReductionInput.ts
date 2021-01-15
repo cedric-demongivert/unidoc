@@ -64,10 +64,43 @@ export class UnidocReductionInput {
   /**
   *
   */
-  public isWord(): boolean {
+  public isWord(content: string): boolean {
+    return (
+      this.type === UnidocReductionInputType.EVENT &&
+      this.event.type === UnidocEventType.WORD &&
+      this.event.text === content
+    )
+  }
+
+  /**
+  *
+  */
+  public isAnyWord(): boolean {
     return (
       this.type === UnidocReductionInputType.EVENT &&
       this.event.type === UnidocEventType.WORD
+    )
+  }
+
+  /**
+  *
+  */
+  public isStartOfTag(tag: string): boolean {
+    return (
+      this.type === UnidocReductionInputType.EVENT &&
+      this.event.type === UnidocEventType.START_TAG &&
+      this.event.tag === tag
+    )
+  }
+
+  /**
+  *
+  */
+  public isEndOfTag(tag: string): boolean {
+    return (
+      this.type === UnidocReductionInputType.EVENT &&
+      this.event.type === UnidocEventType.END_TAG &&
+      this.event.tag === tag
     )
   }
 
@@ -201,6 +234,33 @@ export class UnidocReductionInput {
     const result: UnidocReductionInput = new UnidocReductionInput()
     result.copy(this)
     return result
+  }
+
+  /**
+  *
+  */
+  public toString(): string {
+    let result: string = this.constructor.name
+
+    result += ' '
+    result += UnidocReductionInputType.toDebugString(this.type)
+
+    switch (this.type) {
+      case UnidocReductionInputType.START:
+      case UnidocReductionInputType.END:
+        return result
+      case UnidocReductionInputType.EVENT:
+        return result + ' ' + this.event.toString()
+      case UnidocReductionInputType.GROUP_START:
+      case UnidocReductionInputType.GROUP_END:
+        return result + ' ' + this.group
+      default:
+        throw new Error(
+          'Unable to stringify reduction event of type ' +
+          UnidocReductionInputType.toDebugString(this.type) + ' ' +
+          'because no procedure was defined for that.'
+        )
+    }
   }
 
   /**

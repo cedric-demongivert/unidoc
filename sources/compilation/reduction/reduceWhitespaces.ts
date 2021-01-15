@@ -11,7 +11,7 @@ export const EMPTY_STRING = ''
 /**
 *
 */
-export function* reduceWhitespaces(): UnidocReducer<string> {
+export function* reduceWhitespaces(): UnidocReducer<string | undefined> {
   let result: string
   let current: UnidocReductionInput = yield UnidocReductionRequest.CURRENT
 
