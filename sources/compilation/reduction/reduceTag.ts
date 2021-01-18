@@ -51,8 +51,6 @@ export function* reduceTag<T>(reducer: UnidocReducer<T>): UnidocReducer<T | unde
       current = yield UnidocReductionRequest.NEXT
     } while (depth > 0)
 
-    yield* skipWhitespaces()
-
     if (reduction.done) {
       return reduction.value
     } else {
@@ -137,7 +135,6 @@ export namespace reduceTag {
       } while (depth > 0);
 
       yield UnidocReductionRequest.NEXT
-      yield* skipWhitespaces()
 
       if (reduction.done) {
         return reduction.value

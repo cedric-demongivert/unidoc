@@ -6,6 +6,9 @@ import { UnidocReductionRequest } from './UnidocReductionRequest'
 
 import { UnidocReducer } from './UnidocReducer'
 
+/**
+*
+*/
 export function* nextTag(): UnidocReducer<UnidocReductionInput> {
   let input: UnidocReductionInput = yield UnidocReductionRequest.CURRENT
 

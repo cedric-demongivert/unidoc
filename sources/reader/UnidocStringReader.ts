@@ -12,6 +12,9 @@ export class UnidocStringReader implements UnidocSymbolReader {
    */
   public readonly source: string
 
+  /**
+  *
+  */
   public readonly origin: UnidocOrigin
 
   /**

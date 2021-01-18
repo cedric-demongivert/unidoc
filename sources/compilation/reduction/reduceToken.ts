@@ -25,9 +25,7 @@ function* reduceEventsToToken(): UnidocReducer<string | undefined> {
 
   if (current.isWhitespace() || current.isAnyWord()) {
     yield* skipWhitespaces()
-    let result: string = (yield* reduceWords()) || EMPTY_STRING
-    yield* skipWhitespaces()
-    return result
+    return (yield* reduceWords()) || EMPTY_STRING
   }
 
   return undefined
