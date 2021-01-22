@@ -108,7 +108,7 @@ export class UnidocNFAValidationGraphResolver {
           return
         case UnidocKissValidatorOutputType.EMIT:
           this.onEmission(process, output.event)
-          output = validator.next()
+          output = validator.next().value
           break
         case UnidocKissValidatorOutputType.END:
 
@@ -122,6 +122,9 @@ export class UnidocNFAValidationGraphResolver {
           )
       }
     }
+  }
+
+  private onEmission(process: any, event: any): void {
 
   }
 
