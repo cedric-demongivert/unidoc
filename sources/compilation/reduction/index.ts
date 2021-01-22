@@ -1,4 +1,3 @@
-export { reduce } from './reduce'
 export { UnidocReducer } from './UnidocReducer'
 export { UnidocReductionExecutor } from './UnidocReductionExecutor'
 export { UnidocReductionInput } from './UnidocReductionInput'
