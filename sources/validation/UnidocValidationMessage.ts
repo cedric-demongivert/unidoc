@@ -1,12 +1,23 @@
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocValidationMessageType } from './UnidocValidationMessageType'
 
 const EMPTY_STRING: string = ''
 
 export class UnidocValidationMessage {
+  /**
+  *
+  */
   public type: UnidocValidationMessageType
+
+  /**
+  *
+  */
   public code: string
+
+  /**
+  *
+  */
   public readonly data: Map<string, any>
 
   /**
@@ -18,13 +29,27 @@ export class UnidocValidationMessage {
     this.data = new Map<string, any>()
   }
 
-  public withData(key: string, value: any): UnidocValidationMessage {
+  /**
+  *
+  */
+  public setData(key: string, value: any): UnidocValidationMessage {
     this.data.set(key, value)
     return this
   }
 
-  public ofCode(code: string): UnidocValidationMessage {
+  /**
+  *
+  */
+  public setCode(code: string): UnidocValidationMessage {
     this.code = code
+    return this
+  }
+
+  /**
+  *
+  */
+  public setType(type: UnidocValidationMessageType): UnidocValidationMessage {
+    this.type = type
     return this
   }
 
@@ -79,6 +104,41 @@ export class UnidocValidationMessage {
   }
 
   /**
+  *
+  */
+  public isVerbose(): boolean {
+    return this.type === UnidocValidationMessageType.VERBOSE
+  }
+
+  /**
+  *
+  */
+  public isInformation(): boolean {
+    return this.type === UnidocValidationMessageType.INFORMATION
+  }
+
+  /**
+  *
+  */
+  public isWarning(): boolean {
+    return this.type === UnidocValidationMessageType.WARNING
+  }
+
+  /**
+  *
+  */
+  public isError(): boolean {
+    return this.type === UnidocValidationMessageType.ERROR
+  }
+
+  /**
+  *
+  */
+  public isFailure(): boolean {
+    return this.type === UnidocValidationMessageType.FAILURE
+  }
+
+  /**
   * Clear this validation instance in order to reuse it.
   */
   public clear(): void {
@@ -118,7 +178,7 @@ export class UnidocValidationMessage {
   */
   public toString(): string {
     return (
-      `[${UnidocValidationMessageType.toString(this.type)}] ${this.code} : {${[...this.data.entries()].map(x => x[0] + ': ' + x[1]).join(', ')}}`
+      `${UnidocValidationMessageType.toDebugString(this.type)} ${this.code} : {${[...this.data.entries()].map(x => x[0] + ': ' + x[1]).join(', ')}}`
     )
   }
 
@@ -164,14 +224,31 @@ export namespace UnidocValidationMessage {
   * @return A deep copy of the given instance.
   */
   export function copy(toCopy: UnidocValidationMessage): UnidocValidationMessage
+  /**
+  *
+  */
   export function copy(toCopy: null): null
-  export function copy(toCopy: UnidocValidationMessage | null): UnidocValidationMessage | null {
+  /**
+  *
+  */
+  export function copy(toCopy: undefined): undefined
+  /**
+  *
+  */
+  export function copy(toCopy: UnidocValidationMessage | null | undefined): UnidocValidationMessage | null | undefined
+  export function copy(toCopy: UnidocValidationMessage | null | undefined): UnidocValidationMessage | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
+  /**
+  *
+  */
   export function create(): UnidocValidationMessage {
     return new UnidocValidationMessage()
   }
 
-  export const ALLOCATOR: Allocator<UnidocValidationMessage> = Allocator.fromFactory(create)
+  /**
+  *
+  */
+  export const ALLOCATOR: Duplicator<UnidocValidationMessage> = Duplicator.fromFactory(create)
 }

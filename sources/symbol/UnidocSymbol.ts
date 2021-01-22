@@ -1,4 +1,4 @@
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 
@@ -134,8 +134,17 @@ export namespace UnidocSymbol {
     return new UnidocSymbol().setSymbol(symbol).setOrigin(origin)
   }
 
+  /**
+  *
+  */
   export function copy(toCopy: undefined): undefined
+  /**
+  *
+  */
   export function copy(toCopy: null): null
+  /**
+  *
+  */
   export function copy(toCopy: UnidocSymbol): UnidocSymbol
   /**
   * Copy the given instance of unidoc symbol.
@@ -144,6 +153,7 @@ export namespace UnidocSymbol {
   *
   * @return A copy of the given instance.
   */
+  export function copy(toCopy: UnidocSymbol | null | undefined): UnidocSymbol | null | undefined
   export function copy(toCopy: UnidocSymbol | null | undefined): UnidocSymbol | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }
@@ -151,5 +161,5 @@ export namespace UnidocSymbol {
   /**
   * An allocator of unidoc symbol instances.
   */
-  export const ALLOCATOR: Allocator<UnidocSymbol> = Allocator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocSymbol> = Duplicator.fromFactory(create)
 }

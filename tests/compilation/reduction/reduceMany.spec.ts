@@ -2,9 +2,9 @@ import { TrackedUnidocEventProducer } from '../../../sources/event/TrackedUnidoc
 import { UnidocEvent } from '../../../sources/event/UnidocEvent'
 import { UnidocBuffer } from '../../../sources/buffer/UnidocBuffer'
 import { UnidocReductionInput } from '../../../sources/compilation/reduction/UnidocReductionInput'
-import { reduce } from '../../../sources/compilation/reduction/reduce'
-import { reduceToken } from '../../../sources/compilation/reduction/reduceToken'
-import { reduceMany } from '../../../sources/compilation/reduction/reduceMany'
+import { reduce } from '../../../sources/compilation/reduction/common/reduce'
+import { reduceToken } from '../../../sources/compilation/reduction/common/reduceToken'
+import { reduceMany } from '../../../sources/compilation/reduction/common/reduceMany'
 
 describe('reduceMany', function() {
   it('reduce by using a nested reducer as many times as possible', function() {

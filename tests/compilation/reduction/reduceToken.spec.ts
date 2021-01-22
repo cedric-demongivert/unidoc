@@ -2,9 +2,9 @@ import { TrackedUnidocEventProducer } from '../../../sources/event/TrackedUnidoc
 import { UnidocEvent } from '../../../sources/event/UnidocEvent'
 import { UnidocBuffer } from '../../../sources/buffer/UnidocBuffer'
 import { UnidocReductionInput } from '../../../sources/compilation/reduction/UnidocReductionInput'
-import { reduce } from '../../../sources/compilation/reduction/reduce'
+import { reduce } from '../../../sources/compilation/reduction/common/reduce'
 import { UnidocReducer } from '../../../sources/compilation/reduction/UnidocReducer'
-import { reduceToken } from '../../../sources/compilation/reduction/reduceToken'
+import { reduceToken } from '../../../sources/compilation/reduction/common/reduceToken'
 
 describe('reduceToken', function() {
   it('reduce a token', function() {

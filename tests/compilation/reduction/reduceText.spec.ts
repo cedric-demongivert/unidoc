@@ -2,8 +2,8 @@ import { TrackedUnidocEventProducer } from '../../../sources/event/TrackedUnidoc
 import { UnidocEvent } from '../../../sources/event/UnidocEvent'
 import { UnidocBuffer } from '../../../sources/buffer/UnidocBuffer'
 import { UnidocReductionInput } from '../../../sources/compilation/reduction/UnidocReductionInput'
-import { reduce } from '../../../sources/compilation/reduction/reduce'
-import { reduceText } from '../../../sources/compilation/reduction/reduceText'
+import { reduce } from '../../../sources/compilation/reduction/common/reduce'
+import { reduceText } from '../../../sources/compilation/reduction/common/reduceText'
 
 describe('reduceText', function() {
   it('reduce a sequence of words and whitespaces to a text', function() {

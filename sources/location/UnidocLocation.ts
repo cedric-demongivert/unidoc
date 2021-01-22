@@ -1,4 +1,4 @@
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 /**
 * The location of a symbol in a unidoc document.
@@ -197,5 +197,5 @@ export namespace UnidocLocation {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR: Allocator<UnidocLocation> = Allocator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocLocation> = Duplicator.fromFactory(create)
 }

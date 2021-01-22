@@ -1,4 +1,4 @@
-import { Allocator, Pack } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator, Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../symbol/CodePoint'
 
@@ -151,5 +151,5 @@ export namespace UnidocParserState {
     return new UnidocParserState()
   }
 
-  export const ALLOCATOR: Allocator<UnidocParserState> = Allocator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocParserState> = Duplicator.fromFactory(create)
 }

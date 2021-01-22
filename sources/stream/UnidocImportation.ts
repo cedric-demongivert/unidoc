@@ -1,4 +1,4 @@
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 
@@ -75,5 +75,5 @@ export namespace UnidocImportation {
     return new UnidocImportation()
   }
 
-  export const ALLOCATOR: Allocator<UnidocImportation> = Allocator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocImportation> = Duplicator.fromFactory(create)
 }

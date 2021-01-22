@@ -1,20 +1,7 @@
 import { UnidocReductionInput } from './UnidocReductionInput'
 import { UnidocReductionRequest } from './UnidocReductionRequest'
 
-import { nextTag as nextTagImport } from './nextTag'
-import { reduce as reduceImport } from './reduce'
-import { reduceEvents as reduceEventsImport } from './reduceEvents'
-import { reduceMany as reduceManyImport } from './reduceMany'
-import { reduceTag as reduceTagImport } from './reduceTag'
-import { reduceText as reduceTextImport } from './reduceText'
-import { reduceToken as reduceTokenImport } from './reduceToken'
-import { reduceWhitespaces as reduceWhitespacesImport } from './reduceWhitespaces'
-import { reduceWords as reduceWordsImport } from './reduceWords'
-import { skipEndOfAnyTag as skipEndOfAnyTagImport } from './skipEndOfAnyTag'
-import { skipStart as skipStartImport } from './skipStart'
-import { skipStartOfAnyTag as skipStartOfAnyTagImport } from './skipStartOfAnyTag'
-import { skipTag as skipTagImport } from './skipTag'
-import { skipWhitespaces as skipWhitespacesImport } from './skipWhitespaces'
+import * as common from './common'
 
 /**
 *
@@ -38,8 +25,8 @@ export namespace UnidocReducer {
   /**
   *
   */
-  export function feed<T>(reducer: UnidocReducer<T>, input: UnidocReductionInput): UnidocReducer.Result<T> {
-    let result: UnidocReducer.Result<T> = reducer.next(input)
+  export function feed<T>(reducer: UnidocReducer<T>, input: UnidocReductionInput): Result<T> {
+    let result: Result<T> = reducer.next(input)
 
     while (!result.done && result.value === UnidocReductionRequest.CURRENT) {
       result = reducer.next(input)
@@ -52,7 +39,7 @@ export namespace UnidocReducer {
   *
   */
   export function finish<T>(reducer: UnidocReducer<T>): T {
-    const result: UnidocReducer.Result<T> = feed(reducer, UnidocReductionInput.END)
+    const result: Result<T> = feed(reducer, UnidocReductionInput.END)
 
     if (result.done) {
       return result.value
@@ -82,70 +69,70 @@ export namespace UnidocReducer {
   /**
   *
   */
-  export const nextTag = nextTagImport
+  export const nextTag = common.nextTag
 
   /**
   *
   */
-  export const reduce = reduceImport
+  export const reduce = common.reduce
 
   /**
   *
   */
-  export const reduceEvents = reduceEventsImport
+  export const reduceEvents = common.reduceEvents
 
   /**
   *
   */
-  export const reduceMany = reduceManyImport
+  export const reduceMany = common.reduceMany
 
   /**
   *
   */
-  export const reduceTag = reduceTagImport
+  export const reduceTag = common.reduceTag
 
   /**
   *
   */
-  export const reduceToken = reduceTokenImport
+  export const reduceToken = common.reduceToken
 
   /**
   *
   */
-  export const reduceText = reduceTextImport
+  export const reduceText = common.reduceText
 
   /**
   *
   */
-  export const reduceWhitespaces = reduceWhitespacesImport
+  export const reduceWhitespaces = common.reduceWhitespaces
 
   /**
   *
   */
-  export const reduceWords = reduceWordsImport
+  export const reduceWords = common.reduceWords
 
   /**
   *
   */
-  export const skipEndOfAnyTag = skipEndOfAnyTagImport
+  export const skipEndOfAnyTag = common.skipEndOfAnyTag
 
   /**
   *
   */
-  export const skipStart = skipStartImport
+  export const skipStart = common.skipStart
 
   /**
   *
   */
-  export const skipStartOfAnyTag = skipStartOfAnyTagImport
+  export const skipStartOfAnyTag = common.skipStartOfAnyTag
 
   /**
   *
   */
-  export const skipTag = skipTagImport
+  export const skipTag = common.skipTag
 
   /**
   *
   */
-  export const skipWhitespaces = skipWhitespacesImport
+  export const skipWhitespaces = common.skipWhitespaces
 }

@@ -29,11 +29,11 @@ mix.ts('./sources/index.ts', 'distribution')
        'rules': [
          { 'test': /\.unidoc$/i, 'use': 'raw-loader' },
        ]
-     },
-     'plugins': [
-       new TypedocWebpackPlugin(
-         { 'target': 'es6', 'mode': 'file' },
-         './sources'
-       )
-     ]
+     }
+     // 'plugins': [
+     //   new TypedocWebpackPlugin(
+     //     { 'target': 'es6', 'mode': 'file' },
+     //     './sources'
+     //   )
+     // ]
    })

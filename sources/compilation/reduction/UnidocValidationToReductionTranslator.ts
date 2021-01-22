@@ -26,6 +26,7 @@ export class UnidocValidationToReductionTranslator extends SubscribableUnidocCon
   */
   public handleInitialization(): void {
     this._output.initialize()
+    this._output.produceStart()
   }
 
   /**
@@ -33,19 +34,6 @@ export class UnidocValidationToReductionTranslator extends SubscribableUnidocCon
   */
   public handleProduction(event: UnidocValidationEvent): void {
     switch (event.type) {
-      case UnidocValidationEventType.CREATION:
-        this._output.produceStart()
-        return
-      case UnidocValidationEventType.TERMINATION:
-        this._output.produceEnd()
-        return
-      case UnidocValidationEventType.FORK:
-      case UnidocValidationEventType.FORKED:
-      case UnidocValidationEventType.MERGE:
-        throw new Error(
-          'Trying to map a validation tree to a reduction stream, please ' +
-          'reduce your tree to only one branch in order to reduce it.'
-        )
       case UnidocValidationEventType.VALIDATION:
         this._output.produceEvent(event.event)
         return
@@ -71,6 +59,7 @@ export class UnidocValidationToReductionTranslator extends SubscribableUnidocCon
   * @see UnidocConsumer.handleCompletion
   */
   public handleCompletion(): void {
+    this._output.produceEnd()
     this._output.complete()
   }
 

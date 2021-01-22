@@ -9,10 +9,11 @@
   "license": "Apache-2",
   "private": false,
   "scripts": {
-    "development": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "watch": "cross-env NODE_ENV=development node_modules/webpack/bin/webpack.js --watch --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "hot": "cross-env NODE_ENV=development webpack-dev-server --inline --hot --config=node_modules/laravel-mix/setup/webpack.config.js",
-    "production": "cross-env NODE_ENV=production node_modules/webpack/bin/webpack.js --progress --hide-modules --config=node_modules/laravel-mix/setup/webpack.config.js",
+    "development": "npx mix",
+    "watch": "npx mix watch",
+    "hot": "npx mix watch --hot",
+    "production": "npx mix --production",
+    "benchmark": "npx mix --mix-config=webpack-benchmark.mix.js",
     "preversion": "npm install && npm test",
     "version": "npm run production && git add --all",
     "postversion": "git push && git push --tags",
@@ -20,19 +21,23 @@
     "push": "npm publish ./distribution --access public"
   },
   "devDependencies": {
+    "@types/benchmark": "^2.1.0",
     "@types/jest": "^25.1.0",
-    "antlr4ts-cli": "^0.5.0-alpha.3",
+    "benchmark": "^2.1.4",
     "jest": "^24.9.0",
-    "laravel-mix": "^5.0.1",
+    "laravel-mix": "^6.0.10",
+    "microtime": "^3.0.0",
+    "postcss": "8.1",
     "raw-loader": "^4.0.0",
     "ts-jest": "^25.0.0",
     "ts-loader": "^6.2.1",
-    "typedoc": "^0.16.8",
+    "typedoc": "^0.20.16",
     "typedoc-webpack-plugin": "^1.1.4",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.3",
+    "webpack": "^5.15.0"
   },
   "dependencies": {
-    "@cedric-demongivert/gl-tool-collection": "^0.24.6",
+    "@cedric-demongivert/gl-tool-collection": "^0.25.1",
     "rxjs": "^6.5.4"
   }
 }

@@ -1,8 +1,6 @@
 export type UnidocValidationMessageType = number
 
 export namespace UnidocValidationMessageType {
-  export const DEFAULT: UnidocValidationMessageType = 0
-
   /**
   * A message that is intented to be used for debugging purposes.
   */
@@ -32,6 +30,9 @@ export namespace UnidocValidationMessageType {
   */
   export const FAILURE: UnidocValidationMessageType = 4
 
+  /**
+  *
+  */
   export const ALL: UnidocValidationMessageType[] = [
     VERBOSE,
     INFORMATION,
@@ -39,6 +40,11 @@ export namespace UnidocValidationMessageType {
     ERROR,
     FAILURE
   ]
+
+  /**
+  *
+  */
+  export const DEFAULT: UnidocValidationMessageType = 0
 
   /**
   * Stringify the given validation type constant.
@@ -56,5 +62,12 @@ export namespace UnidocValidationMessageType {
       case FAILURE: return 'FAILURE'
       default: return undefined
     }
+  }
+
+  /**
+  *
+  */
+  export function toDebugString(type: UnidocValidationMessageType): string {
+    return '#' + type + ' (' + (toString(type) || 'undefined') + ')'
   }
 }

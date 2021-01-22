@@ -1,6 +1,6 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { bufferize as bufferizeImport } from './bufferize'
 
@@ -17,7 +17,7 @@ export namespace UnidocBuffer {
   *
   * @return A new buffer instance.
   */
-  export function create<T>(allocator: Allocator<T>, capacity: number = 32): UnidocBuffer<T> {
+  export function create<T>(allocator: Duplicator<T>, capacity: number = 32): UnidocBuffer<T> {
     return Pack.instance(allocator, capacity)
   }
 

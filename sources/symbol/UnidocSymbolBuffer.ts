@@ -10,31 +10,31 @@ export class UnidocSymbolBuffer {
   /**
   * Location of the first symbol of the buffer (included).
   */
-  public readonly from : UnidocOrigin
+  public readonly from: UnidocOrigin
 
   /**
   * Location of the last symbol of the buffer (excluded).
   */
-  public readonly to : UnidocOrigin
+  public readonly to: UnidocOrigin
 
   /**
   * Buffer of symbols of this lexer.
   */
-  private readonly _symbols  : Pack<CodePoint>
+  private readonly _symbols: Pack<CodePoint>
 
   /**
   * Buffer of symbols of this lexer.
   */
-  public readonly symbols  : Sequence<CodePoint>
+  public readonly symbols: Sequence<CodePoint>
 
-  public constructor (capacity : number) {
+  public constructor(capacity: number) {
     this.from = new UnidocOrigin(16)
     this.to = new UnidocOrigin(16)
     this._symbols = Pack.uint32(capacity)
     this.symbols = this._symbols.view()
   }
 
-  public bufferize (symbol : UnidocSymbol) : void {
+  public bufferize(symbol: UnidocSymbol): void {
     if (this._symbols.size <= 0) {
       this.from.copy(symbol.origin.from)
     }
@@ -44,7 +44,7 @@ export class UnidocSymbolBuffer {
     this._symbols.push(symbol.symbol)
   }
 
-  public clear () : void {
+  public clear(): void {
     this.from.clear()
     this.to.clear()
     this._symbols.clear()

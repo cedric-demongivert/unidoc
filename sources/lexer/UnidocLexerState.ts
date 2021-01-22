@@ -1,24 +1,84 @@
+/**
+*
+*/
 export type UnidocLexerState = number
 
+/**
+*
+*/
 export namespace UnidocLexerState {
-  export const START           : UnidocLexerState = 0
-  export const ANTISLASH       : UnidocLexerState = 1
-  export const SHARP           : UnidocLexerState = 2
-  export const IDENTIFIER      : UnidocLexerState = 3
-  export const DOT             : UnidocLexerState = 4
-  export const CLASS           : UnidocLexerState = 5
-  export const TAG             : UnidocLexerState = 6
-  export const SPACE           : UnidocLexerState = 7
-  export const CARRIAGE_RETURN : UnidocLexerState = 8
-  export const WORD            : UnidocLexerState = 9
-  export const END             : UnidocLexerState = 10
+  /**
+  *
+  */
+  export const START: UnidocLexerState = 0
 
-  export const ALL             : UnidocLexerState[] = [
+  /**
+  *
+  */
+  export const ANTISLASH: UnidocLexerState = 1
+
+  /**
+  *
+  */
+  export const SHARP: UnidocLexerState = 2
+
+  /**
+  *
+  */
+  export const IDENTIFIER: UnidocLexerState = 3
+
+  /**
+  *
+  */
+  export const DOT: UnidocLexerState = 4
+
+  /**
+  *
+  */
+  export const CLASS: UnidocLexerState = 5
+
+  /**
+  *
+  */
+  export const TAG: UnidocLexerState = 6
+
+  /**
+  *
+  */
+  export const SPACE: UnidocLexerState = 7
+
+  /**
+  *
+  */
+  export const CARRIAGE_RETURN: UnidocLexerState = 8
+
+  /**
+  *
+  */
+  export const WORD: UnidocLexerState = 9
+
+  /**
+  *
+  */
+  export const END: UnidocLexerState = 10
+
+  /**
+  *
+  */
+  export const ALL: UnidocLexerState[] = [
     START, ANTISLASH, SHARP, IDENTIFIER, DOT, CLASS,
     TAG, SPACE, CARRIAGE_RETURN, WORD, END
   ]
 
-  export function toString (state : UnidocLexerState) : string | undefined {
+  /**
+  *
+  */
+  export const DEFAULT: UnidocLexerState = START
+
+  /**
+  *
+  */
+  export function toString(state: UnidocLexerState): string | undefined {
     switch (state) {
       case START: return 'START'
       case ANTISLASH: return 'ANTISLASH'
@@ -33,5 +93,12 @@ export namespace UnidocLexerState {
       case END: return 'END'
       default: return undefined
     }
+  }
+
+  /**
+  *
+  */
+  export function toDebugString(state: UnidocLexerState): string {
+    return '#' + state + ' (' + (toString(state) || 'undefined') + ')'
   }
 }

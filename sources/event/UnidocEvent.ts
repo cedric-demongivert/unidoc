@@ -1,5 +1,5 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../symbol/CodePoint'
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
@@ -141,6 +141,51 @@ export class UnidocEvent {
     return String.fromCodePoint(...buffer)
   }
 
+  /**
+  *
+  */
+  public isStartOfAnyTag(): boolean {
+    return this.type === UnidocEventType.START_TAG
+  }
+
+  /**
+  *
+  */
+  public isStartOfTag(tag: string): boolean {
+    return this.type === UnidocEventType.START_TAG && this.tag === tag
+  }
+
+  /**
+  *
+  */
+  public isEndOfAnyTag(): boolean {
+    return this.type === UnidocEventType.END_TAG
+  }
+
+  /**
+  *
+  */
+  public isEndOfTag(tag: string): boolean {
+    return this.type === UnidocEventType.END_TAG && this.tag === tag
+  }
+
+  /**
+  *
+  */
+  public isWhitespace(): boolean {
+    return this.type === UnidocEventType.WHITESPACE
+  }
+
+  /**
+  *
+  */
+  public isWord(): boolean {
+    return this.type === UnidocEventType.WORD
+  }
+
+  /**
+  *
+  */
   public ofIndex(index: number): UnidocEvent {
     this.index = index
     return this
@@ -412,7 +457,7 @@ export namespace UnidocEvent {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR: Allocator<UnidocEvent> = Allocator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocEvent> = Duplicator.fromFactory(create)
 
   /**
   * Return true if both object instances are equals.

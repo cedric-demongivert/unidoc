@@ -1,4 +1,4 @@
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocLocation } from '../location/UnidocLocation'
 
@@ -291,5 +291,5 @@ export namespace UnidocPathElement {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR: Allocator<UnidocPathElement> = Allocator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocPathElement> = Duplicator.fromFactory(create)
 }

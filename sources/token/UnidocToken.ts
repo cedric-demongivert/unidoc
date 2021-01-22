@@ -1,5 +1,5 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
-import { Allocator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../symbol/CodePoint'
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
@@ -332,5 +332,5 @@ export namespace UnidocToken {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
-  export const ALLOCATOR: Allocator<UnidocToken> = Allocator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocToken> = Duplicator.fromFactory(create)
 }
