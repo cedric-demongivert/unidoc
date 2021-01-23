@@ -1,9 +1,13 @@
 import { UnidocEvent } from '../../event/UnidocEvent'
 
+import { UnidocBlueprint } from '../../blueprint/UnidocBlueprint'
+
 import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
 import { UnidocValidationEventBuilder } from '../../validation/UnidocValidationEventBuilder'
 import { UnidocValidationMessage } from '../../validation/UnidocValidationMessage'
 import { UnidocValidationMessageBuilder } from '../../validation/UnidocValidationMessageBuilder'
+
+import { ExpectedContent } from '../message/ExpectedContent'
 
 import * as common from './common'
 import { UnidocKissValidatorOutput } from './UnidocKissValidatorOutput'
@@ -113,6 +117,19 @@ export namespace UnidocKissValidator {
       */
       export function builder(): UnidocValidationMessageBuilder {
         return UnidocValidationMessageBuilder.get()
+      }
+
+      /**
+      *
+      */
+      export function expectedContent(blueprint: UnidocBlueprint): UnidocKissValidatorOutput {
+        return message(
+          builder()
+            .setType(ExpectedContent.TYPE)
+            .setCode(ExpectedContent.CODE)
+            .setData(ExpectedContent.Data.BLUEPRINT, blueprint)
+            .get()
+        )
       }
     }
   }

@@ -10,7 +10,7 @@ import { UnidocEvent } from '../../../sources/event/UnidocEvent'
 import { UnidocValidator } from '../../../sources/validator/UnidocValidator'
 import { UnidocKissValidator } from '../../../sources/validator/kiss/UnidocKissValidator'
 
-import { UnexpectedContent } from '../../../sources/validator/message/UnexpectedContent'
+import { ExpectedContent } from '../../../sources/validator/message/ExpectedContent'
 
 describe('UnidocKissValidator.validateEnd', function() {
   const messageBuilder: UnidocValidationMessageBuilder = new UnidocValidationMessageBuilder()
@@ -54,9 +54,9 @@ describe('UnidocKissValidator.validateEnd', function() {
     expectation.produceValidation(inputBuffer.get(0))
     expectation.produceMessage(
       messageBuilder
-        .setType(UnexpectedContent.TYPE)
-        .setCode(UnexpectedContent.CODE)
-        .setData(UnexpectedContent.Data.BLUEPRINT, UnidocBlueprint.end())
+        .setType(ExpectedContent.TYPE)
+        .setCode(ExpectedContent.CODE)
+        .setData(ExpectedContent.Data.BLUEPRINT, UnidocBlueprint.end())
         .build()
     )
 

@@ -1,8 +1,6 @@
 import { UnidocEvent } from '../../../event/UnidocEvent'
 import { UnidocBlueprint } from '../../../blueprint/UnidocBlueprint'
 
-import { UnexpectedContent } from '../../message/UnexpectedContent'
-
 import { UnidocKissValidator } from '../UnidocKissValidator'
 
 /**
@@ -24,12 +22,8 @@ export function* validateManyWord(minimum: number = 0, maximum: number = Number.
   }
 
   if (count < minimum) {
-    yield UnidocKissValidator.output.message(
-      UnidocKissValidator.output.message.builder()
-        .setType(UnexpectedContent.TYPE)
-        .setCode(UnexpectedContent.CODE)
-        .setData(UnexpectedContent.Data.BLUEPRINT, UnidocBlueprint.many(UnidocBlueprint.word()).atLeast(minimum).upTo(maximum))
-        .get()
+    yield UnidocKissValidator.output.message.expectedContent(
+      UnidocBlueprint.many(UnidocBlueprint.word()).atLeast(minimum - count)
     )
     return UnidocKissValidator.output.end()
   } else {
