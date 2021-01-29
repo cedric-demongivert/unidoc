@@ -1,10 +1,14 @@
-import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 import { Allocator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocNFAValidationTree } from './UnidocNFAValidationTree'
+import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
 
 import { UnidocKissValidator } from '../kiss/UnidocKissValidator'
 
+import { UnidocNFAValidationTree } from './UnidocNFAValidationTree'
+
+/**
+*
+*/
 export class UnidocNFAValidationProcess {
   /**
   *
@@ -14,14 +18,33 @@ export class UnidocNFAValidationProcess {
   /**
   *
   */
-  public branch: UnidocNFAValidationTree | null
+  public head: UnidocNFAValidationTree
+
+  /**
+  *
+  */
+  public relationship: number
 
   /**
   *
   */
   public constructor() {
     this.process = UnidocKissValidator.validateEpsilon()
-    this.branch = null
+    this.head = UnidocNFAValidationTree.ALLOCATOR.allocate().asHead()
+    this.relationship = 0
+  }
+
+  /**
+  *
+  */
+  public push(event: UnidocValidationEvent): UnidocNFAValidationProcess {
+    const previousHead: UnidocNFAValidationTree = this.head
+    this.head = UnidocNFAValidationTree.ALLOCATOR.allocate().asHead()
+
+    previousHead.asEvent(event)
+    this.head.parent = previousHead
+
+    return this
   }
 
   /**
@@ -29,7 +52,11 @@ export class UnidocNFAValidationProcess {
   */
   public clear(): void {
     this.process = UnidocKissValidator.validateEpsilon()
-    this.branch = null
+    this.relationship = 0
+
+    const oldHead: UnidocNFAValidationTree = this.head
+    this.head = UnidocNFAValidationTree.ALLOCATOR.allocate().asHead()
+    UnidocNFAValidationTree.cut(oldHead)
   }
 }
 

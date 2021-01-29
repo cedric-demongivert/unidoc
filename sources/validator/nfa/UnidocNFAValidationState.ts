@@ -30,11 +30,45 @@ export class UnidocNFAValidationState {
   /**
   *
   */
+  private _match: number | undefined
+
+  /**
+  *
+  */
+  public set match(match: number | undefined) {
+    if (this._match !== match) {
+      this._match = match
+
+      if (this._match === undefined) {
+        this.graph.deleteMatch(this)
+      } else {
+        this.graph.addMatch(this, match!)
+      }
+    }
+  }
+
+  /**
+  *
+  */
+  public get match(): number | undefined {
+    return this._match
+  }
+
+  /**
+  *
+  */
   public constructor(graph: UnidocNFAValidationGraph) {
     this.graph = graph
     this._outputs = PackSet.any(4)
     this.outputs = this._outputs.view()
     this.identifier = graph.addState(this)
+  }
+
+  /**
+  *
+  */
+  public isMatch(): boolean {
+    return this._match !== undefined
   }
 
   /**
@@ -73,6 +107,32 @@ export class UnidocNFAValidationState {
   */
   public epsilon(to: UnidocNFAValidationState): void {
     new UnidocNFAValidationRelationship(this, to, UnidocKissValidator.validateEpsilon)
+  }
+
+  /**
+  *
+  */
+  public toString(): string {
+    let result: string = this.constructor.name
+    result += ' #'
+    result += this.identifier
+
+    if (this._match != null) {
+      result += ' (MATCH:' + this._match + ')'
+    }
+
+    result += ' with outgoing relationships ('
+    result += this._outputs.size
+    result += ') into ['
+
+    for (let index = 0; index < this._outputs.size; ++index) {
+      if (index > 0) { result += ', ' }
+      result += this._outputs.get(index).to.identifier
+    }
+
+    result += ']'
+
+    return result
   }
 }
 

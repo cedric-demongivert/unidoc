@@ -94,6 +94,34 @@ export class UnidocNFAValidationTree {
   /**
   *
   */
+  public isEvent(): boolean {
+    return this.type === UnidocNFAValidationTreeType.EVENT
+  }
+
+  /**
+  *
+  */
+  public isState(): boolean {
+    return this.type === UnidocNFAValidationTreeType.STATE
+  }
+
+  /**
+  *
+  */
+  public isStart(): boolean {
+    return this.type === UnidocNFAValidationTreeType.START
+  }
+
+  /**
+  *
+  */
+  public isHead(): boolean {
+    return this.type === UnidocNFAValidationTreeType.HEAD
+  }
+
+  /**
+  *
+  */
   public asEvent(event: UnidocValidationEvent): UnidocNFAValidationTree {
     this.type = UnidocNFAValidationTreeType.EVENT
     this.event.copy(event)
@@ -124,11 +152,52 @@ export class UnidocNFAValidationTree {
   /**
   *
   */
+  public asHead(): UnidocNFAValidationTree {
+    this.type = UnidocNFAValidationTreeType.HEAD
+    this.event.clear()
+    this.state = null
+    return this
+  }
+
+  /**
+  *
+  */
+  public isUpward(node: UnidocNFAValidationTree): boolean {
+    let parent: UnidocNFAValidationTree | null = this._parent
+
+    while (parent) {
+      if (parent === node) {
+        return true
+      } else {
+        parent = parent.parent
+      }
+    }
+
+    return false
+  }
+
+  /**
+  *
+  */
   public root(): UnidocNFAValidationTree {
     let result: UnidocNFAValidationTree = this
 
     while (result.parent != null) {
       result = result.parent
+    }
+
+    return result
+  }
+
+  /**
+  *
+  */
+  public * up(): Generator<UnidocNFAValidationTree> {
+    let result: UnidocNFAValidationTree = this
+
+    while (result.parent != null) {
+      result = result.parent
+      yield result
     }
 
     return result
@@ -222,6 +291,30 @@ export class UnidocNFAValidationTree {
       this._children.first.parent = null
     }
   }
+
+  /**
+  *
+  */
+  public toString(): string {
+    let result: string = this.constructor.name
+
+    switch (this.type) {
+      case UnidocNFAValidationTreeType.START:
+        return result + ' START with ' + this._children.size + ' children'
+      case UnidocNFAValidationTreeType.STATE:
+        return result + ' STATE #' + this.state!.identifier + ' with ' + this._children.size + ' children'
+      case UnidocNFAValidationTreeType.EVENT:
+        return result + ' EVENT ' + this.event.toString() + ' with ' + this._children.size + ' children'
+      case UnidocNFAValidationTreeType.HEAD:
+        return result + ' HEAD with ' + this._children.size + ' children'
+      default:
+        throw new Error(
+          'Unable to stringify tree node of type ' +
+          UnidocNFAValidationTreeType.toDebugString(this.type) + ' as no ' +
+          'procedure was defined for that.'
+        )
+    }
+  }
 }
 
 export namespace UnidocNFAValidationTree {
@@ -264,8 +357,9 @@ export namespace UnidocNFAValidationTree {
   */
   export function cut(node: UnidocNFAValidationTree): void {
     let upmost: UnidocNFAValidationTree | null = node.parent
+    node.parent = null
 
-    while (upmost && upmost.children.size === 1) {
+    while (upmost && !upmost.isStart() && upmost.children.size === 0) {
       const next: UnidocNFAValidationTree | null = upmost.parent
       UnidocNFAValidationTree.ALLOCATOR.free(upmost)
       upmost = next

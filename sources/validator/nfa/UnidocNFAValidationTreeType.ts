@@ -19,10 +19,16 @@ export namespace UnidocNFAValidationTreeType {
   /**
   *
   */
+  export const HEAD: UnidocNFAValidationTreeType = 3
+
+  /**
+  *
+  */
   export const ALL: UnidocNFAValidationTreeType[] = [
     START,
     STATE,
-    EVENT
+    EVENT,
+    HEAD
   ]
 
   /**
@@ -38,6 +44,7 @@ export namespace UnidocNFAValidationTreeType {
       case UnidocNFAValidationTreeType.START: return 'START'
       case UnidocNFAValidationTreeType.STATE: return 'STATE'
       case UnidocNFAValidationTreeType.EVENT: return 'EVENT'
+      case UnidocNFAValidationTreeType.HEAD: return 'HEAD'
       default: return undefined
     }
   }

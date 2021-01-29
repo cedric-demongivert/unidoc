@@ -37,7 +37,7 @@
     "webpack": "^5.15.0"
   },
   "dependencies": {
-    "@cedric-demongivert/gl-tool-collection": "^0.25.1",
+    "@cedric-demongivert/gl-tool-collection": "0.25.2",
     "rxjs": "^6.5.4"
   }
 }

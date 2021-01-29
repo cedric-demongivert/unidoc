@@ -43,6 +43,20 @@ export class UnidocNFAValidationRelationship {
     this.identifier = this.from.graph.addRelationship(this)
     this.from.addOutputRelationship(this)
   }
+
+  /**
+  *
+  */
+  public toString(): string {
+    let result: string = this.constructor.name
+    result += ' #'
+    result += this.identifier
+    result += ' from state #'
+    result += this.from.identifier
+    result += ' to state #'
+    result += this.to.identifier
+    return result
+  }
 }
 
 export namespace UnidocNFAValidationRelationship {

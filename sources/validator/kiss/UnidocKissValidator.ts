@@ -8,6 +8,8 @@ import { UnidocValidationMessage } from '../../validation/UnidocValidationMessag
 import { UnidocValidationMessageBuilder } from '../../validation/UnidocValidationMessageBuilder'
 
 import { ExpectedContent } from '../message/ExpectedContent'
+import { PreferredContent } from '../message/PreferredContent'
+import { TooManyContent } from '../message/TooManyContent'
 
 import * as common from './common'
 import { UnidocKissValidatorOutput } from './UnidocKissValidatorOutput'
@@ -130,6 +132,50 @@ export namespace UnidocKissValidator {
             .setData(ExpectedContent.Data.BLUEPRINT, blueprint)
             .get()
         )
+      }
+
+      /**
+      *
+      */
+      export function preferredContent(blueprint: UnidocBlueprint): UnidocKissValidatorOutput {
+        return message(
+          builder()
+            .setType(PreferredContent.TYPE)
+            .setCode(PreferredContent.CODE)
+            .setData(PreferredContent.Data.BLUEPRINT, blueprint)
+            .get()
+        )
+      }
+
+      /**
+      *
+      */
+      export function tooManyContent(blueprint: UnidocBlueprint): UnidocKissValidatorOutput {
+        return message(
+          builder()
+            .setType(TooManyContent.TYPE)
+            .setCode(TooManyContent.CODE)
+            .setData(TooManyContent.Data.BLUEPRINT, blueprint)
+            .get()
+        )
+      }
+
+      /**
+      *
+      */
+      export namespace tooManyContent {
+        /**
+        *
+        */
+        export function strict(blueprint: UnidocBlueprint): UnidocKissValidatorOutput {
+          return message(
+            builder()
+              .setType(TooManyContent.Strict.TYPE)
+              .setCode(TooManyContent.Strict.CODE)
+              .setData(TooManyContent.Strict.Data.BLUEPRINT, blueprint)
+              .get()
+          )
+        }
       }
     }
   }

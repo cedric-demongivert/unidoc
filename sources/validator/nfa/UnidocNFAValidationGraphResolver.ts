@@ -2,17 +2,36 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocEvent } from '../../event/UnidocEvent'
 
+import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
+
+import { UnidocValidationEventProducer } from '../../validation/UnidocValidationEventProducer'
+import { UnidocValidationMessageType } from '../../validation/UnidocValidationMessageType'
+
 import { UnidocKissValidator } from '../kiss/UnidocKissValidator'
-import { UnidocKissValidatorOutput } from '../kiss/UnidocKissValidatorOutput'
 import { UnidocKissValidatorOutputType } from '../kiss/UnidocKissValidatorOutputType'
+
+import { UnidocValidator } from '../UnidocValidator'
 
 import { UnidocNFAValidationTree } from './UnidocNFAValidationTree'
 
 import { UnidocNFAValidationState } from './UnidocNFAValidationState'
 import { UnidocNFAValidationGraph } from './UnidocNFAValidationGraph'
+import { UnidocNFAValidationRelationship } from './UnidocNFAValidationRelationship'
 import { UnidocNFAValidationProcess } from './UnidocNFAValidationProcess'
 
-export class UnidocNFAValidationGraphResolver {
+// const LOGS: string[] = []
+
+// function log(value: string) {
+//   LOGS.push(value)
+//
+//   if (LOGS.length > 100) {
+//     throw new Error(LOGS.join('\r\n'))
+//   }
+// }
+
+export class UnidocNFAValidationGraphResolver
+  extends SubscribableUnidocConsumer<UnidocEvent>
+  implements UnidocValidator {
   /**
   *
   */
@@ -21,7 +40,22 @@ export class UnidocNFAValidationGraphResolver {
   /**
   *
   */
-  private readonly _processStack: Pack<UnidocNFAValidationProcess>
+  private _pendingStack: Pack<UnidocNFAValidationProcess>
+
+  /**
+  *
+  */
+  private _nextPendingStack: Pack<UnidocNFAValidationProcess>
+
+  /**
+  *
+  */
+  private readonly _matchs: Pack<UnidocNFAValidationProcess>
+
+  /**
+  *
+  */
+  private readonly _failures: Pack<UnidocNFAValidationProcess>
 
   /**
   *
@@ -36,157 +70,483 @@ export class UnidocNFAValidationGraphResolver {
   /**
   *
   */
-  private _current: UnidocEvent | null
+  private _current: UnidocEvent | undefined
 
   /**
   *
   */
-  public constructor(graph: UnidocNFAValidationGraph) {
-    this._graph = graph
+  private _output: UnidocValidationEventProducer
+
+  /**
+  *
+  */
+  public constructor() {
+    super()
+    this._graph = UnidocNFAValidationGraph.MATCH
     this._visited = new Map()
-    this._processStack = Pack.any(16)
+    this._pendingStack = Pack.any(16)
+    this._nextPendingStack = Pack.any(16)
+    this._matchs = Pack.any(16)
+    this._failures = Pack.any(16)
     this._tree = new UnidocNFAValidationTree()
-    this._current = null
+    this._current = undefined
+    this._output = new UnidocValidationEventProducer()
   }
 
   /**
   *
   */
-  public useGraph(graph: UnidocNFAValidationGraph): void {
+  public validate(graph: UnidocNFAValidationGraph): void {
+    this.reset()
+
     this._graph = graph
-    this._visited.clear()
-    this._processStack.clear()
-    UnidocNFAValidationTree.trash(this._tree)
+    const start: UnidocNFAValidationState = graph.start
+
+    const origin: UnidocNFAValidationTree = this._tree.fork().asState(start)
+    this._visited.set(start.identifier, origin)
+
+    for (const relationship of start.outputs) {
+      const process: UnidocNFAValidationProcess = UnidocNFAValidationProcess.ALLOCATOR.allocate()
+
+      process.head.parent = origin
+      process.process = relationship.validator()
+
+      this._pendingStack.push(process)
+    }
   }
 
   /**
   *
   */
-  public enter(state: UnidocNFAValidationState): void {
-    if (state.graph !== this._graph) {
-      throw new Error(
-        'Unable to enter into the given state because the given state does ' +
-        'not belong to the resolved graph.'
-      )
-    }
+  private isLeftBetterThanRight(left: UnidocNFAValidationTree, right: UnidocNFAValidationTree): boolean {
+    let leftMessages: number[] = left.countMessages()
+    let leftBatch: number = left.batch()
+    let rightMessages: number[] = right.countMessages()
+    let rightBatch: number = right.batch()
 
-    if (this._visited.get(state.identifier) == null) {
-      const origin: UnidocNFAValidationTree = this.getBestValidationBranch().fork().asState(state)
+    if (leftBatch === rightBatch) {
+      const size: number = UnidocValidationMessageType.ALL.length
 
-      for (const relationship of state.outputs) {
-        const node: UnidocNFAValidationTree = origin.fork()
-        const process: UnidocNFAValidationProcess = UnidocNFAValidationProcess.ALLOCATOR.allocate()
+      for (let index = 0; index < size; ++index) {
+        const leftScore: number = leftMessages[size - index - 1]
+        const rightScore: number = rightMessages[size - index - 1]
 
-        process.branch = node
-        process.process = relationship.validator()
-
-        this._processStack.push(process)
+        if (leftScore === rightScore) {
+          continue
+        } else {
+          return leftScore < rightScore
+        }
       }
 
-      this._visited.set(state.identifier, origin)
+      return true
+    } else {
+      return leftBatch > rightBatch
+    }
+  }
+
+  /**
+  * @see SubscribableUnidocConsumer.handleInitialization
+  */
+  public handleInitialization(): void {
+    //log('handle initialization')
+
+    const pendingStack: Pack<UnidocNFAValidationProcess> = this._pendingStack
+    const nextPendingStack: Pack<UnidocNFAValidationProcess> = this._nextPendingStack
+
+    while (pendingStack.size > 0) {
+      this.continueProcess(this._pendingStack.pop())
+    }
+
+    this._pendingStack = nextPendingStack
+    this._nextPendingStack = pendingStack
+    this._visited.clear()
+
+    if (this._matchs.size > 0) {
+      this.handleGraphMatch()
+    } else if (this._pendingStack.size === 0) {
+      this.handleGraphError()
+    } else {
+      this.dump()
+    }
+  }
+
+  /**
+  * @see SubscribableUnidocConsumer.handleProduction
+  */
+  public handleProduction(value: UnidocEvent): void {
+    //log('handle production of ' + value.toString())
+    this.dumpFailures()
+
+    const pendingStack: Pack<UnidocNFAValidationProcess> = this._pendingStack
+    const nextPendingStack: Pack<UnidocNFAValidationProcess> = this._nextPendingStack
+    this._current = value
+
+    while (pendingStack.size > 0) {
+      this.continueProcess(this._pendingStack.pop())
+    }
+
+    this._pendingStack = nextPendingStack
+    this._nextPendingStack = pendingStack
+    this._visited.clear()
+
+    if (this._matchs.size > 0) {
+      this.handleGraphMatch()
+    } else if (this._pendingStack.size === 0) {
+      this.handleGraphError()
+    } else {
+      this.dump()
     }
   }
 
   /**
   *
   */
-  private onStart(process: UnidocNFAValidationProcess): void {
+  private continueProcess(process: UnidocNFAValidationProcess): void {
+    //log('  continue process ' + this._graph.relationships.get(process.relationship).toString())
     const validator: UnidocKissValidator = process.process
+    const current: UnidocEvent | undefined = this._current
 
-    let output: UnidocKissValidatorOutput = validator.next().value
+    let output: UnidocKissValidator.Result = current ? validator.next(current) : validator.next()
 
-    while (true) {
-      switch (output.type) {
+    while (!output.done) {
+      //log('    handling ' + output.value.toString())
+      switch (output.value.type) {
         case UnidocKissValidatorOutputType.CURRENT:
-          if (this._current) {
-            output = validator.next(this._current).value
-          } else {
-            return
+          if (current) {
+            output = validator.next(current)
+            break
           }
-          break
         case UnidocKissValidatorOutputType.NEXT:
+          this._nextPendingStack.push(process)
           return
         case UnidocKissValidatorOutputType.EMIT:
-          this.onEmission(process, output.event)
-          output = validator.next().value
+          process.push(output.value.event)
+
+          if (output.value.event.isMessage() && output.value.event.message.isFailure()) {
+            this._failures.push(process)
+            return
+          } else {
+            output = validator.next()
+          }
+          break
+        case UnidocKissValidatorOutputType.MATCH:
+          this.handleProcessMatch(process)
+          output = validator.next(undefined)
           break
         case UnidocKissValidatorOutputType.END:
-
-        case UnidocKissValidatorOutputType.MATCH:
-
+          throw new Error(
+            'Unable to continue a validation process because it\'s related ' +
+            'KISS validator yielded an end signal. An end signal must only ' +
+            'be returned as it will explicitely stop the occuring validation ' +
+            'process.'
+          )
         default:
           throw new Error(
             'Unable to handle kiss validator output of type ' +
-            UnidocKissValidatorOutputType.toDebugString(output.type) + ' ' +
-            'because no procedure was defined for that.'
+            UnidocKissValidatorOutputType.toDebugString(output.value.type) +
+            ' because no procedure was defined for that.'
           )
       }
     }
+
+    if (output.value.isMatch()) {
+      this.handleProcessMatch(process)
+    } else if (output.value.isEnd()) {
+      this._failures.push(process)
+    } else {
+      throw new Error(
+        'Unable to continue a validation process because it\'s related ' +
+        'KISS validator ended without returning a match nor an end signal.'
+      )
+    }
   }
 
-  private onEmission(process: any, event: any): void {
+  /**
+  * @see SubscribableUnidocConsumer.handleCompletion
+  */
+  public handleCompletion(): void {
+    //log('handle completion')
+    this.dumpFailures()
 
+    const pendingStack: Pack<UnidocNFAValidationProcess> = this._pendingStack
+    this._current = undefined
+
+    while (pendingStack.size > 0) {
+      this.terminateProcess(this._pendingStack.pop())
+    }
+
+    if (this._matchs.size > 0) {
+      this.dumpFailures()
+      this.handleGraphMatch()
+    } else {
+      this.handleGraphError()
+    }
   }
 
   /**
   *
   */
-  private getBestValidationBranch(): UnidocNFAValidationTree {
-    let result: UnidocNFAValidationTree = this._tree
-    let resultMessages: number[] = result.countMessages()
-    let resultBatch: number = result.batch()
-    let challengerMessages: number[] = []
+  private dumpFailures(): void {
+    //log('  dumping failures')
+    const failures: Pack<UnidocNFAValidationProcess> = this._failures
 
-    const messages: number = resultMessages.length
+    //log('   ' + this._tree.children.size)
 
-    for (const challenger of this._processStack) {
-      const challengerBatch: number = challenger.branch!.batch()
+    while (failures.size > 0) {
+      //log('    dumping process ' + this._graph.relationships.get(failures.last.relationship).toString())
+      UnidocNFAValidationProcess.ALLOCATOR.free(failures.pop())
+    }
 
-      if (challengerBatch === resultBatch) {
-        challenger.branch!.countMessages(challengerMessages)
+    //log('   ' + this._tree.children.size)
+  }
 
-        for (let index = 0; index < messages; ++index) {
-          const challengerScore: number = challengerMessages[messages - index - 1]
-          const resultScore: number = resultMessages[messages - index - 1]
+  /**
+  *
+  */
+  private handleGraphMatch(): void {
+    //log('handling graph match')
+    let bestMatch: UnidocNFAValidationProcess = this._matchs.pop()
 
-          if (challengerScore > resultScore) {
-            break
-          } else if (challengerScore < resultScore) {
-            result = challenger.branch!
-            const tmp: number[] = resultMessages
-            resultMessages = challengerMessages
-            challengerMessages = tmp
-            resultBatch = challengerBatch
-            break
-          }
-        }
-      } else if (challengerBatch > resultBatch) {
-        result = challenger.branch!
-        resultMessages = challenger.branch!.countMessages(resultMessages)
-        resultBatch = challengerBatch
+    while (this._matchs.size > 0) {
+      const challenger: UnidocNFAValidationProcess = this._matchs.pop()
+
+      if (this.isLeftBetterThanRight(challenger.head, bestMatch.head)) {
+        UnidocNFAValidationProcess.ALLOCATOR.free(bestMatch)
+        bestMatch = challenger
+      } else {
+        UnidocNFAValidationProcess.ALLOCATOR.free(challenger)
       }
     }
 
-    return result
+    //log('  ' + bestMatch.head.toString())
+
+    // for (const element of bestMatch.head.up()) {
+    //   //log('  ' + element.toString())
+    // }
+
+    this.dump()
+    this._output.complete()
+
+    bestMatch.head.parent = null
+    UnidocNFAValidationProcess.ALLOCATOR.free(bestMatch)
   }
 
   /**
   *
   */
-  public validate(event: UnidocEvent): void {
+  private handleGraphError(): void {
+    //log('handling graph error')
+    const failures: Pack<UnidocNFAValidationProcess> = this._failures
 
+    if (failures.size > 0) {
+      let bestMatch: UnidocNFAValidationProcess = failures.pop()
+
+      while (failures.size > 0) {
+        const challenger: UnidocNFAValidationProcess = failures.pop()
+
+        if (this.isLeftBetterThanRight(challenger.head, bestMatch.head)) {
+          UnidocNFAValidationProcess.ALLOCATOR.free(bestMatch)
+          bestMatch = challenger
+        } else {
+          UnidocNFAValidationProcess.ALLOCATOR.free(challenger)
+        }
+      }
+
+      this.dump()
+      this._output.complete()
+
+      bestMatch.head.parent = null
+      UnidocNFAValidationProcess.ALLOCATOR.free(bestMatch)
+    } else {
+      this.dump()
+      this._output.complete()
+    }
+  }
+
+  /**
+  *
+  */
+  private dump(): void {
+    const tree: UnidocNFAValidationTree = this._tree
+
+    while (tree.children.size === 1) {
+      const next: UnidocNFAValidationTree = tree.children.first
+
+      if (next.isHead()) {
+        return
+      } else if (next.isEvent()) {
+        this._output.produce(next.event)
+      }
+
+      next.delete()
+      UnidocNFAValidationTree.ALLOCATOR.free(next)
+    }
+  }
+
+  /**
+  *
+  */
+  private terminateProcess(process: UnidocNFAValidationProcess): void {
+    //log('  terminating process ' + this._graph.relationships.get(process.relationship).toString())
+    const validator: UnidocKissValidator = process.process
+
+    let output: UnidocKissValidator.Result = validator.next()
+
+    while (!output.done) {
+      //log('    handling ' + output.value.toString())
+      switch (output.value.type) {
+        case UnidocKissValidatorOutputType.CURRENT:
+          output = validator.next(undefined)
+          break
+        case UnidocKissValidatorOutputType.NEXT:
+          throw new Error(
+            'Unable to terminate a validation process because it\'s related ' +
+            'KISS validator requested the next available event after the ' +
+            'reception of the end of document.'
+          )
+        case UnidocKissValidatorOutputType.EMIT:
+          process.push(output.value.event)
+
+          if (output.value.event.isMessage() && output.value.event.message.isFailure()) {
+            this._failures.push(process)
+            return
+          } else {
+            output = validator.next()
+          }
+          break
+        case UnidocKissValidatorOutputType.MATCH:
+          this.handleProcessMatch(process)
+          output = validator.next()
+          break
+        case UnidocKissValidatorOutputType.END:
+          throw new Error(
+            'Unable to terminate a validation process because it\'s related ' +
+            'KISS validator yielded an end signal. An end signal must only ' +
+            'be returned as it will explicitely stop the occuring validation ' +
+            'process.'
+          )
+        default:
+          throw new Error(
+            'Unable to handle kiss validator output of type ' +
+            UnidocKissValidatorOutputType.toDebugString(output.value.type) +
+            ' because no procedure was defined for that.'
+          )
+      }
+    }
+
+    if (output.value.isMatch()) {
+      this.handleProcessMatch(process)
+    } else if (output.value.isEnd()) {
+      this._failures.push(process)
+    } else {
+      throw new Error(
+        'Unable to terminate a validation process because it\'s related ' +
+        'KISS validator ended without returning a match nor an end signal.'
+      )
+    }
+  }
+
+  /**
+  * @see SubscribableUnidocConsumer.handleFailure
+  */
+  public handleFailure(error: Error): void {
+    this._output.fail(error)
+  }
+
+  /**
+  *
+  */
+  private handleProcessMatch(process: UnidocNFAValidationProcess): void {
+    //log('    handle matching of process ' + this._graph.relationships.get(process.relationship).toString())
+    const state: UnidocNFAValidationState = this._graph.relationships.get(process.relationship).to
+
+    if (state.isMatch()) {
+      this._matchs.push(process)
+      return
+    }
+
+    let origin: UnidocNFAValidationTree | undefined = this._visited.get(state.identifier)
+
+    if (origin) {
+      if (!process.head.isUpward(origin)) {
+        //log('      merging ' + this._graph.relationships.get(process.relationship).toString())
+        const originParent: UnidocNFAValidationTree = origin.parent!
+        const processParent: UnidocNFAValidationTree = process.head.parent!
+        process.head.parent = null
+
+        if (this.isLeftBetterThanRight(processParent, originParent)) {
+          origin.parent = processParent
+          UnidocNFAValidationTree.cut(originParent)
+        }
+      }
+
+      //log('      dumping ' + this._graph.relationships.get(process.relationship).toString())
+      UnidocNFAValidationProcess.ALLOCATOR.free(process)
+    } else {
+      origin = process.head.parent!.fork().asState(state)
+      this._visited.set(state.identifier, origin)
+
+      for (let index = 1; index < state.outputs.size; ++index) {
+        const relationship: UnidocNFAValidationRelationship = state.outputs.get(index)
+        const process: UnidocNFAValidationProcess = UnidocNFAValidationProcess.ALLOCATOR.allocate()
+
+        process.head.parent = origin
+        process.relationship = relationship.identifier
+        process.process = relationship.validator()
+
+        this._pendingStack.push(process)
+        //log('      forking ' + relationship.toString())
+      }
+
+      const relationship: UnidocNFAValidationRelationship = state.outputs.get(0)
+
+      process.head.parent = origin
+      process.relationship = relationship.identifier
+      process.process = relationship.validator()
+
+      this._pendingStack.push(process)
+      //log('      forking ' + relationship.toString())
+    }
   }
 
   /**
   *
   */
   public reset(): void {
+    this._matchs.clear()
     this._visited.clear()
-    this._processStack.clear()
+    this._pendingStack.clear()
     UnidocNFAValidationTree.trash(this._tree)
+    this._current = undefined
+  }
+
+  /**
+  * @see UnidocProducer.addEventListener
+  */
+  public addEventListener(event: any, listener: any) {
+    this._output.addEventListener(event, listener)
+  }
+
+  /**
+  * @see UnidocProducer.removeEventListener
+  */
+  public removeEventListener(event: any, listener: any) {
+    this._output.removeEventListener(event, listener)
+  }
+
+  /**
+  * @see UnidocProducer.removeAllEventListener
+  */
+  public removeAllEventListener(...parameters: [any?]) {
+    this._output.removeAllEventListener(...parameters)
   }
 }
 
 export namespace UnidocNFAValidationGraphResolver {
-
+  /**
+  *
+  */
+  // export function dump(): void {
+  //   console.//log(LOGS.join('\r\n'))
+  // }
 }

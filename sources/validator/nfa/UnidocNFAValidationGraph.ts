@@ -1,8 +1,11 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
+import { NativeSet } from '@cedric-demongivert/gl-tool-collection'
+import { Collection } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocNFAValidationState } from './UnidocNFAValidationState'
 import { UnidocNFAValidationRelationship } from './UnidocNFAValidationRelationship'
+import { UnidocNFAValidationGraphBuilder } from './UnidocNFAValidationGraphBuilder'
 
 export class UnidocNFAValidationGraph {
   /**
@@ -33,7 +36,12 @@ export class UnidocNFAValidationGraph {
   /**
   *
   */
-  public readonly match: UnidocNFAValidationState
+  public readonly _matchs: NativeSet<UnidocNFAValidationState>
+
+  /**
+  *
+  */
+  public readonly matchs: Collection<UnidocNFAValidationState>
 
   /**
   *
@@ -43,9 +51,26 @@ export class UnidocNFAValidationGraph {
     this.states = this._states.view()
     this._relationships = Pack.any(0)
     this.relationships = this._relationships.view()
+    this._matchs = new NativeSet(new Set())
 
     this.start = new UnidocNFAValidationState(this)
-    this.match = new UnidocNFAValidationState(this)
+    this.matchs = this._matchs.view()
+  }
+
+  /**
+  *
+  */
+  public addMatch(state: UnidocNFAValidationState, match: number): void {
+    this._matchs.add(state)
+    state.match = match
+  }
+
+  /**
+  *
+  */
+  public deleteMatch(state: UnidocNFAValidationState): void {
+    this._matchs.delete(state)
+    state.match = undefined
   }
 
   /**
@@ -98,8 +123,23 @@ export class UnidocNFAValidationGraph {
   public state(): UnidocNFAValidationState {
     return new UnidocNFAValidationState(this)
   }
+
+  /**
+  *
+  */
+  public builder(): UnidocNFAValidationGraphBuilder {
+    return new UnidocNFAValidationGraphBuilder(this)
+  }
 }
 
 export namespace UnidocNFAValidationGraph {
+  /**
+  *
+  */
+  export const MATCH: UnidocNFAValidationGraph = (
+    new UnidocNFAValidationGraph()
+      .builder()
+      .match()
+  )
 
 }
