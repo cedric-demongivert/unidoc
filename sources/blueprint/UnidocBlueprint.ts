@@ -11,6 +11,7 @@ import { UnidocEventBlueprint } from './UnidocEventBlueprint'
 import { UnidocGroupBlueprint } from './UnidocGroupBlueprint'
 import { UnidocLenientSequenceBlueprint } from './UnidocLenientSequenceBlueprint'
 import { UnidocManyBlueprint } from './UnidocManyBlueprint'
+import { UnidocRegexpBlueprint } from './UnidocRegexpBlueprint'
 import { UnidocSequenceBlueprint } from './UnidocSequenceBlueprint'
 import { UnidocSetBlueprint } from './UnidocSetBlueprint'
 import { UnidocTagBlueprint } from './UnidocTagBlueprint'
@@ -78,6 +79,11 @@ export namespace UnidocBlueprint {
   *
   */
   export type Many = UnidocManyBlueprint
+
+  /**
+  *
+  */
+  export type Regexp = UnidocRegexpBlueprint
 
   /**
   *
@@ -400,5 +406,12 @@ export namespace UnidocBlueprint {
 
       return result
     }
+  }
+
+  /**
+  *
+  */
+  export function regexp(regexp: RegExp): UnidocBlueprint {
+    return UnidocRegexpBlueprint.create().thatMatch(regexp)
   }
 }

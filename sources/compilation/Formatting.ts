@@ -1,3 +1,3 @@
 import { Observable } from 'rxjs'
 
-export type Compilation<Input, Output> = (source : Observable<Input>) => Observable<Output>
+export type Formatting<Input> = (source: Observable<Input>) => Observable<string>

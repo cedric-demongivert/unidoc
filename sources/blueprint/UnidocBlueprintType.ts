@@ -52,6 +52,11 @@ export namespace UnidocBlueprintType {
   export const GROUP: UnidocBlueprintType = 9
 
   /**
+  * A blueprint that describe a text that match the given REGEXP.
+  */
+  export const REGEXP: UnidocBlueprintType = 10
+
+  /**
   * Default blueprint type
   */
   export const DEFAULT: UnidocBlueprintType = EVENT
@@ -68,7 +73,8 @@ export namespace UnidocBlueprintType {
     LENIENT_SEQUENCE,
     END,
     TAG,
-    GROUP
+    GROUP,
+    REGEXP
   ]
 
   /**
@@ -85,6 +91,7 @@ export namespace UnidocBlueprintType {
       case END: return 'END'
       case TAG: return 'TAG'
       case GROUP: return 'GROUP'
+      case REGEXP: return 'REGEXP'
       default: return undefined
     }
   }

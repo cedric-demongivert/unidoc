@@ -200,57 +200,87 @@ export namespace UnidocKissValidator {
   /**
   *
   */
-  export const validateEnd = common.validateEnd
+  export const captureValidatedText: typeof common.captureValidatedText = common.captureValidatedText
 
   /**
   *
   */
-  export const validateEndOfAnyTag = common.validateEndOfAnyTag
+  export const requireText: typeof common.requireText = common.requireText
 
   /**
   *
   */
-  export const validateEndOfTag = common.validateEndOfTag
+  export const requireToken: typeof common.requireToken = common.requireToken
 
   /**
   *
   */
-  export const validateEpsilon = common.validateEpsilon
+  export const validateContentThatMatch: typeof common.validateContentThatMatch = common.validateContentThatMatch
 
   /**
   *
   */
-  export const validateManyWhitespace = common.validateManyWhitespace
+  export const validateEnd: typeof common.validateEnd = common.validateEnd
 
   /**
   *
   */
-  export const validateManyWord = common.validateManyWord
+  export const validateEndOfAnyTag: typeof common.validateEndOfAnyTag = common.validateEndOfAnyTag
 
   /**
   *
   */
-  export const validateSequence = common.validateSequence
+  export const validateEndOfTag: typeof common.validateEndOfTag = common.validateEndOfTag
 
   /**
   *
   */
-  export const validateStartOfAnyTag = common.validateStartOfAnyTag
+  export const validateEpsilon: typeof common.validateEpsilon = common.validateEpsilon
 
   /**
   *
   */
-  export const validateStartOfTag = common.validateStartOfTag
+  export const validateManyWhitespace: typeof common.validateManyWhitespace = common.validateManyWhitespace
 
   /**
   *
   */
-  export const validateWhitespace = common.validateWhitespace
+  export const validateManyWord: typeof common.validateManyWord = common.validateManyWord
 
   /**
   *
   */
-  export const validateWord = common.validateWord
+  export const validateSequence: typeof common.validateSequence = common.validateSequence
+
+  /**
+  *
+  */
+  export const validateStartOfAnyTag: typeof common.validateStartOfAnyTag = common.validateStartOfAnyTag
+
+  /**
+  *
+  */
+  export const validateStartOfTag: typeof common.validateStartOfTag = common.validateStartOfTag
+
+  /**
+  *
+  */
+  export const validateText: typeof common.requireText = common.requireText
+
+  /**
+  *
+  */
+  export const validateToken: typeof common.requireToken = common.requireToken
+
+  /**
+  *
+  */
+  export const validateWhitespace: typeof common.validateWhitespace = common.validateWhitespace
+
+  /**
+  *
+  */
+  export const validateWord: typeof common.validateWord = common.validateWord
 
   /**
   *
