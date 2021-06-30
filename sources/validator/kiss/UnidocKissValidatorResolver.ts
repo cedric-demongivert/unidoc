@@ -1,5 +1,7 @@
-import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
-import { UnidocValidationEventProducer } from '../../validation/UnidocValidationEventProducer'
+import { UnidocFunction } from '../../stream/UnidocFunction'
+import { UnidocSink } from '../../stream/UnidocSink'
+
+import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
 
 import { UnidocEvent } from '../../event/UnidocEvent'
 
@@ -8,62 +10,47 @@ import { UnidocValidator } from '../UnidocValidator'
 import { UnidocKissValidator } from './UnidocKissValidator'
 import { UnidocKissValidatorOutputType } from './UnidocKissValidatorOutputType'
 
-export class UnidocKissValidatorResolver extends SubscribableUnidocConsumer<UnidocEvent> implements UnidocValidator {
+export class UnidocKissValidatorResolver extends UnidocFunction<UnidocEvent, UnidocValidationEvent> implements UnidocValidator {
   /**
   *
   */
-  private validator: UnidocKissValidator | null
+  private _validator: UnidocKissValidator | null
 
   /**
   *
   */
-  private factory: UnidocKissValidator.Factory
+  private _factory: UnidocKissValidator.Factory
 
   /**
-  *
-  */
-  private readonly output: UnidocValidationEventProducer
+   * 
+   */
+  private _index: number
+
+  /**
+   * 
+   */
+  private _batch: number
 
   /**
   *
   */
   public constructor(factory: UnidocKissValidator.Factory) {
     super()
-    this.validator = null
-    this.factory = factory
-    this.output = new UnidocValidationEventProducer()
-  }
-
-  /**
-  * @see UnidocProducer.addEventListener
-  */
-  public addEventListener(event: any, listener: any) {
-    this.output.addEventListener(event, listener)
-  }
-
-  /**
-  * @see UnidocProducer.removeEventListener
-  */
-  public removeEventListener(event: any, listener: any) {
-    this.output.removeEventListener(event, listener)
-  }
-
-  /**
-  * @see UnidocProducer.removeAllEventListener
-  */
-  public removeAllEventListener(event?: any) {
-    this.output.removeAllEventListener(event)
+    this._validator = null
+    this._factory = factory
+    this._index = 0
+    this._batch = 0
   }
 
   /**
   *
   */
-  public handleInitialization(): void {
-    const validator: UnidocKissValidator = this.factory()
-    const output: UnidocValidationEventProducer = this.output
+  public start(): void {
+    const validator: UnidocKissValidator = this._factory()
+    const output: UnidocSink<UnidocValidationEvent> = this.output
 
-    output.initialize()
-    this.validator = validator
+    output.start()
+    this._validator = validator
 
     let next: UnidocKissValidator.Result = validator.next()
 
@@ -75,16 +62,16 @@ export class UnidocKissValidatorResolver extends SubscribableUnidocConsumer<Unid
           return
         case UnidocKissValidatorOutputType.EMIT:
           if (next.value.event.message.isFailure()) {
-            output.produce(next.value.event)
+            this.emit(next.value.event)
             next = validator.return(UnidocKissValidator.output.end())
           } else {
-            output.produce(next.value.event)
+            this.emit(next.value.event)
             next = validator.next()
           }
           break
         case UnidocKissValidatorOutputType.END:
         case UnidocKissValidatorOutputType.MATCH:
-          this.validator = null
+          this._validator = null
           return
         default:
           throw new Error(
@@ -99,9 +86,9 @@ export class UnidocKissValidatorResolver extends SubscribableUnidocConsumer<Unid
   /**
   *
   */
-  public handleProduction(value: UnidocEvent): void {
-    const validator: UnidocKissValidator | null = this.validator
-    const output: UnidocValidationEventProducer = this.output
+  public next(value: UnidocEvent): void {
+    const validator: UnidocKissValidator | null = this._validator
+    const output: UnidocSink<UnidocValidationEvent> = this.output
 
     if (validator) {
       let next: UnidocKissValidator.Result = validator.next(value)
@@ -115,16 +102,16 @@ export class UnidocKissValidatorResolver extends SubscribableUnidocConsumer<Unid
             return
           case UnidocKissValidatorOutputType.EMIT:
             if (next.value.event.message.isFailure()) {
-              output.produce(next.value.event)
+              this.emit(next.value.event)
               next = validator.return(UnidocKissValidator.output.end())
             } else {
-              output.produce(next.value.event)
+              this.emit(next.value.event)
               next = validator.next()
             }
             break
           case UnidocKissValidatorOutputType.END:
           case UnidocKissValidatorOutputType.MATCH:
-            this.validator = null
+            this._validator = null
             return
           default:
             throw new Error(
@@ -140,9 +127,9 @@ export class UnidocKissValidatorResolver extends SubscribableUnidocConsumer<Unid
   /**
   *
   */
-  public handleCompletion(): void {
-    const validator: UnidocKissValidator | null = this.validator
-    const output: UnidocValidationEventProducer = this.output
+  public success(): void {
+    const validator: UnidocKissValidator | null = this._validator
+    const output: UnidocSink<UnidocValidationEvent> = this.output
 
     if (validator) {
       let next: UnidocKissValidator.Result = validator.next(undefined)
@@ -155,16 +142,16 @@ export class UnidocKissValidatorResolver extends SubscribableUnidocConsumer<Unid
             break
           case UnidocKissValidatorOutputType.EMIT:
             if (next.value.event.message.isFailure()) {
-              output.produce(next.value.event)
+              this.emit(next.value.event)
               next = validator.return(UnidocKissValidator.output.end())
             } else {
-              output.produce(next.value.event)
+              this.emit(next.value.event)
               next = validator.next()
             }
             break
           case UnidocKissValidatorOutputType.END:
           case UnidocKissValidatorOutputType.MATCH:
-            this.validator = null
+            this._validator = null
             return
           default:
             throw new Error(
@@ -176,13 +163,29 @@ export class UnidocKissValidatorResolver extends SubscribableUnidocConsumer<Unid
       }
     }
 
-    output.complete()
+    output.success()
+  }
+
+  /**
+   * 
+   */
+  private emit(value: UnidocValidationEvent): void {
+    if (value.isValidation() || value.isDocumentCompletion()) {
+      this._batch += 1
+    }
+
+    value.setIndex(this._index)
+    value.setBatch(this._batch)
+
+    this.output.next(value)
+
+    this._index += 1
   }
 
   /**
   *
   */
-  public handleFailure(error: Error): void {
+  public failure(error: Error): void {
     this.output.fail(error)
   }
 }

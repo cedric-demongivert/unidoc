@@ -160,13 +160,25 @@ export class UnidocLocation {
   }
 }
 
+/**
+ * 
+ */
 export namespace UnidocLocation {
+  /**
+   * 
+   */
   const STRING_MATCHER: RegExp = /\(?\s*(\d+)\s*,?\s*(\d+)\s*,?\s*(\d+)\s*\)?/i
 
+  /**
+   * 
+   */
   export function create(line: number = 0, column: number = 0, index: number = 0): UnidocLocation {
     return new UnidocLocation(line, column, index)
   }
 
+  /**
+   * 
+   */
   export function fromString(value: string): UnidocLocation {
     const match: RegExpExecArray | null = STRING_MATCHER.exec(value)
 
@@ -191,11 +203,26 @@ export namespace UnidocLocation {
   * @return A deep copy of the given instance.
   */
   export function copy(toCopy: UnidocLocation): UnidocLocation
+
+  /**
+   * 
+   */
   export function copy(toCopy: null): null
+
+  /**
+   * 
+   */
   export function copy(toCopy: undefined): undefined
+
+  /**
+   * 
+   */
   export function copy(toCopy: UnidocLocation | null | undefined): UnidocLocation | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
+  /**
+   * 
+   */
   export const ALLOCATOR: Duplicator<UnidocLocation> = Duplicator.fromFactory(create)
 }

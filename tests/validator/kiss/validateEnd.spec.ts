@@ -1,6 +1,6 @@
 import '../../jest/sequence'
 
-import { TrackedUnidocEventProducer } from '../../../sources/event/TrackedUnidocEventProducer'
+import { UnidocRuntimeEventProducer } from '../../../sources/event/UnidocRuntimeEventProducer'
 import { UnidocValidationEvent } from '../../../sources/validation/UnidocValidationEvent'
 import { UnidocValidationEventProducer } from '../../../sources/validation/UnidocValidationEventProducer'
 import { UnidocValidationMessageBuilder } from '../../../sources/validation/UnidocValidationMessageBuilder'
@@ -12,18 +12,18 @@ import { UnidocKissValidator } from '../../../sources/validator/kiss/UnidocKissV
 
 import { ExpectedContent } from '../../../sources/validator/message/ExpectedContent'
 
-describe('UnidocKissValidator.validateEnd', function() {
+describe('UnidocKissValidator.validateEnd', function () {
   const messageBuilder: UnidocValidationMessageBuilder = new UnidocValidationMessageBuilder()
 
-  it('accept the end of the unidoc document', function() {
-    const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+  it('accept the end of the unidoc document', function () {
+    const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
 
     const validator: UnidocValidator = UnidocValidator.kiss(UnidocKissValidator.validateEnd)
     const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
 
     validator.subscribe(input)
 
-    input.initialize().complete()
+    input.start().success()
 
     const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
     const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
@@ -33,8 +33,8 @@ describe('UnidocKissValidator.validateEnd', function() {
     expect(validatorBuffer).toEqualTheSequence(expectationBuffer)
   })
 
-  it('emit an error if the given event is not the end of the document', function() {
-    const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+  it('emit an error if the given event is not the end of the document', function () {
+    const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
     const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
     const validator: UnidocValidator = UnidocValidator.kiss(UnidocKissValidator.validateEnd)
@@ -42,11 +42,11 @@ describe('UnidocKissValidator.validateEnd', function() {
 
     validator.subscribe(input)
 
-    input.initialize()
+    input.start()
       .produceTagStart('document')
       .produceText('lorem ipsum dolor sit amet')
       .produceTagEnd('document')
-      .complete()
+      .success()
 
     const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
     const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)

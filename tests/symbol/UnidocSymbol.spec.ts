@@ -7,37 +7,37 @@ import { CodePoint } from '../../sources/symbol/CodePoint'
 describe('UnidocSymbol', function () {
   describe('#constructor', function () {
     it('instantiate an empty symbol by default', function () {
-      const symbol : UnidocSymbol = new UnidocSymbol()
+      const symbol: UnidocSymbol = new UnidocSymbol()
 
-      expect(symbol.symbol).toBe(0)
+      expect(symbol.code).toBe(0)
       expect(symbol.origin.equals(UnidocRangeOrigin.runtime())).toBeTruthy()
     })
   })
 
   describe('#copy', function () {
     it('copy an existing symbol', function () {
-      const source : UnidocSymbol = UnidocSymbol.create(
+      const source: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
-      const copy : UnidocSymbol = UnidocSymbol.create(
+      const copy: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
-      const destination : UnidocSymbol = UnidocSymbol.create(
+      const destination: UnidocSymbol = UnidocSymbol.create(
         CodePoint.d,
         UnidocRangeOrigin.builder()
-                         .from().text(1, 2, 33).at().runtime()
-                         .to().text(1, 3, 34).at().runtime()
-                         .build()
+          .from().text(1, 2, 33).at().runtime()
+          .to().text(1, 3, 34).at().runtime()
+          .build()
       )
 
       expect(source.equals(destination)).toBeFalsy()
@@ -52,12 +52,12 @@ describe('UnidocSymbol', function () {
 
   describe('#clone', function () {
     it('return a clone of an existing symbol', function () {
-      const source : UnidocSymbol = UnidocSymbol.create(
+      const source: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
       expect(source.equals(source.clone())).toBeTruthy()
@@ -67,15 +67,15 @@ describe('UnidocSymbol', function () {
 
   describe('#clear', function () {
     it('reset a symbol instance', function () {
-      const instance : UnidocSymbol = UnidocSymbol.create(
+      const instance: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
-      const origin : UnidocSymbol = new UnidocSymbol()
+      const origin: UnidocSymbol = new UnidocSymbol()
 
       expect(instance.equals(origin)).toBeFalsy()
 
@@ -87,12 +87,12 @@ describe('UnidocSymbol', function () {
 
   describe('#equals', function () {
     it('return false if compared to another type of value', function () {
-      const instance : UnidocSymbol = UnidocSymbol.create(
+      const instance: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
       expect(instance.equals('pwet')).toBeFalsy()
@@ -101,72 +101,72 @@ describe('UnidocSymbol', function () {
     })
 
     it('return true if compared to itself', function () {
-      const instance : UnidocSymbol = UnidocSymbol.create(
+      const instance: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
       expect(instance.equals(instance)).toBeTruthy()
     })
 
     it('return true if both symbols are equals', function () {
-      const instance : UnidocSymbol = UnidocSymbol.create(
+      const instance: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
-      const copy : UnidocSymbol = UnidocSymbol.create(
+      const copy: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
       expect(instance.equals(copy)).toBeTruthy()
     })
 
     it('return false if the symbol change', function () {
-      const instance : UnidocSymbol = UnidocSymbol.create(
+      const instance: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
-      const other : UnidocSymbol = UnidocSymbol.create(
+      const other: UnidocSymbol = UnidocSymbol.create(
         CodePoint.d,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
       expect(instance.equals(other)).toBeFalsy()
     })
 
     it('return false if the location change', function () {
-      const instance : UnidocSymbol = UnidocSymbol.create(
+      const instance: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 254).at().runtime()
-                         .to().text(5, 11, 255).at().runtime()
-                         .build()
+          .from().text(5, 10, 254).at().runtime()
+          .to().text(5, 11, 255).at().runtime()
+          .build()
       )
 
-      const other : UnidocSymbol = UnidocSymbol.create(
+      const other: UnidocSymbol = UnidocSymbol.create(
         CodePoint.b,
         UnidocRangeOrigin.builder()
-                         .from().text(5, 10, 3).at().runtime()
-                         .to().text(5, 11, 4).at().runtime()
-                         .build()
+          .from().text(5, 10, 3).at().runtime()
+          .to().text(5, 11, 4).at().runtime()
+          .build()
       )
 
       expect(instance.equals(other)).toBeFalsy()

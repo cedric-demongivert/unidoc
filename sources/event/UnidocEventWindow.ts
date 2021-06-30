@@ -40,6 +40,9 @@ export class UnidocEventWindow {
     this.events = this._events.view()
   }
 
+  /**
+   * 
+   */
   public get offset(): number {
     return this._offset
   }

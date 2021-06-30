@@ -1,4 +1,4 @@
-import { UnidocProducer } from './producer/UnidocProducer'
+import { UnidocProducer } from './stream/UnidocProducer'
 import { UnidocSymbol } from './symbol/UnidocSymbol'
 import { UnidocToken } from './token/UnidocToken'
 import { UnidocLexer } from './lexer/UnidocLexer'

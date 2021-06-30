@@ -1,12 +1,16 @@
 import { UnidocEvent } from '../event/UnidocEvent'
 
-import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
+import { UnidocPublisher } from '../stream/UnidocPublisher'
+import { UnidocObject } from '../UnidocObject'
 
 import { UnidocValidationEvent } from './UnidocValidationEvent'
 import { UnidocValidationMessage } from './UnidocValidationMessage'
 import { UnidocValidationEventType } from './UnidocValidationEventType'
 
-export class UnidocValidationEventProducer extends ListenableUnidocProducer<UnidocValidationEvent> {
+/**
+ * 
+ */
+export class UnidocValidationEventProducer extends UnidocPublisher<UnidocValidationEvent> {
   /**
   *
   */
@@ -33,24 +37,24 @@ export class UnidocValidationEventProducer extends ListenableUnidocProducer<Unid
   }
 
   /**
-  * @see ListenableUnidocProducer.fail
-  */
+   * 
+   */
   public fail(error: Error): void {
-    super.fail(error)
+    this.output.fail(error)
   }
 
   /**
-  * @see ListenableUnidocProducer.initialize
-  */
-  public initialize(): void {
-    super.initialize()
+   * 
+   */
+  public start(): void {
+    this.output.start()
   }
 
 
 
   /**
-  *
-  */
+   *
+   */
   public produceValidation(event: UnidocEvent): UnidocValidationEventProducer {
     this._event.asValidation(event)
     this.produce(this._event)
@@ -58,8 +62,8 @@ export class UnidocValidationEventProducer extends ListenableUnidocProducer<Unid
   }
 
   /**
-  *
-  */
+   *
+   */
   public produceDocumentCompletion(): UnidocValidationEventProducer {
     this._event.asDocumentCompletion()
     this.produce(this._event)
@@ -67,8 +71,8 @@ export class UnidocValidationEventProducer extends ListenableUnidocProducer<Unid
   }
 
   /**
-  *
-  */
+   *
+   */
   public produceBeginGroup(group: any): UnidocValidationEventProducer {
     this._event.asBeginGroup(group)
     this.produce(this._event)
@@ -76,8 +80,8 @@ export class UnidocValidationEventProducer extends ListenableUnidocProducer<Unid
   }
 
   /**
-  *
-  */
+   *
+   */
   public produceEndGroup(group: any): UnidocValidationEventProducer {
     this._event.asEndGroup(group)
     this.produce(this._event)
@@ -85,8 +89,8 @@ export class UnidocValidationEventProducer extends ListenableUnidocProducer<Unid
   }
 
   /**
-  *
-  */
+   *
+   */
   public produceMessage(message?: UnidocValidationMessage): UnidocValidationEventProducer {
     this._event.asMessage(message)
     this.produce(this._event)
@@ -94,8 +98,8 @@ export class UnidocValidationEventProducer extends ListenableUnidocProducer<Unid
   }
 
   /**
-  * @see ListenableUnidocProducer.produce
-  */
+   * 
+   */
   public produce(event: UnidocValidationEvent = this._event): void {
     if (
       event.type === UnidocValidationEventType.VALIDATION ||
@@ -107,14 +111,14 @@ export class UnidocValidationEventProducer extends ListenableUnidocProducer<Unid
 
     this._index += 1
 
-    super.produce(event)
+    this.output.next(event)
   }
 
   /**
-  * @see ListenableUnidocProducer.complete
-  */
-  public complete(): void {
-    super.complete()
+   * 
+   */
+  public success(): void {
+    this.output.success()
   }
 
   /**
@@ -124,7 +128,7 @@ export class UnidocValidationEventProducer extends ListenableUnidocProducer<Unid
     this._event.clear()
     this._index = 0
     this._batch = 0
-    this.removeAllEventListener()
+    this.off()
   }
 }
 

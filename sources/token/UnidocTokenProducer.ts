@@ -1,6 +1,7 @@
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
-import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
+import { UnidocPublisher } from '../stream/UnidocPublisher'
+
 import { UnidocOrigin } from '../origin/UnidocOrigin'
 
 import { UnidocToken } from './UnidocToken'
@@ -9,12 +10,15 @@ import { UnidocTokenType } from './UnidocTokenType'
 /**
 * A unidoc token producer.
 */
-export class UnidocTokenProducer extends ListenableUnidocProducer<UnidocToken> {
+export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
   /**
   * The token instance used for the emission of new tokens.
   */
   private readonly _token: UnidocToken
 
+  /**
+   * 
+   */
   private _index: number
 
   /**
@@ -34,31 +38,29 @@ export class UnidocTokenProducer extends ListenableUnidocProducer<UnidocToken> {
   /**
   * @see ListenableUnidocProducer.initialize
   */
-  public initialize(): void {
-    super.initialize()
-  }
-
-  public initializeIfFirst(): void {
-    if (this._index === 0) {
-      this.initialize()
-    }
+  public start(): void {
+    this.output.start()
   }
 
   /**
-  * @see ListenableUnidocProducer.fail
-  */
-  public fail(error: Error): void {
-    super.fail(error)
-  }
-
+   * 
+   */
   public at(origin: UnidocOrigin): UnidocTokenProducer {
     this._token.origin.from.copy(origin)
     this._token.origin.to.copy(origin)
     return this
   }
 
+  /**
+   * 
+   */
   public from(): UnidocOrigin
+
+  /**
+   * 
+   */
   public from(origin: UnidocOrigin): UnidocTokenProducer
+
   public from(origin?: UnidocOrigin): UnidocOrigin | UnidocTokenProducer {
     if (origin) {
       this._token.origin.from.copy(origin)
@@ -70,8 +72,16 @@ export class UnidocTokenProducer extends ListenableUnidocProducer<UnidocToken> {
 
   }
 
+  /**
+   * 
+   */
   public to(): UnidocOrigin
+
+  /**
+   * 
+   */
   public to(origin: UnidocOrigin): UnidocTokenProducer
+
   public to(origin?: UnidocOrigin): UnidocOrigin | UnidocTokenProducer {
     if (origin) {
       this._token.origin.to.copy(origin)
@@ -82,11 +92,17 @@ export class UnidocTokenProducer extends ListenableUnidocProducer<UnidocToken> {
     }
   }
 
+  /**
+   * 
+   */
   public withSymbols(symbols: Sequence<number>): UnidocTokenProducer {
     this._token.symbols.copy(symbols)
     return this
   }
 
+  /**
+   * 
+   */
   public withType(type: UnidocTokenType): UnidocTokenProducer {
     this._token.type = type
     return this
@@ -215,20 +231,30 @@ export class UnidocTokenProducer extends ListenableUnidocProducer<UnidocToken> {
     token.index = this._index
     this._index += 1
 
-    super.produce(token)
-  }
-
-  public clear(): void {
-    this._index = 0
-    this._token.clear()
-    this.removeAllEventListener()
+    this.output.next(token)
   }
 
   /**
   * @see ListenableUnidocProducer.complete
   */
-  public complete(): void {
-    super.complete()
+  public success(): void {
+    this.output.success()
+  }
+
+  /**
+  * @see ListenableUnidocProducer.fail
+  */
+  public fail(error: Error): void {
+    this.output.fail(error)
+  }
+
+  /**
+   * 
+   */
+  public clear(): void {
+    this._index = 0
+    this._token.clear()
+    this.off()
   }
 }
 

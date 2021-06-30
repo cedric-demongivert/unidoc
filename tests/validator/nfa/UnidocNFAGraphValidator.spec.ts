@@ -7,13 +7,11 @@ import { UnidocValidationEventProducer } from '../../../sources/validation/Unido
 import { UnidocValidationMessageBuilder } from '../../../sources/validation/UnidocValidationMessageBuilder'
 import { UnidocBuffer } from '../../../sources/buffer/UnidocBuffer'
 import { UnidocEvent } from '../../../sources/event/UnidocEvent'
-import { TrackedUnidocEventProducer } from '../../../sources/event/TrackedUnidocEventProducer'
+import { UnidocRuntimeEventProducer } from '../../../sources/event/UnidocRuntimeEventProducer'
 
 import { UnidocKissValidator } from '../../../sources/validator/kiss/UnidocKissValidator'
 import { UnidocValidator } from '../../../sources/validator/UnidocValidator'
 import { UnidocNFAValidationGraph } from '../../../sources/validator/nfa/UnidocNFAValidationGraph'
-import { UnidocNFAValidationGraphResolver } from '../../../sources/validator/nfa/UnidocNFAValidationGraphResolver'
-
 
 import { ExpectedContent } from '../../../sources/validator/message/ExpectedContent'
 
@@ -23,9 +21,9 @@ import { UnnecessaryContent } from '../../../sources/validator/blueprint/message
 import { PreferredContent } from '../../../sources/validator/blueprint/messages/PreferredContent'
 */
 
-describe('UnidocNFAGraphValidator', function() {
-  describe('validation of sequences', function() {
-    it('accept a sequence of element', function() {
+describe('UnidocNFAGraphValidator', function () {
+  describe('validation of sequences', function () {
+    it('accept a sequence of element', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -38,21 +36,21 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('red')
         .produceTagStart('green')
         .produceTagStart('blue')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceValidation(inputBuffer.get(2))
@@ -61,7 +59,7 @@ describe('UnidocNFAGraphValidator', function() {
       expect(validatorBuffer).toEqualTheSequence(expectationBuffer)
     })
 
-    it('emit an error when the sequence is unnordered', function() {
+    it('emit an error when the sequence is unnordered', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -74,21 +72,21 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('red')
         .produceTagStart('blue')
         .produceTagStart('green')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceMessage(
@@ -102,7 +100,7 @@ describe('UnidocNFAGraphValidator', function() {
       expect(validatorBuffer).toEqualTheSequence(expectationBuffer)
     })
 
-    it('emit an error when an element of the sequence is missing', function() {
+    it('emit an error when an element of the sequence is missing', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -115,20 +113,20 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('red')
         .produceTagStart('green')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceDocumentCompletion()
@@ -143,7 +141,7 @@ describe('UnidocNFAGraphValidator', function() {
       expect(validatorBuffer).toEqualTheSequence(expectationBuffer)
     })
 
-    it('emit an error when an element of the sequence is invalid', function() {
+    it('emit an error when an element of the sequence is invalid', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -156,21 +154,21 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('red')
         .produceTagStart('yellow')
         .produceTagStart('green')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceMessage(
@@ -185,8 +183,8 @@ describe('UnidocNFAGraphValidator', function() {
     })
   })
 
-  describe('validation of optional content', function() {
-    it('accept a sequence with the optional content', function() {
+  describe('validation of optional content', function () {
+    it('accept a sequence with the optional content', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -199,21 +197,21 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('red')
         .produceTagStart('green')
         .produceTagStart('blue')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceValidation(inputBuffer.get(2))
@@ -222,7 +220,7 @@ describe('UnidocNFAGraphValidator', function() {
       expect(validatorBuffer).toEqualTheSequence(expectationBuffer)
     })
 
-    it('accept a sequence without the optional content', function() {
+    it('accept a sequence without the optional content', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -235,20 +233,20 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('red')
         .produceTagStart('blue')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceDocumentCompletion()
@@ -256,7 +254,7 @@ describe('UnidocNFAGraphValidator', function() {
       expect(validatorBuffer).toEqualTheSequence(expectationBuffer)
     })
 
-    it('emit an error when an illegal content is given in replacement of the optional content', function() {
+    it('emit an error when an illegal content is given in replacement of the optional content', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -269,21 +267,21 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('red')
         .produceTagStart('yellow')
         .produceTagStart('blue')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceMessage(
@@ -298,8 +296,8 @@ describe('UnidocNFAGraphValidator', function() {
     })
   })
 
-  describe('validation of an arbitrary repeatition of content', function() {
-    it('accept an arbitrary repeatition of a given content', function() {
+  describe('validation of an arbitrary repeatition of content', function () {
+    it('accept an arbitrary repeatition of a given content', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -310,23 +308,23 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('green')
         .produceTagStart('green')
         .produceTagStart('green')
         .produceTagStart('green')
         .produceTagStart('green')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceValidation(inputBuffer.get(2))
@@ -337,7 +335,7 @@ describe('UnidocNFAGraphValidator', function() {
       expect(validatorBuffer).toEqualTheSequence(expectationBuffer)
     })
 
-    it('accept nothing', function() {
+    it('accept nothing', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -348,22 +346,22 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
 
       validator.subscribe(input)
 
-      input.initialize().complete()
+      input.start().success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceDocumentCompletion()
 
       expect(validatorBuffer).toEqualTheSequence(expectationBuffer)
     })
 
-    it('reject a sequence when it can\'t validate it further', function() {
+    it('reject a sequence when it can\'t validate it further', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -374,23 +372,23 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('green')
         .produceTagStart('green')
         .produceTagStart('yellow')
         .produceTagStart('green')
         .produceTagStart('green')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceValidation(inputBuffer.get(1))
       expectation.produceValidation(inputBuffer.get(2))
@@ -406,11 +404,11 @@ describe('UnidocNFAGraphValidator', function() {
     })
   })
 
-  describe('validation of a disjunction', function() {
+  describe('validation of a disjunction', function () {
     const disjunction: string[] = ['green', 'blue', 'red']
 
     for (let index = 0; index < disjunction.length; ++index) {
-      it('accept any valid path of the disjunction [' + index + ']', function() {
+      it('accept any valid path of the disjunction [' + index + ']', function () {
         const graph: UnidocNFAValidationGraph = (
           new UnidocNFAValidationGraph()
             .builder()
@@ -421,19 +419,19 @@ describe('UnidocNFAGraphValidator', function() {
 
         const validator: UnidocValidator = UnidocValidator.graph(graph)
         const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-        const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+        const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
         const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
         validator.subscribe(input)
 
-        input.initialize()
+        input.start()
           .produceTagStart(disjunction[index])
-          .complete()
+          .success()
 
         const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
         const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-        expectation.initialize()
+        expectation.start()
         expectation.produceValidation(inputBuffer.get(0))
         expectation.produceDocumentCompletion()
 
@@ -441,7 +439,7 @@ describe('UnidocNFAGraphValidator', function() {
       })
     }
 
-    it('reject an element that is not in the disjunction', function() {
+    it('reject an element that is not in the disjunction', function () {
       const graph: UnidocNFAValidationGraph = (
         new UnidocNFAValidationGraph()
           .builder()
@@ -452,19 +450,19 @@ describe('UnidocNFAGraphValidator', function() {
 
       const validator: UnidocValidator = UnidocValidator.graph(graph)
       const validatorBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(validator, UnidocValidationEvent.ALLOCATOR)
-      const input: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+      const input: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
       const inputBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(input, UnidocEvent.ALLOCATOR)
 
       validator.subscribe(input)
 
-      input.initialize()
+      input.start()
         .produceTagStart('yellow')
-        .complete()
+        .success()
 
       const expectation: UnidocValidationEventProducer = new UnidocValidationEventProducer()
       const expectationBuffer: UnidocBuffer<UnidocValidationEvent> = UnidocBuffer.bufferize(expectation, UnidocValidationEvent.ALLOCATOR)
 
-      expectation.initialize()
+      expectation.start()
       expectation.produceValidation(inputBuffer.get(0))
       expectation.produceMessage(
         UnidocValidationMessageBuilder.get()

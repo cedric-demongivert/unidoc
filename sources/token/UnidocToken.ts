@@ -315,22 +315,35 @@ export class UnidocToken {
 }
 
 export namespace UnidocToken {
+  /**
+   * 
+   */
   export function create(capacity: number = 16): UnidocToken {
     return new UnidocToken(capacity)
   }
 
   /**
-  * Instantiate a deep copy of the given instance.
-  *
-  * @param toCopy - An instance to copy.
-  *
-  * @return A deep copy of the given instance.
-  */
+   * Instantiate a deep copy of the given instance.
+   *
+   * @param toCopy - An instance to copy.
+   *
+   * @return A deep copy of the given instance.
+   */
   export function copy(toCopy: UnidocToken): UnidocToken
+  /**
+   * 
+   */
   export function copy(toCopy: null): null
-  export function copy(toCopy: UnidocToken | null): UnidocToken | null {
+  /**
+   * 
+   */
+  export function copy(toCopy: undefined): undefined
+  export function copy(toCopy: UnidocToken | null | undefined): UnidocToken | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }
 
+  /**
+   * 
+   */
   export const ALLOCATOR: Duplicator<UnidocToken> = Duplicator.fromFactory(create)
 }

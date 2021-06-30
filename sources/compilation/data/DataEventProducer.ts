@@ -1,4 +1,4 @@
-import { ListenableUnidocProducer } from '../../producer/ListenableUnidocProducer'
+import { ListenableUnidocProducer } from '../../stream/ListenableUnidocProducer'
 
 import { DataEvent } from './DataEvent'
 

@@ -1,22 +1,21 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
-import { SubscribableUnidocConsumer } from '../consumer/SubscribableUnidocConsumer'
+import { UnidocListener } from '../stream/UnidocListener'
 
 import { UnidocOrigin } from '../origin/UnidocOrigin'
-import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
 import { UnidocToken } from './UnidocToken'
 
-export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
-  private readonly _tokens : Pack<UnidocToken>
-  public  readonly tokens  : Sequence<UnidocToken>
+export class UnidocTokenBuffer extends UnidocListener<UnidocToken> {
+  private readonly _tokens: Pack<UnidocToken>
+  public readonly tokens: Sequence<UnidocToken>
 
   /**
   * Instantiate a new empty token buffer with the given capacity.
   *
   * @param [capacity = 32] - Capacity of the buffer to instantiate.
   */
-  public constructor (capacity : number = 32) {
+  public constructor(capacity: number = 32) {
     super()
     this._tokens = Pack.instance(UnidocToken.ALLOCATOR, capacity)
     this.tokens = this._tokens.view()
@@ -25,80 +24,80 @@ export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
   /**
   * @see UnidocConsumer.handleInitialization
   */
-  public handleInitialization () : void { }
+  public start(): void { }
 
   /**
   * @see UnidocConsumer.handleProduction
   */
-  public handleProduction(value: UnidocToken): void {
+  public next(value: UnidocToken): void {
     this.push(value)
   }
 
   /**
   * @see UnidocConsumer.handleCompletion
   */
-  public handleCompletion(): void {
+  public success(): void {
 
   }
 
   /**
   * @see UnidocConsumer.handleFailure
   */
-  public handleFailure(error: Error): void {
+  public failure(error: Error): void {
     console.error(error)
   }
 
-  public get capacity () : number {
+  public get capacity(): number {
     return this._tokens.capacity
   }
 
   /**
   * @see MutableSequence.size
   */
-  public get size () : number {
+  public get size(): number {
     return this._tokens.size
   }
 
   /**
   * @see MutableSequence.size
   */
-  public set size (newSize : number) {
+  public set size(newSize: number) {
     this._tokens.size = newSize
   }
 
   /**
   * @see Sequence.last
   */
-  public get last () : UnidocToken {
+  public get last(): UnidocToken {
     return this._tokens.last
   }
 
   /**
   * @see Sequence.first
   */
-  public get first () : UnidocToken {
+  public get first(): UnidocToken {
     return this._tokens.first
   }
 
   /**
   * @return The starting location of this buffer.
   */
-  public get from () : UnidocOrigin {
+  public get from(): UnidocOrigin {
     return this._tokens.size === 0 ? UnidocOrigin.runtime() : this._tokens.first.origin.from
   }
 
   /**
   * @return The ending location of this buffer.
   */
-  public get to () : UnidocOrigin {
+  public get to(): UnidocOrigin {
     return this._tokens.size === 0 ? UnidocOrigin.runtime() : this._tokens.last.origin.to
   }
 
   /**
   * @return The text content associated with this buffer.
   */
-  public get text () : string {
-    let result : string = ''
+  public get text(): string {
+    let result: string = ''
 
     for (const token of this._tokens) {
       result += token.text
@@ -107,9 +106,9 @@ export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
     return result
   }
 
-  public slice (from : number, length : number) : UnidocTokenBuffer {
-    const result : UnidocTokenBuffer = new UnidocTokenBuffer(length)
-    const size : number = Math.min(length, this.size - from)
+  public slice(from: number, length: number): UnidocTokenBuffer {
+    const result: UnidocTokenBuffer = new UnidocTokenBuffer(length)
+    const size: number = Math.min(length, this.size - from)
 
     for (let index = 0; index < size; ++index) {
       result.push(this._tokens.get(index + from))
@@ -118,18 +117,18 @@ export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
     return result
   }
 
-  public reallocate (capacity : number) : void {
+  public reallocate(capacity: number): void {
     this._tokens.reallocate(capacity)
   }
 
-  public fit () : void {
+  public fit(): void {
     this._tokens.fit()
   }
 
   /**
   * @see MutableSequence.get
   */
-  public get (index : number) : UnidocToken {
+  public get(index: number): UnidocToken {
     return this._tokens.get(index)
   }
 
@@ -138,7 +137,7 @@ export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
   *
   * @param token - A token to append.
   */
-  public push (token : UnidocToken) : void {
+  public push(token: UnidocToken): void {
     this._tokens.push(token)
   }
 
@@ -147,21 +146,21 @@ export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
   *
   * @param index - Index of the token to remove.
   */
-  public delete (index : number) : void {
+  public delete(index: number): void {
     this._tokens.delete(index)
   }
 
   /**
   * @see Pack#deleteMany
   */
-  public deleteMany (index : number, length : number) : void {
+  public deleteMany(index: number, length: number): void {
     this._tokens.deleteMany(index, length)
   }
 
   /**
   * Reset this token buffer.
   */
-  public concat (tokens : Iterable<UnidocToken>) : void {
+  public concat(tokens: Iterable<UnidocToken>): void {
     for (const token of tokens) {
       this._tokens.push(token)
     }
@@ -172,7 +171,7 @@ export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
   *
   * @param toCopy - A buffer instance to copy.
   */
-  public copy (toCopy : UnidocTokenBuffer) : void {
+  public copy(toCopy: UnidocTokenBuffer): void {
     this._tokens.clear()
 
     for (const token of toCopy.tokens) {
@@ -183,12 +182,12 @@ export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
   /**
   * Reset this token buffer.
   */
-  public clear () : void {
+  public clear(): void {
     this._tokens.clear()
   }
 
-  public toString () : string {
-    let result : string = '['
+  public toString(): string {
+    let result: string = '['
 
     for (let index = 0; index < this._tokens.size; ++index) {
       if (index > 0) result += ','
@@ -204,14 +203,14 @@ export class UnidocTokenBuffer extends SubscribableUnidocConsumer<UnidocToken> {
   /**
   * @see Symbol.iterator
   */
-  public * [Symbol.iterator] () : Iterator<UnidocToken> {
-    yield * this._tokens
+  public *[Symbol.iterator](): Iterator<UnidocToken> {
+    yield* this._tokens
   }
 
   /**
   * @see Object.equals
   */
-  public equals (other : any) : boolean {
+  public equals(other: any): boolean {
     if (other == null) return false
     if (other === this) return true
 
@@ -238,7 +237,7 @@ export namespace UnidocTokenBuffer {
   * @param left - Buffer to use as a left operand.
   * @param right - Buffer to use as a right operand.
   */
-  export function assert (left : UnidocTokenBuffer, right : UnidocTokenBuffer) : void {
+  export function assert(left: UnidocTokenBuffer, right: UnidocTokenBuffer): void {
     if (left.tokens.size !== right.tokens.size) {
       throw new Error(
         'Buffers ' + right.toString() + ' and ' + left.toString() + ' are ' +

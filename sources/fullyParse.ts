@@ -1,13 +1,13 @@
-import { UnidocProducer } from './producer/UnidocProducer'
-import { UnidocProducerEvent } from './producer/UnidocProducerEvent'
+import { UnidocProducer } from './stream/UnidocProducer'
+import { UnidocProducerEvent } from './stream/UnidocProducerEvent'
 import { UnidocEvent } from './event/UnidocEvent'
 import { UnidocParser } from './parser/UnidocParser'
 import { UnidocLexer } from './lexer/UnidocLexer'
 
-import { UnidocStream } from './stream/UnidocStream'
-import { UnidocImportationFilter } from './stream/UnidocImportationFilter'
+import { UnidocContext } from './context/UnidocContext'
+import { UnidocImportationFilter } from './context/UnidocImportationFilter'
 
-export function fullyParse(input: UnidocStream): UnidocProducer<UnidocEvent> {
+export function fullyParse(input: UnidocContext): UnidocProducer<UnidocEvent> {
   const lexer: UnidocLexer = new UnidocLexer()
   const parser: UnidocParser = new UnidocParser()
   const importer: UnidocImportationFilter = new UnidocImportationFilter()
@@ -16,11 +16,11 @@ export function fullyParse(input: UnidocStream): UnidocProducer<UnidocEvent> {
   parser.subscribe(lexer)
   importer.subscribe(parser)
 
-  importer.importations.addEventListener(
-    UnidocProducerEvent.PRODUCTION, input.import.bind(input)
+  importer.importations.on(
+    UnidocProducerEvent.NEXT, input.import.bind(input)
   )
 
-  importer.importations.addEventListener(
+  importer.importations.on(
     UnidocProducerEvent.FAILURE, input.fail.bind(input)
   )
 

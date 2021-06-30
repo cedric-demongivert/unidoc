@@ -1,7 +1,7 @@
 export { UnidocReducer } from './UnidocReducer'
 export { UnidocReductionExecutor } from './UnidocReductionExecutor'
 export { UnidocReductionInput } from './UnidocReductionInput'
-export { UnidocReductionInputProducer } from './UnidocReductionInputProducer'
+export { UnidocReductionInputBuilder } from './UnidocReductionInputBuilder'
 export { UnidocReductionInputType } from './UnidocReductionInputType'
 export { UnidocReductionRequest } from './UnidocReductionRequest'
 export { UnidocValidationToReductionTranslator } from './UnidocValidationToReductionTranslator'

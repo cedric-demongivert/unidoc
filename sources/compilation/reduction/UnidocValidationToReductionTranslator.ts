@@ -1,50 +1,53 @@
-import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
-import { UnidocProducer } from '../../producer/UnidocProducer'
+import { UnidocFunction } from '../../stream/UnidocFunction'
 
 import { UnidocValidationEvent } from '../../validation/UnidocValidationEvent'
 import { UnidocValidationEventType } from '../../validation/UnidocValidationEventType'
 
-import { UnidocReductionInputProducer } from './UnidocReductionInputProducer'
 import { UnidocReductionInput } from './UnidocReductionInput'
+import { UnidocReductionInputBuilder } from './UnidocReductionInputBuilder'
 
-export class UnidocValidationToReductionTranslator extends SubscribableUnidocConsumer<UnidocValidationEvent> implements UnidocProducer<UnidocReductionInput> {
+export class UnidocValidationToReductionTranslator extends UnidocFunction<UnidocValidationEvent, UnidocReductionInput> {
   /**
   *
   */
-  private _output: UnidocReductionInputProducer
+  private _event: UnidocReductionInputBuilder
 
   /**
   *
   */
   public constructor() {
     super()
-    this._output = new UnidocReductionInputProducer()
+    this._event = new UnidocReductionInputBuilder()
   }
 
   /**
   * @see UnidocConsumer.handleInitialization
   */
-  public handleInitialization(): void {
-    this._output.initialize()
-    this._output.produceStart()
+  public start(): void {
+    this.output.start()
+    this._event.asStart()
+    this.output.next(this._event.get())
   }
 
   /**
   * @see UnidocConsumer.handleProduction
   */
-  public handleProduction(event: UnidocValidationEvent): void {
+  public next(event: UnidocValidationEvent): void {
     switch (event.type) {
       case UnidocValidationEventType.VALIDATION:
-        this._output.produceEvent(event.event)
+        this._event.asEvent(event.event)
+        this.output.next(this._event.get())
         return
       case UnidocValidationEventType.DOCUMENT_COMPLETION:
       case UnidocValidationEventType.MESSAGE:
         return
       case UnidocValidationEventType.BEGIN_GROUP:
-        this._output.produceGroupStart(event.group)
+        this._event.asGroupStart(event.group)
+        this.output.next(this._event.get())
         return
       case UnidocValidationEventType.END_GROUP:
-        this._output.produceGroupEnd(event.group)
+        this._event.asGroupEnd(event.group)
+        this.output.next(this._event.get())
         return
       default:
         throw new Error(
@@ -58,36 +61,16 @@ export class UnidocValidationToReductionTranslator extends SubscribableUnidocCon
   /**
   * @see UnidocConsumer.handleCompletion
   */
-  public handleCompletion(): void {
-    this._output.produceEnd()
-    this._output.complete()
+  public success(): void {
+    this._event.asEnd()
+    this.output.next(this._event.get())
+    this.output.success()
   }
 
   /**
   * @see UnidocConsumer.handleFailure
   */
-  public handleFailure(error: Error): void {
-    this._output.fail(error)
-  }
-
-  /**
-  * @see UnidocProducer.addEventListener
-  */
-  public addEventListener(event: any, listener: any): void {
-    this._output.addEventListener(event, listener)
-  }
-
-  /**
-  * @see UnidocProducer.removeEventListener
-  */
-  public removeEventListener(event: any, listener: any): void {
-    this._output.removeEventListener(event, listener)
-  }
-
-  /**
-  * @see UnidocProducer.removeAllEventListener
-  */
-  public removeAllEventListener(...parameters: [any?]): void {
-    this._output.removeAllEventListener(...parameters)
+  public failure(error: Error): void {
+    this.output.fail(error)
   }
 }

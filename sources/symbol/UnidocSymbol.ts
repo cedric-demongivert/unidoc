@@ -11,7 +11,7 @@ export class UnidocSymbol {
   /**
   * Unicode code point of the symbol.
   */
-  public symbol: CodePoint
+  public code: CodePoint
 
   /**
   * Origin of this symbol. If the origin is a range the begining is the
@@ -24,7 +24,7 @@ export class UnidocSymbol {
   * Instantiate a new empty unidoc symbol.
   */
   public constructor() {
-    this.symbol = 0
+    this.code = 0
     this.origin = new UnidocRangeOrigin(4).runtime()
   }
 
@@ -36,7 +36,7 @@ export class UnidocSymbol {
   * @return This symbol instance for chaining purposes.
   */
   public setSymbol(symbol: CodePoint): UnidocSymbol {
-    this.symbol = symbol
+    this.code = symbol
     return this
   }
 
@@ -58,7 +58,7 @@ export class UnidocSymbol {
   * @param toCopy - An existing unidoc symbol to copy.
   */
   public copy(toCopy: UnidocSymbol): void {
-    this.symbol = toCopy.symbol
+    this.code = toCopy.code
     this.origin.copy(toCopy.origin)
   }
 
@@ -75,7 +75,7 @@ export class UnidocSymbol {
   * Reset this instance to it's initial state.
   */
   public clear(): void {
-    this.symbol = 0
+    this.code = 0
     this.origin.clear()
     this.origin.runtime()
   }
@@ -86,7 +86,7 @@ export class UnidocSymbol {
   public toString(): string {
     let result: string = 'symbol('
 
-    result += CodePoint.toDebugString(this.symbol)
+    result += CodePoint.toDebugString(this.code)
     result += ') '
     result += this.origin.toString()
 
@@ -101,8 +101,10 @@ export class UnidocSymbol {
     if (other === this) return true
 
     if (other instanceof UnidocSymbol) {
-      return other.symbol === this.symbol &&
+      return (
+        other.code === this.code &&
         other.origin.equals(this.origin)
+      )
     }
 
     return false
@@ -154,6 +156,9 @@ export namespace UnidocSymbol {
   * @return A copy of the given instance.
   */
   export function copy(toCopy: UnidocSymbol | null | undefined): UnidocSymbol | null | undefined
+  /**
+   * 
+   */
   export function copy(toCopy: UnidocSymbol | null | undefined): UnidocSymbol | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }

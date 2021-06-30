@@ -1,9 +1,9 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
-import { UnidocProducer } from '../../producer/UnidocProducer'
-import { UnidocProducerEvent } from '../../producer/UnidocProducerEvent'
-import { StaticUnidocProducer } from '../../producer/StaticUnidocProducer'
+import { UnidocProducer } from '../../stream/UnidocProducer'
+import { UnidocProducerEvent } from '../../stream/UnidocProducerEvent'
+import { StaticUnidocProducer } from '../../stream/StaticUnidocProducer'
 
 import { DataPath } from './DataPath'
 import { Data } from './Data'
@@ -40,7 +40,7 @@ export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> imp
   /**
   *
   */
-  public handleInitialization(): void {
+  public start(): void {
     this._output.initialize()
     this._stack.push(undefined)
   }
@@ -48,7 +48,7 @@ export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> imp
   /**
   *
   */
-  public handleProduction(value: DataEvent): void {
+  public next(value: DataEvent): void {
     switch (value.type) {
       case DataEventType.MOVE:
         this.move(value.path)
@@ -237,7 +237,7 @@ export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> imp
   /**
   *
   */
-  public handleCompletion(): void {
+  public success(): void {
     const result: any = this._stack.first
     this._stack.clear()
     this._path.clear()
@@ -248,15 +248,15 @@ export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> imp
   /**
   *
   */
-  public handleFailure(error: Error): void {
+  public failure(error: Error): void {
     this._output.fail(error)
   }
 
   /**
-  * @see UnidocProducer.addEventListener
+  * @see UnidocProducer.on
   */
-  public addEventListener(event: UnidocProducerEvent, listener: any): void {
-    this._output.addEventListener(event, listener)
+  public on(event: UnidocProducerEvent, listener: any): void {
+    this._output.on(event, listener)
   }
 
   /**

@@ -1,18 +1,111 @@
-export type UnidocTokenType = number
 
+/**
+ * 
+ */
+export type UnidocTokenType = (
+  UnidocTokenType.IDENTIFIER |
+  UnidocTokenType.CLASS |
+  UnidocTokenType.TAG |
+  UnidocTokenType.BLOCK_START |
+  UnidocTokenType.BLOCK_END |
+  UnidocTokenType.NEW_LINE |
+  UnidocTokenType.SPACE |
+  UnidocTokenType.WORD
+)
+
+/**
+ * 
+ */
 export namespace UnidocTokenType {
-  export const DEFAULT_TYPE : UnidocTokenType = 0
+  /**
+   * 
+   */
+  export type IDENTIFIER = 0
 
-  export const IDENTIFIER   : UnidocTokenType = 0
-  export const CLASS        : UnidocTokenType = 1
-  export const TAG          : UnidocTokenType = 2
-  export const BLOCK_START  : UnidocTokenType = 3
-  export const BLOCK_END    : UnidocTokenType = 4
-  export const NEW_LINE     : UnidocTokenType = 5
-  export const SPACE        : UnidocTokenType = 6
-  export const WORD         : UnidocTokenType = 7
+  /**
+   * 
+   */
+  export const IDENTIFIER: IDENTIFIER = 0
 
-  export const ALL          : UnidocTokenType[] = [
+  /**
+   * 
+   */
+  export type CLASS = 1
+
+  /**
+   * 
+   */
+  export const CLASS: CLASS = 1
+
+  /**
+   * 
+   */
+  export type TAG = 2
+
+  /**
+   * 
+   */
+  export const TAG: TAG = 2
+
+  /**
+   * 
+   */
+  export type BLOCK_START = 3
+
+  /**
+   * 
+   */
+  export const BLOCK_START: BLOCK_START = 3
+
+  /**
+   * 
+   */
+  export type BLOCK_END = 4
+
+  /**
+   * 
+   */
+  export const BLOCK_END: BLOCK_END = 4
+
+  /**
+   * 
+   */
+  export type NEW_LINE = 5
+
+  /**
+   * 
+   */
+  export const NEW_LINE: NEW_LINE = 5
+
+  /**
+   * 
+   */
+  export type SPACE = 6
+
+  /**
+   * 
+   */
+  export const SPACE: SPACE = 6
+
+  /**
+   * 
+   */
+  export type WORD = 7
+
+  /**
+   * 
+   */
+  export const WORD: WORD = 7
+
+  /**
+   * 
+   */
+  export const DEFAULT_TYPE: UnidocTokenType = 0
+
+  /**
+   * 
+   */
+  export const ALL: UnidocTokenType[] = [
     IDENTIFIER, CLASS, TAG, BLOCK_START, BLOCK_END, NEW_LINE,
     SPACE, WORD
   ]
@@ -22,17 +115,17 @@ export namespace UnidocTokenType {
   *
   * @param value - Unidoc token type to stringify.
   */
-  export function toString (value : UnidocTokenType) : string | undefined {
+  export function toString(value: UnidocTokenType): string | undefined {
     switch (value) {
-      case IDENTIFIER : return 'IDENTIFIER'
-      case CLASS      : return 'CLASS'
-      case TAG        : return 'TAG'
+      case IDENTIFIER: return 'IDENTIFIER'
+      case CLASS: return 'CLASS'
+      case TAG: return 'TAG'
       case BLOCK_START: return 'BLOCK_START'
-      case BLOCK_END  : return 'BLOCK_END'
-      case NEW_LINE   : return 'NEW_LINE'
-      case SPACE      : return 'SPACE'
-      case WORD       : return 'WORD'
-      default         : return undefined
+      case BLOCK_END: return 'BLOCK_END'
+      case NEW_LINE: return 'NEW_LINE'
+      case SPACE: return 'SPACE'
+      case WORD: return 'WORD'
+      default: return undefined
     }
   }
 }

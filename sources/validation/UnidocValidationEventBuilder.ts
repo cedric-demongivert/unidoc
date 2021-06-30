@@ -2,6 +2,9 @@ import { UnidocEvent } from '../event/UnidocEvent'
 import { UnidocValidationMessage } from './UnidocValidationMessage'
 import { UnidocValidationEvent } from './UnidocValidationEvent'
 
+/**
+ * 
+ */
 export class UnidocValidationEventBuilder {
   /**
   *

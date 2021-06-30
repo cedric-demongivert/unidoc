@@ -2,22 +2,23 @@ import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { CodePoint } from '../symbol/CodePoint'
 
-import { ListenableUnidocProducer } from '../producer/ListenableUnidocProducer'
+import { UnidocPublisher } from '../stream/UnidocPublisher'
 
 import { UnidocOrigin } from '../origin/UnidocOrigin'
 
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
+import { UnidocEventBuilder } from './UnidocEventBuilder'
 
-export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
+export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
-  *
-  */
-  private readonly _event: UnidocEvent
+   *
+   */
+  private readonly _event: UnidocEventBuilder
 
   /**
-  *
-  */
+   * 
+   */
   private _index: number
 
   /**
@@ -25,98 +26,123 @@ export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
   */
   public constructor() {
     super()
-    this._event = new UnidocEvent()
-    this._event.origin.from.runtime()
-    this._event.origin.to.runtime()
+    this._event = new UnidocEventBuilder()
     this._index = 0
   }
 
   /**
-  * @see ListenableUnidocProducer.fail
-  */
+   * 
+   */
   public fail(error: Error): void {
-    super.fail(error)
+    this.output.fail(error)
   }
 
   /**
-  * @see ListenableUnidocProducer.initialize
-  */
-  public initialize(): void {
-    super.initialize()
+   * 
+   */
+  public start(): void {
+    this.output.start()
   }
 
+  /**
+   * 
+   */
   public event(): UnidocEventProducer {
     this._event.clear()
     return this
   }
 
-  public withType(type: UnidocEventType): UnidocEventProducer {
-    this._event.type = type
+  /**
+   * 
+   */
+  public setType(type: UnidocEventType): UnidocEventProducer {
+    this._event.setType(type)
     return this
-  }
-
-  public withSymbols(symbols: Sequence<CodePoint>): UnidocEventProducer {
-    this._event.symbols.copy(symbols)
-    return this
-  }
-
-  public withTag(tag: string): UnidocEventProducer {
-    this._event.tag = tag
-    return this
-  }
-
-  public withIdentifier(identifier: string): UnidocEventProducer {
-    this._event.identifier = identifier
-    return this
-  }
-
-  public withClasses(classes: Iterable<string>): UnidocEventProducer {
-    this._event.classes.clear()
-    this._event.addClasses(classes)
-    return this
-  }
-
-  public at(origin: UnidocOrigin): UnidocEventProducer {
-    this._event.origin.from.copy(origin)
-    this._event.origin.to.copy(origin)
-    return this
-  }
-
-  public from(): UnidocOrigin
-  public from(origin: UnidocOrigin): UnidocEventProducer
-  public from(origin?: UnidocOrigin): UnidocOrigin | UnidocEventProducer {
-    if (origin) {
-      this._event.origin.from.copy(origin)
-      return this
-    } else {
-      this._event.origin.from.clear()
-      return this._event.origin.from
-    }
-  }
-
-  public to(): UnidocOrigin
-  public to(origin: UnidocOrigin): UnidocEventProducer
-  public to(origin?: UnidocOrigin): UnidocOrigin | UnidocEventProducer {
-    if (origin) {
-      this._event.origin.to.copy(origin)
-      return this
-    } else {
-      this._event.origin.to.clear()
-      return this._event.origin.to
-    }
   }
 
   /**
-  * Produce a new word event.
-  *
-  * @param content - Content of the event to produce.
-  *
-  * @return This producer for chaining purposes.
-  */
+   * 
+   */
+  public setSymbols(symbols: Sequence<CodePoint>): UnidocEventProducer {
+    this._event.setSymbols(symbols)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setTag(tag: string): UnidocEventProducer {
+    this._event.setTag(tag)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setIdentifier(identifier: string): UnidocEventProducer {
+    this._event.setIdentifier(identifier)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setClasses(classes: Iterable<string>): UnidocEventProducer {
+    this._event.setClasses(classes)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public produce(event: UnidocEvent = this._event.get()): void {
+    event.index = this._index
+    this._index += 1
+
+    this.output.next(event)
+  }
+
+  /**
+   * 
+   */
+  public success(): void {
+    this.output.success()
+  }
+
+  /**
+   * 
+   */
+  public setOrigin(from: UnidocOrigin, to: UnidocOrigin = from): UnidocEventProducer {
+    this._event.setOrigin(from, to)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setFrom(from: UnidocOrigin): UnidocEventProducer {
+    this._event.setFrom(from)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setTo(to: UnidocOrigin): UnidocEventProducer {
+    this._event.setTo(to)
+    return this
+  }
+
+  /**
+   * Produce a new word event.
+   *
+   * @param content - Content of the event to produce.
+   *
+   * @return This producer for chaining purposes.
+   */
   public produceWord(content: string): UnidocEventProducer {
     this._event.asWord(content)
-
-    this.produce(this._event)
+    this.produce()
 
     return this
   }
@@ -130,8 +156,7 @@ export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
   */
   public produceWhitespace(content: string): UnidocEventProducer {
     this._event.asWhitespace(content)
-
-    this.produce(this._event)
+    this.produce()
 
     return this
   }
@@ -145,8 +170,7 @@ export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
   */
   public produceTagStart(configuration: string): UnidocEventProducer {
     this._event.asTagStart(configuration)
-
-    this.produce(this._event)
+    this.produce()
 
     return this
   }
@@ -160,12 +184,14 @@ export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
   */
   public produceTagEnd(configuration: string): UnidocEventProducer {
     this._event.asTagEnd(configuration)
-
-    this.produce(this._event)
+    this.produce()
 
     return this
   }
 
+  /**
+   * 
+   */
   public tag(configuration: string, definition: (this: UnidocEventProducer) => void): UnidocEventProducer {
     this.produceTagStart(configuration)
     definition.call(this)
@@ -174,30 +200,22 @@ export class UnidocEventProducer extends ListenableUnidocProducer<UnidocEvent> {
   }
 
   /**
-  * @see ListenableUnidocProducer.produce
-  */
-  public produce(event: UnidocEvent = this._event): void {
-    event.index = this._index
-    this._index += 1
-
-    super.produce(event)
-  }
-
-  /**
-  * @see ListenableUnidocProducer.complete
-  */
-  public complete(): void {
-    super.complete()
-  }
-
+   * 
+   */
   public clear(): void {
     this._event.clear()
     this._index = 0
-    this.removeAllEventListener()
+    this.off()
   }
 }
 
+/**
+ * 
+ */
 export namespace UnidocEventProducer {
+  /**
+   * 
+   */
   export function create(): UnidocEventProducer {
     return new UnidocEventProducer()
   }

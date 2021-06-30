@@ -2,9 +2,8 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocEvent } from '../../event/UnidocEvent'
 
-import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
+import { UnidocFunction } from '../../stream/UnidocFunction'
 
-import { UnidocValidationEventProducer } from '../../validation/UnidocValidationEventProducer'
 import { UnidocValidationMessageType } from '../../validation/UnidocValidationMessageType'
 
 import { UnidocKissValidator } from '../kiss/UnidocKissValidator'
@@ -18,6 +17,8 @@ import { UnidocNFAValidationState } from './UnidocNFAValidationState'
 import { UnidocNFAValidationGraph } from './UnidocNFAValidationGraph'
 import { UnidocNFAValidationRelationship } from './UnidocNFAValidationRelationship'
 import { UnidocNFAValidationProcess } from './UnidocNFAValidationProcess'
+import { UnidocObject } from 'sources/UnidocObject'
+import { UnidocValidationEvent } from 'sources/validation'
 
 // const LOGS: string[] = []
 
@@ -29,9 +30,7 @@ import { UnidocNFAValidationProcess } from './UnidocNFAValidationProcess'
 //   }
 // }
 
-export class UnidocNFAValidationGraphResolver
-  extends SubscribableUnidocConsumer<UnidocEvent>
-  implements UnidocValidator {
+export class UnidocNFAValidationGraphResolver extends UnidocFunction<UnidocEvent, UnidocValidationEvent> implements UnidocValidator {
   /**
   *
   */
@@ -73,9 +72,14 @@ export class UnidocNFAValidationGraphResolver
   private _current: UnidocEvent | undefined
 
   /**
-  *
-  */
-  private _output: UnidocValidationEventProducer
+   * 
+   */
+  private _index: number
+
+  /**
+   * 
+   */
+  private _batch: number
 
   /**
   *
@@ -90,7 +94,8 @@ export class UnidocNFAValidationGraphResolver
     this._failures = Pack.any(16)
     this._tree = new UnidocNFAValidationTree()
     this._current = undefined
-    this._output = new UnidocValidationEventProducer()
+    this._index = 0
+    this._batch = 0
   }
 
   /**
@@ -145,9 +150,9 @@ export class UnidocNFAValidationGraphResolver
   }
 
   /**
-  * @see SubscribableUnidocConsumer.handleInitialization
+  * @see SubscribableUnidocConsumer.start
   */
-  public handleInitialization(): void {
+  public start(): void {
     //log('handle initialization')
 
     const pendingStack: Pack<UnidocNFAValidationProcess> = this._pendingStack
@@ -171,9 +176,9 @@ export class UnidocNFAValidationGraphResolver
   }
 
   /**
-  * @see SubscribableUnidocConsumer.handleProduction
+  * @see SubscribableUnidocConsumer.next
   */
-  public handleProduction(value: UnidocEvent): void {
+  public next(value: UnidocEvent): void {
     //log('handle production of ' + value.toString())
     this.dumpFailures()
 
@@ -262,9 +267,9 @@ export class UnidocNFAValidationGraphResolver
   }
 
   /**
-  * @see SubscribableUnidocConsumer.handleCompletion
+  * @see SubscribableUnidocConsumer.success
   */
-  public handleCompletion(): void {
+  public success(): void {
     //log('handle completion')
     this.dumpFailures()
 
@@ -325,7 +330,7 @@ export class UnidocNFAValidationGraphResolver
     // }
 
     this.dump()
-    this._output.complete()
+    this.output.success()
 
     bestMatch.head.parent = null
     UnidocNFAValidationProcess.ALLOCATOR.free(bestMatch)
@@ -353,13 +358,13 @@ export class UnidocNFAValidationGraphResolver
       }
 
       this.dump()
-      this._output.complete()
+      this.output.success()
 
       bestMatch.head.parent = null
       UnidocNFAValidationProcess.ALLOCATOR.free(bestMatch)
     } else {
       this.dump()
-      this._output.complete()
+      this.output.success()
     }
   }
 
@@ -375,7 +380,7 @@ export class UnidocNFAValidationGraphResolver
       if (next.isHead()) {
         return
       } else if (next.isEvent()) {
-        this._output.produce(next.event)
+        this.emit(next.event)
       }
 
       next.delete()
@@ -447,10 +452,10 @@ export class UnidocNFAValidationGraphResolver
   }
 
   /**
-  * @see SubscribableUnidocConsumer.handleFailure
+  * @see SubscribableUnidocConsumer.failure
   */
-  public handleFailure(error: Error): void {
-    this._output.fail(error)
+  public failure(error: Error): void {
+    this.output.fail(error)
   }
 
   /**
@@ -510,6 +515,22 @@ export class UnidocNFAValidationGraphResolver
   }
 
   /**
+   * 
+   */
+  private emit(value: UnidocValidationEvent): void {
+    if (value.isValidation() || value.isDocumentCompletion()) {
+      this._batch += 1
+    }
+
+    value.setIndex(this._index)
+    value.setBatch(this._batch)
+
+    this.output.next(value)
+
+    this._index += 1
+  }
+
+  /**
   *
   */
   public reset(): void {
@@ -518,27 +539,7 @@ export class UnidocNFAValidationGraphResolver
     this._pendingStack.clear()
     UnidocNFAValidationTree.trash(this._tree)
     this._current = undefined
-  }
-
-  /**
-  * @see UnidocProducer.addEventListener
-  */
-  public addEventListener(event: any, listener: any) {
-    this._output.addEventListener(event, listener)
-  }
-
-  /**
-  * @see UnidocProducer.removeEventListener
-  */
-  public removeEventListener(event: any, listener: any) {
-    this._output.removeEventListener(event, listener)
-  }
-
-  /**
-  * @see UnidocProducer.removeAllEventListener
-  */
-  public removeAllEventListener(...parameters: [any?]) {
-    this._output.removeAllEventListener(...parameters)
+    this.off()
   }
 }
 

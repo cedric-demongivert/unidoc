@@ -1,44 +1,49 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { SubscribableUnidocConsumer } from '../consumer/SubscribableUnidocConsumer'
+import { UnidocListener } from '../stream/UnidocListener'
 
-export class UnidocBufferizer<T> extends SubscribableUnidocConsumer<T> {
-  public buffer: Pack<T>
+/**
+ * 
+ */
+export class UnidocBufferizer<Input> extends UnidocListener<Input> {
+  /**
+   * 
+   */
+  public buffer: Pack<Input>
 
-  public constructor(buffer: Pack<T>) {
+  /**
+   * 
+   */
+  public constructor(buffer: Pack<Input>) {
     super()
     this.buffer = buffer
   }
 
   /**
-  * @see UnidocConsumer.handleInitialization
-  */
-  public handleInitialization(): void {
+   * @see UnidocConsumer.handleInitialization
+   */
+  public start(): void {
     this.buffer.clear()
   }
 
   /**
-  * @see UnidocConsumer.handleProduction
-  */
-  public handleProduction(value: T): void {
+   * @see UnidocConsumer.handleProduction
+   */
+  public next(value: Input): void {
     this.buffer.push(value)
   }
 
   /**
-  * @see UnidocConsumer.handleCompletion
-  */
-  public handleCompletion(): void {
+   * @see UnidocConsumer.handleCompletion
+   */
+  public success(): void {
     this.buffer.fit()
   }
 
   /**
-  * @see UnidocConsumer.handleFailure
-  */
-  public handleFailure(error: Error): void {
+   * @see UnidocConsumer.handleFailure
+   */
+  public failure(error: Error): void {
     console.error(error)
   }
-}
-
-export namespace UnidocBufferizer {
-
 }

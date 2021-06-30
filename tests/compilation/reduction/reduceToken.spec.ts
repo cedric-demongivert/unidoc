@@ -1,4 +1,4 @@
-import { TrackedUnidocEventProducer } from '../../../sources/event/TrackedUnidocEventProducer'
+import { UnidocRuntimeEventProducer } from '../../../sources/event/UnidocRuntimeEventProducer'
 import { UnidocEvent } from '../../../sources/event/UnidocEvent'
 import { UnidocBuffer } from '../../../sources/buffer/UnidocBuffer'
 import { UnidocReductionInput } from '../../../sources/compilation/reduction/UnidocReductionInput'
@@ -6,9 +6,9 @@ import { reduce } from '../../../sources/compilation/reduction/common/reduce'
 import { UnidocReducer } from '../../../sources/compilation/reduction/UnidocReducer'
 import { reduceToken } from '../../../sources/compilation/reduction/common/reduceToken'
 
-describe('reduceToken', function() {
-  it('reduce a token', function() {
-    const eventStream: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+describe('reduceToken', function () {
+  it('reduce a token', function () {
+    const eventStream: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
     const eventBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(eventStream, UnidocEvent.ALLOCATOR)
 
     eventStream.produceText('Lorem ipsum dolor sit amet consequetur.')
@@ -24,8 +24,8 @@ describe('reduceToken', function() {
     expect(reduce.iterator(content(), reduceToken())).toBe('Lorem')
   })
 
-  it('can reduce many tokens', function() {
-    const eventStream: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+  it('can reduce many tokens', function () {
+    const eventStream: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
     const eventBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(eventStream, UnidocEvent.ALLOCATOR)
 
     eventStream.produceText('Lorem ipsum dolor sit amet consequetur.')
@@ -64,7 +64,7 @@ describe('reduceToken', function() {
     */
   })
 
-  it('reduce an empty document as an empty token', function() {
+  it('reduce an empty document as an empty token', function () {
     function* content(): Generator<UnidocReductionInput> {
       yield UnidocReductionInput.START
       yield UnidocReductionInput.END
@@ -73,8 +73,8 @@ describe('reduceToken', function() {
     expect(reduce.iterator(content(), reduceToken())).toEqual('')
   })
 
-  it('reduce a whitespace as an empty token', function() {
-    const eventStream: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+  it('reduce a whitespace as an empty token', function () {
+    const eventStream: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
     const eventBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(eventStream, UnidocEvent.ALLOCATOR)
 
     eventStream.produceWhitespace('\t\n\r     \t')
@@ -90,8 +90,8 @@ describe('reduceToken', function() {
     expect(reduce.iterator(content(), reduceToken())).toEqual('')
   })
 
-  it('trim the token', function() {
-    const eventStream: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+  it('trim the token', function () {
+    const eventStream: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
     const eventBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(eventStream, UnidocEvent.ALLOCATOR)
 
     eventStream.produceText('  Lorem \t\n\rtest')
@@ -107,8 +107,8 @@ describe('reduceToken', function() {
     expect(reduce.iterator(content(), reduceToken())).toBe('Lorem')
   })
 
-  it('reduce tag starts to undefined', function() {
-    const eventStream: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+  it('reduce tag starts to undefined', function () {
+    const eventStream: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
     const eventBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(eventStream, UnidocEvent.ALLOCATOR)
 
     eventStream.produceTagStart('test')
@@ -124,8 +124,8 @@ describe('reduceToken', function() {
     expect(reduce.iterator(content(), reduceToken())).toBeUndefined()
   })
 
-  it('reduce tag ends to undefined', function() {
-    const eventStream: TrackedUnidocEventProducer = new TrackedUnidocEventProducer()
+  it('reduce tag ends to undefined', function () {
+    const eventStream: UnidocRuntimeEventProducer = new UnidocRuntimeEventProducer()
     const eventBuffer: UnidocBuffer<UnidocEvent> = UnidocBuffer.bufferize(eventStream, UnidocEvent.ALLOCATOR)
 
     eventStream.produceTagEnd('test')
@@ -141,7 +141,7 @@ describe('reduceToken', function() {
     expect(reduce.iterator(content(), reduceToken())).toBeUndefined()
   })
 
-  it('reduce end of reduction as undefined', function() {
+  it('reduce end of reduction as undefined', function () {
     function* content(): Generator<UnidocReductionInput> {
       yield UnidocReductionInput.END
     }

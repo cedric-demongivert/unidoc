@@ -1,26 +1,61 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
+import { UnidocProducer } from 'sources/stream/UnidocProducer'
 
-import { bufferize as bufferizeImport } from './bufferize'
+import { UnidocBufferizer } from './UnidocBufferizer'
 
+/**
+ * 
+ */
 export type UnidocBuffer<T> = Pack<T>
 
+/**
+ * 
+ */
 export namespace UnidocBuffer {
-  export const bufferize = bufferizeImport
+  /**
+   * 
+   */
+  export function bufferize<T>(input: UnidocProducer<T>): Pack<T>
 
   /**
-  * Instantiate a new buffer for storing a given type of value.
-  *
-  * @param allocator - An allocator that allows to manipulate instances of the type of value to store.
-  * @param [capacity=32] - Initial capacity of the buffer to allocate.
-  *
-  * @return A new buffer instance.
-  */
+   * 
+   */
+  export function bufferize<T>(input: UnidocProducer<T>, allocator: Duplicator<T>): UnidocBuffer<T>
+
+  /**
+   * 
+   */
+  export function bufferize<T>(input: UnidocProducer<T>, allocator?: Duplicator<T>): Pack<T> | UnidocBuffer<T> {
+    let bufferizer: UnidocBufferizer<T>
+
+    if (allocator == null) {
+      bufferizer = new UnidocBufferizer(Pack.any(32))
+    } else {
+      bufferizer = new UnidocBufferizer(UnidocBuffer.create(allocator, 32))
+    }
+
+    bufferizer.subscribe(input)
+
+    return bufferizer.buffer
+  }
+
+  /**
+   * Instantiate a new buffer for storing a given type of value.
+   *
+   * @param allocator - An allocator that allows to manipulate instances of the type of value to store.
+   * @param [capacity=32] - Initial capacity of the buffer to allocate.
+   *
+   * @return A new buffer instance.
+   */
   export function create<T>(allocator: Duplicator<T>, capacity: number = 32): UnidocBuffer<T> {
     return Pack.instance(allocator, capacity)
   }
 
+  /**
+   * 
+   */
   export function toString<T>(buffer: Sequence<T>): string {
     let result: string = '['
 
@@ -43,6 +78,9 @@ export namespace UnidocBuffer {
     return result
   }
 
+  /**
+   * 
+   */
   export function stringify(element: any): string {
     if (element == null || element.toString == null) {
       return JSON.stringify(element)
@@ -51,6 +89,9 @@ export namespace UnidocBuffer {
     }
   }
 
+  /**
+   * 
+   */
   export function expect(result: UnidocBuffer<any> | null | undefined, expectation: UnidocBuffer<any> | null | undefined): void {
     if (result == null || expectation == null) {
       if (expectation === result) {

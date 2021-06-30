@@ -186,45 +186,48 @@ export class UnidocKissValidatorOutput {
 
 export namespace UnidocKissValidatorOutput {
   /**
-  *
-  */
+   *
+   */
   export const CURRENT: UnidocKissValidatorOutput = create().asCurrent()
 
   /**
-  *
-  */
+   *
+   */
   export const NEXT: UnidocKissValidatorOutput = create().asNext()
 
   /**
-  *
-  */
+   *
+   */
   export const END: UnidocKissValidatorOutput = create().asEnd()
 
   /**
-  *
-  */
+   *
+   */
   export const MATCH: UnidocKissValidatorOutput = create().asMatch()
 
   /**
-  * Return a deep copy of the given instance.
-  *
-  * @param toCopy - An instance to copy.
-  *
-  * @return A deep copy of the given instance.
-  */
+   * Return a deep copy of the given instance.
+   *
+   * @param toCopy - An instance to copy.
+   *
+   * @return A deep copy of the given instance.
+   */
   export function copy(toCopy: UnidocKissValidatorOutput): UnidocKissValidatorOutput
   /**
-  *
-  */
+   *
+   */
   export function copy(toCopy: null): null
   /**
-  *
-  */
+   *
+   */
   export function copy(toCopy: undefined): undefined
   /**
-  *
-  */
+   *
+   */
   export function copy(toCopy: UnidocKissValidatorOutput | null | undefined): UnidocKissValidatorOutput | null | undefined
+  /**
+   * 
+   */
   export function copy(toCopy: UnidocKissValidatorOutput | null | undefined): UnidocKissValidatorOutput | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }
