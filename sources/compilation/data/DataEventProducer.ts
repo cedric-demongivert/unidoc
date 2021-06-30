@@ -1,11 +1,11 @@
-import { ListenableUnidocProducer } from '../../stream/ListenableUnidocProducer'
+import { UnidocPublisher } from '../../stream/UnidocPublisher'
 
 import { DataEvent } from './DataEvent'
 
 /**
 *
 */
-export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
+export class DataEventProducer extends UnidocPublisher<DataEvent> {
   /**
   *
   */
@@ -31,7 +31,7 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public publish(): DataEventProducer {
     this._event.publish()
-    this.produce()
+    this.next()
     return this
   }
 
@@ -40,7 +40,7 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public object(): DataEventProducer {
     this._event.object()
-    this.produce()
+    this.next()
     return this
   }
 
@@ -49,7 +49,7 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public array(): DataEventProducer {
     this._event.array()
-    this.produce()
+    this.next()
     return this
   }
 
@@ -58,7 +58,7 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public map(): DataEventProducer {
     this._event.map()
-    this.produce()
+    this.next()
     return this
   }
 
@@ -67,7 +67,7 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public swap(value: any): DataEventProducer {
     this._event.swap(value)
-    this.produce()
+    this.next()
     return this
   }
 
@@ -76,7 +76,7 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public move(...fields: Array<string | number>): DataEventProducer {
     this._event.move(...fields)
-    this.produce()
+    this.next()
     return this
   }
 
@@ -85,7 +85,7 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public back(): DataEventProducer {
     this._event.back()
-    this.produce()
+    this.next()
     return this
   }
 
@@ -94,7 +94,7 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public set(...parameters: Array<any>): DataEventProducer {
     this._event.set(...parameters)
-    this.produce()
+    this.next()
     return this
   }
 
@@ -103,32 +103,32 @@ export class DataEventProducer extends ListenableUnidocProducer<DataEvent> {
   */
   public push(...parameters: Array<any>): DataEventProducer {
     this._event.push(...parameters)
-    this.produce()
+    this.next()
     return this
   }
 
   /**
   * @see ListenableUnidocProducer.initialize
   */
-  public initialize(): void {
+  public start(): void {
     this.clear()
-    super.initialize()
+    this.output.start()
   }
 
   /**
   * @see ListenableUnidocProducer.produce
   */
-  public produce(event: DataEvent = this._event): void {
+  public next(event: DataEvent = this._event): void {
     event.index = this._index
     this._index += 1
-    super.produce(event)
+    this.output.next(event)
   }
 
   /**
   * @see ListenableUnidocProducer.complete
   */
-  public complete(): void {
-    super.complete()
+  public success(): void {
+    this.output.success()
   }
 
   /**

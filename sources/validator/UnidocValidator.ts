@@ -20,6 +20,14 @@ export interface UnidocValidator extends UnidocConsumer<UnidocEvent>, UnidocProd
 */
 export namespace UnidocValidator {
   /**
+   *  
+   */
+  export function validate(events: UnidocProducer<UnidocEvent>, validator: UnidocValidator): UnidocProducer<UnidocValidationEvent> {
+    validator.subscribe(events)
+    return validator
+  }
+
+  /**
   *
   */
   export function kiss(events: UnidocProducer<UnidocEvent>, validator: UnidocKissValidator.Factory): UnidocProducer<UnidocValidationEvent>

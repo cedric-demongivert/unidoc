@@ -6,7 +6,7 @@ import { UnidocReductionInput } from './UnidocReductionInput'
 
 import { UnidocReducer } from './UnidocReducer'
 
-export class UnidocReductionExecutor<Result> extends UnidocFunction<UnidocReductionInput, Result | undefined> {
+export class UnidocReductionExecutor<Result> extends UnidocFunction<UnidocReductionInput, Result> {
   /**
   *
   */

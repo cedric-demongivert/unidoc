@@ -1,16 +1,14 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
-import { SubscribableUnidocConsumer } from '../../consumer/SubscribableUnidocConsumer'
-import { UnidocProducer } from '../../stream/UnidocProducer'
+import { UnidocFunction } from '../../stream/UnidocFunction'
 import { UnidocProducerEvent } from '../../stream/UnidocProducerEvent'
-import { StaticUnidocProducer } from '../../stream/StaticUnidocProducer'
 
 import { DataPath } from './DataPath'
 import { Data } from './Data'
 import { DataEvent } from './DataEvent'
 import { DataEventType } from './DataEventType'
 
-export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> implements UnidocProducer<any> {
+export class DataEventCompiler extends UnidocFunction<DataEvent, any> {
   /**
   *
   */
@@ -24,24 +22,18 @@ export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> imp
   /**
   *
   */
-  private readonly _output: StaticUnidocProducer<any>
-
-  /**
-  *
-  */
   public constructor(capacity: number = 16) {
     super()
 
     this._stack = Pack.any(capacity)
     this._path = new DataPath(capacity)
-    this._output = new StaticUnidocProducer()
   }
 
   /**
   *
   */
   public start(): void {
-    this._output.initialize()
+    this.output.start()
     this._stack.push(undefined)
   }
 
@@ -231,7 +223,7 @@ export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> imp
     this._stack.clear()
     this._path.clear()
     this._stack.push(undefined)
-    this._output.produce(result)
+    this.output.next(result)
   }
 
   /**
@@ -241,36 +233,15 @@ export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> imp
     const result: any = this._stack.first
     this._stack.clear()
     this._path.clear()
-    this._output.produce(result)
-    this._output.complete()
+    this.output.next(result)
+    this.output.success()
   }
 
   /**
   *
   */
   public failure(error: Error): void {
-    this._output.fail(error)
-  }
-
-  /**
-  * @see UnidocProducer.on
-  */
-  public on(event: UnidocProducerEvent, listener: any): void {
-    this._output.on(event, listener)
-  }
-
-  /**
-  * @see UnidocProducer.removeEventListener
-  */
-  public removeEventListener(event: UnidocProducerEvent, listener: any): void {
-    this._output.removeEventListener(event, listener)
-  }
-
-  /**
-  * @see UnidocProducer.removeAllEventListener
-  */
-  public removeAllEventListener(...parameters: [any?]): void {
-    this._output.removeAllEventListener(...parameters)
+    this.output.fail(error)
   }
 
   /**
@@ -279,6 +250,7 @@ export class DataEventCompiler extends SubscribableUnidocConsumer<DataEvent> imp
   */
   public clear(): void {
     this._stack.clear()
+    this.off()
   }
 }
 
