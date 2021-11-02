@@ -1,9 +1,9 @@
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
 
-import { UnidocOrigin } from '../origin/UnidocOrigin'
+import { UnidocPath } from '../origin/UnidocPath'
 
-import { UnidocLocation } from '../location/UnidocLocation'
-import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
+import { UnidocLocation } from '../origin/UnidocLocation'
+import { UnidocLocationTracker } from '../origin/UnidocLocationTracker'
 
 import { UnidocGenerator } from '../stream/UnidocGenerator'
 
@@ -23,7 +23,7 @@ export class UnidocStringSymbolGenerator extends UnidocGenerator(UnidocSymbol, U
   /**
    *
    */
-  public readonly origin: UnidocOrigin
+  public readonly origin: UnidocPath
 
   /**
    * A symbol instance for symbol emission.

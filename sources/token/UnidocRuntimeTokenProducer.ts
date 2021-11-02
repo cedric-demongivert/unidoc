@@ -1,10 +1,11 @@
 import { UnidocPublisher } from '../stream/UnidocPublisher'
 import { UnidocProducerEvent } from '../stream/UnidocProducerEvent'
 
-import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
+import { UnidocLocationTracker } from '../origin/UnidocLocationTracker'
+
 import { UnidocParser } from '../parser/UnidocParser'
 
-import { CodePoint } from '../symbol/CodePoint'
+import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 
 import { UnidocToken } from './UnidocToken'
 import { UnidocTokenBuffer } from './UnidocTokenBuffer'
@@ -18,15 +19,15 @@ const STATE_SPACE: number = 1
 const STATE_CARRIAGE_RETURN: number = 2
 const STATE_NEWLINE: number = 3
 
-function getState(codePoint: CodePoint): number {
-  switch (codePoint) {
-    case CodePoint.NEW_LINE:
+function getState(unit: UTF32CodeUnit): number {
+  switch (unit) {
+    case UTF32CodeUnit.NEW_LINE:
       return STATE_NEWLINE
-    case CodePoint.CARRIAGE_RETURN:
+    case UTF32CodeUnit.CARRIAGE_RETURN:
       return STATE_CARRIAGE_RETURN
-    case CodePoint.SPACE:
-    case CodePoint.TABULATION:
-    case CodePoint.FORM_FEED:
+    case UTF32CodeUnit.SPACE:
+    case UTF32CodeUnit.HORIZONTAL_TABULATION:
+    case UTF32CodeUnit.FORM_FEED:
       return STATE_SPACE
     default:
       return STATE_WORD
@@ -283,10 +284,10 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
     if (value.length > 0) {
       let offset: number = 0
       let cursor: number = 1
-      let state: number = getState(value.codePointAt(0) as CodePoint)
+      let state: number = getState(value.UTF32CodeUnitAt(0) as UTF32CodeUnit)
 
       while (cursor < value.length) {
-        const nextState: number = getState(value.codePointAt(cursor) as CodePoint)
+        const nextState: number = getState(value.UTF32CodeUnitAt(cursor) as UTF32CodeUnit)
 
         switch (state) {
           case STATE_WORD:

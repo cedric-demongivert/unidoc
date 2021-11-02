@@ -1,5 +1,5 @@
 /**
- * 
+ * The inner state of a source of unidoc symbols.
  */
 export type UnidocSourceState = (
   UnidocSourceState.INSTANTIATED |
@@ -13,42 +13,42 @@ export type UnidocSourceState = (
  */
 export namespace UnidocSourceState {
   /**
-   * 
+   * The state of a source of symbols that was just instantiated.
    */
   export type INSTANTIATED = 0
 
   /**
-   * 
+   * The state of a source of symbols that was just instantiated.
    */
   export const INSTANTIATED: INSTANTIATED = 0
 
   /**
-   * 
+   * The state of a source of symbols that is producing symbols.
    */
   export type RUNNING = 1
 
   /**
-   * 
+   * The state of a source of symbols that is producing symbols.
    */
   export const RUNNING: RUNNING = 1
 
   /**
-   * 
+   * The state of a source of symbols that produced all of it's symbols.
    */
   export type FINISHED = 2
 
   /**
-   * 
+   * The state of a source of symbols that produced all of it's symbols.
    */
   export const FINISHED: FINISHED = 2
 
   /**
-   * 
+   * The state of a source of symbols that stopped it's production due to a problem.
    */
   export type FAILED = 3
 
   /**
-   * 
+   * The state of a source of symbols that stopped it's production due to a problem.
    */
   export const FAILED: FAILED = 3
 

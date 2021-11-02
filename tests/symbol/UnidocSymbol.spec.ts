@@ -1,8 +1,9 @@
 /** eslint-env jest */
 
-import { UnidocRangeOrigin } from '../../sources/origin/UnidocRangeOrigin'
+import { UnidocPath } from '../../sources/origin/UnidocPath'
+import { UnidocRange } from '../../sources/origin/UnidocRange'
 import { UnidocSymbol } from '../../sources/symbol/UnidocSymbol'
-import { CodePoint } from '../../sources/symbol/CodePoint'
+import { UTF32CodeUnit } from '../../sources/symbol/UTF32CodeUnit'
 
 describe('UnidocSymbol', function () {
   describe('#constructor', function () {
@@ -10,34 +11,28 @@ describe('UnidocSymbol', function () {
       const symbol: UnidocSymbol = new UnidocSymbol()
 
       expect(symbol.code).toBe(0)
-      expect(symbol.origin.equals(UnidocRangeOrigin.runtime())).toBeTruthy()
+      expect(symbol.origin.equals(new UnidocPath())).toBeTruthy()
     })
   })
 
   describe('#copy', function () {
     it('copy an existing symbol', function () {
       const source: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       const copy: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       const destination: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.d,
-        UnidocRangeOrigin.builder()
-          .from().text(1, 2, 33).at().runtime()
-          .to().text(1, 3, 34).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_D,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       expect(source.equals(destination)).toBeFalsy()
@@ -53,11 +48,9 @@ describe('UnidocSymbol', function () {
   describe('#clone', function () {
     it('return a clone of an existing symbol', function () {
       const source: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       expect(source.equals(source.clone())).toBeTruthy()
@@ -68,11 +61,9 @@ describe('UnidocSymbol', function () {
   describe('#clear', function () {
     it('reset a symbol instance', function () {
       const instance: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       const origin: UnidocSymbol = new UnidocSymbol()
@@ -88,11 +79,9 @@ describe('UnidocSymbol', function () {
   describe('#equals', function () {
     it('return false if compared to another type of value', function () {
       const instance: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       expect(instance.equals('pwet')).toBeFalsy()
@@ -102,11 +91,9 @@ describe('UnidocSymbol', function () {
 
     it('return true if compared to itself', function () {
       const instance: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       expect(instance.equals(instance)).toBeTruthy()
@@ -114,19 +101,15 @@ describe('UnidocSymbol', function () {
 
     it('return true if both symbols are equals', function () {
       const instance: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       const copy: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       expect(instance.equals(copy)).toBeTruthy()
@@ -134,19 +117,15 @@ describe('UnidocSymbol', function () {
 
     it('return false if the symbol change', function () {
       const instance: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       const other: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.d,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_D,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       expect(instance.equals(other)).toBeFalsy()
@@ -154,19 +133,15 @@ describe('UnidocSymbol', function () {
 
     it('return false if the location change', function () {
       const instance: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 254).at().runtime()
-          .to().text(5, 11, 255).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       const other: UnidocSymbol = UnidocSymbol.create(
-        CodePoint.b,
-        UnidocRangeOrigin.builder()
-          .from().text(5, 10, 3).at().runtime()
-          .to().text(5, 11, 4).at().runtime()
-          .build()
+        UTF32CodeUnit.LATIN_SMALL_LETTER_B,
+        UnidocPath.create()
+          .inFile('index.unidoc', UnidocRange.betweenCoordinates(5, 10, 254, 5, 11, 255))
       )
 
       expect(instance.equals(other)).toBeFalsy()

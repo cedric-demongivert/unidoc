@@ -15,12 +15,12 @@ export namespace UnidocLexerState {
   /**
   *
   */
-  export const ANTISLASH: UnidocLexerState = 1
+  export const REVERSE_SOLIDUS: UnidocLexerState = 1
 
   /**
   *
   */
-  export const SHARP: UnidocLexerState = 2
+  export const NUMBER_SIGN: UnidocLexerState = 2
 
   /**
   *
@@ -30,7 +30,7 @@ export namespace UnidocLexerState {
   /**
   *
   */
-  export const DOT: UnidocLexerState = 4
+  export const FULL_STOP: UnidocLexerState = 4
 
   /**
   *
@@ -66,7 +66,7 @@ export namespace UnidocLexerState {
   *
   */
   export const ALL: UnidocLexerState[] = [
-    START, ANTISLASH, SHARP, IDENTIFIER, DOT, CLASS,
+    START, REVERSE_SOLIDUS, NUMBER_SIGN, IDENTIFIER, FULL_STOP, CLASS,
     TAG, SPACE, CARRIAGE_RETURN, WORD, END
   ]
 
@@ -81,10 +81,10 @@ export namespace UnidocLexerState {
   export function toString(state: UnidocLexerState): string | undefined {
     switch (state) {
       case START: return 'START'
-      case ANTISLASH: return 'ANTISLASH'
-      case SHARP: return 'SHARP'
+      case REVERSE_SOLIDUS: return 'REVERSE_SOLIDUS'
+      case NUMBER_SIGN: return 'NUMBER_SIGN'
       case IDENTIFIER: return 'IDENTIFIER'
-      case DOT: return 'DOT'
+      case FULL_STOP: return 'FULL_STOP'
       case CLASS: return 'CLASS'
       case TAG: return 'TAG'
       case SPACE: return 'SPACE'

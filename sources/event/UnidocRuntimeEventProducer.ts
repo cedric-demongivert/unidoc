@@ -1,7 +1,7 @@
 import { UnidocPublisher } from '../stream/UnidocPublisher'
 import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
 
-import { CodePoint } from '../symbol/CodePoint'
+import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventBuilder } from './UnidocEventBuilder'
@@ -98,10 +98,13 @@ export class UnidocRuntimeEventProducer extends UnidocPublisher<UnidocEvent> {
   public produceString(line: string): this {
     if (line.length > 0) {
       let offset: number = 0
-      let spaces: boolean = CodePoint.isWhitespace(line.codePointAt(0)!)
+      let spaces: boolean = UTF32CodeUnit.isWhitespace(line.codePointAt(0)!)
 
+      /**
+       * @TODO REPLACE UTF32CODEUNIT BY UTF16CODEUNIT, PROBLEM AHEAD
+       */
       for (let index = 1, size = line.length; index < size; ++index) {
-        if (CodePoint.isWhitespace(line.codePointAt(index)!) !== spaces) {
+        if (UTF32CodeUnit.isWhitespace(line.codePointAt(index)!) !== spaces) {
           if (spaces) {
             this.produceWhitespace(line.substring(offset, index))
           } else {

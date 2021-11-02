@@ -1,6 +1,4 @@
-import { Sequence } from '@cedric-demongivert/gl-tool-collection'
-
-import { CodePoint } from '../symbol/CodePoint'
+import { UTF32String } from '../symbol/UTF32String'
 
 import { UnidocPublisher } from '../stream/UnidocPublisher'
 
@@ -63,7 +61,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
    * 
    */
-  public setSymbols(symbols: Sequence<CodePoint>): UnidocEventProducer {
+  public setSymbols(symbols: UTF32String): UnidocEventProducer {
     this._event.setSymbols(symbols)
     return this
   }

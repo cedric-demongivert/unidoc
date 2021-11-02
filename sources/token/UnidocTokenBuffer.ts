@@ -100,7 +100,7 @@ export class UnidocTokenBuffer extends UnidocListener<UnidocToken> {
     let result: string = ''
 
     for (const token of this._tokens) {
-      result += token.text
+      result += token.symbols.toString()
     }
 
     return result

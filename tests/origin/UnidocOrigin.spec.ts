@@ -1,0 +1,205 @@
+import { UnidocLocation } from "../../sources/origin/UnidocLocation"
+import { UnidocOrigin } from "../../sources/origin/UnidocOrigin"
+import { UnidocRange } from "../../sources/origin/UnidocRange"
+
+/**
+ * @dependsOn UnidocRange
+ */
+describe('UnidocOrigin', function () {
+  /**
+   * 
+   */
+  describe('#constructor', function () {
+    it('instantiate an origin with a runtime URI and a zero location by default', function () {
+      const origin: UnidocOrigin = new UnidocOrigin()
+
+      expect(origin.unifiedResourceIdentifier).toBe('memory://runtime')
+      expect(origin.location.equals(UnidocRange.ZERO)).toBeTruthy()
+    })
+
+    it('instantiate an origin with the given URI if the first parameter is defined', function () {
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1')
+
+      expect(origin.unifiedResourceIdentifier).toBe('ftp://127.0.0.1')
+      expect(origin.location.equals(UnidocRange.ZERO)).toBeTruthy()
+    })
+
+    it('instantiate an origin with the given URI and coordinates if all the parameters are defined', function () {
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 12)))
+
+      expect(origin.unifiedResourceIdentifier).toBe('ftp://127.0.0.1')
+      expect(origin.location.equals(new UnidocRange(new UnidocLocation(5, 8, 12)))).toBeTruthy()
+    })
+  })
+
+  /**
+   * 
+   */
+  describe('#create', function () {
+    it('instantiate an origin with a runtime URI and a zero location by default', function () {
+      const origin: UnidocOrigin = UnidocOrigin.create()
+
+      expect(origin.unifiedResourceIdentifier).toBe('memory://runtime')
+      expect(origin.location.equals(UnidocRange.ZERO)).toBeTruthy()
+    })
+
+    it('instantiate an origin with the given URI if the first parameter is defined', function () {
+      const origin: UnidocOrigin = UnidocOrigin.create('ftp://127.0.0.1')
+
+      expect(origin.unifiedResourceIdentifier).toBe('ftp://127.0.0.1')
+      expect(origin.location.equals(UnidocRange.ZERO)).toBeTruthy()
+    })
+
+    it('instantiate an origin with the given URI and coordinates if all the parameters are defined', function () {
+      const origin: UnidocOrigin = UnidocOrigin.create('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 12)))
+
+      expect(origin.unifiedResourceIdentifier).toBe('ftp://127.0.0.1')
+      expect(origin.location.equals(new UnidocRange(new UnidocLocation(5, 8, 12)))).toBeTruthy()
+    })
+  })
+
+  /**
+   * @dependsOn UnidocOrigin.constructor
+   */
+  describe('#inMemory', function () {
+    it('set the uri of the origin as a memory uri', function () {
+      const origin: UnidocOrigin = new UnidocOrigin()
+
+      origin.inMemory('test')
+      expect(origin.unifiedResourceIdentifier).toBe('memory://test')
+
+      origin.inMemory('jail')
+      expect(origin.unifiedResourceIdentifier).toBe('memory://jail')
+    })
+  })
+
+  /**
+   * @dependsOn UnidocOrigin.constructor
+   */
+  describe('#inFile', function () {
+    it('set the uri of the origin as a file uri', function () {
+      const origin: UnidocOrigin = new UnidocOrigin()
+
+      origin.inMemory('test')
+      expect(origin.unifiedResourceIdentifier).toBe('file://test')
+
+      origin.inMemory('jail')
+      expect(origin.unifiedResourceIdentifier).toBe('file://jail')
+    })
+  })
+
+  /**
+   * @dependsOn UnidocOrigin.constructor
+   */
+  describe('#inURI', function () {
+    it('set the uri of the origin to the given value', function () {
+      const origin: UnidocOrigin = new UnidocOrigin()
+
+      origin.inURI('http://127.0.0.1/test')
+      expect(origin.unifiedResourceIdentifier).toBe('http://127.0.0.1/test')
+
+      origin.inURI('ftp://127.0.0.1/test')
+      expect(origin.unifiedResourceIdentifier).toBe('ftp://127.0.0.1/test')
+    })
+  })
+
+  /**
+   * @dependsOn UnidocOrigin.constructor
+   */
+  describe('#equals', function () {
+    it('return false if the instance is compared to an undefined value', function () {
+      const origin: UnidocOrigin = new UnidocOrigin()
+
+      expect(origin.equals(undefined)).toBeFalsy()
+      expect(origin.equals(null)).toBeFalsy()
+    })
+
+    it('return true if the instance is compared with itself', function () {
+      const origin: UnidocOrigin = new UnidocOrigin()
+
+      expect(origin.equals(origin)).toBeTruthy()
+    })
+
+    it('return false if the instance is not compared with an origin', function () {
+      const origin: UnidocOrigin = new UnidocOrigin()
+
+      expect(origin.equals('abc')).toBeFalsy()
+      expect(origin.equals(15)).toBeFalsy()
+      expect(origin.equals(new Date())).toBeFalsy()
+    })
+
+    it('return false if the instance is compared to an origin with different coordinates', function () {
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 3)))
+
+      expect(origin.equals(new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 2))))).toBeFalsy()
+    })
+
+    it('return false if the instance is compared to an origin with a different uri', function () {
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 3)))
+
+      expect(origin.equals(new UnidocOrigin('ftp://127.0.0.3', new UnidocRange(new UnidocLocation(5, 8, 3))))).toBeFalsy()
+    })
+
+    it('return true if the instance is compared to an equivalent origin', function () {
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 3)))
+
+      expect(origin.equals(new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 3))))).toBeTruthy()
+    })
+  })
+
+  /**
+   * @dependsOn UnidocOrigin.constructor
+   * @dependsOn UnidocOrigin.equals
+   */
+  describe('#clear', function () {
+    it('reset the instante to a default value', function () {
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 3)))
+
+      origin.clear()
+
+      expect(origin.equals(new UnidocOrigin())).toBeTruthy()
+    })
+  })
+
+  /**
+   * @dependsOn UnidocOrigin.constructor
+   * @dependsOn UnidocOrigin.equals
+   */
+  describe('#copy', function () {
+    it('copy the given origin instance', function () {
+      const toCopy: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 3)))
+      const origin: UnidocOrigin = new UnidocOrigin()
+
+      origin.copy(toCopy)
+
+      expect(origin.equals(toCopy)).toBeTruthy()
+      expect(origin).not.toBe(toCopy)
+    })
+  })
+
+  /**
+   * @dependsOn UnidocOrigin.constructor
+   */
+  describe('#toString', function () {
+    it('return a string representation of the origin', function () {
+      const range: UnidocRange = new UnidocRange(new UnidocLocation(5, 8, 3))
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', range)
+
+      expect(origin.toString()).toBe('in ftp://127.0.0.1 ' + range.toString())
+    })
+  })
+
+  /**
+   * @dependsOn UnidocOrigin.constructor
+   * @dependsOn UnidocOrigin.equals
+   */
+  describe('#clone', function () {
+    it('clone the origin instance', function () {
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 3)))
+      const clone: UnidocOrigin = origin.clone()
+
+      expect(origin.equals(clone)).toBeTruthy()
+      expect(origin).not.toBe(clone)
+    })
+  })
+})

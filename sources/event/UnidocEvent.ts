@@ -1,8 +1,10 @@
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
-import { CodePoint } from '../symbol/CodePoint'
+import { UTF32String } from '../symbol/UTF32String'
+
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
+
+import { DataObject } from '../DataObject'
 
 import { UnidocEventType } from './UnidocEventType'
 
@@ -12,7 +14,7 @@ const EMPTY_STRING: string = ''
 /**
 * A unidoc event.
 */
-export class UnidocEvent {
+export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
   * Event index.
   */
@@ -41,7 +43,7 @@ export class UnidocEvent {
   /**
   * Content associated to this event.
   */
-  public readonly symbols: Pack<CodePoint>
+  public readonly symbols: UTF32String
 
   /**
   * Ending location of the event into the parsed document.
@@ -57,88 +59,8 @@ export class UnidocEvent {
     this.tag = EMPTY_STRING
     this.identifier = EMPTY_STRING
     this.classes = new Set<string>()
-    this.symbols = Pack.uint32(128)
+    this.symbols = UTF32String.allocate(128)
     this.origin = new UnidocRangeOrigin().runtime()
-  }
-
-  /**
-  * @return This token as a javascript string.
-  */
-  public get text(): string {
-    return String.fromCodePoint(...this.symbols)
-  }
-
-  /**
-  * Update the content associated to this event.
-  *
-  * @param content - The new content associated to this event.
-  */
-  public set text(content: string) {
-    this.symbols.clear()
-    this.symbols.size = content.length
-
-    for (let index = 0; index < content.length; ++index) {
-      // no undefined code point due to boundary limit
-      this.symbols.set(index, content.codePointAt(index) as CodePoint)
-    }
-  }
-
-
-  /**
-  * A part of this token as a javascript string.
-  *
-  * @param start - Number of symbols of this token to skip.
-  * @param [length = this.symbols.size - start] - Number of symbols of this token to keep.
-  *
-  * @return The requested part of this token as a string.
-  */
-  public substring(start: number, length: number = this.symbols.size - start): string {
-    const buffer: CodePoint[] = []
-    const from: number = start
-    const to: number = start + length
-
-    for (let index = from; index < to; ++index) {
-      buffer.push(this.symbols.get(index))
-    }
-
-    return String.fromCodePoint(...buffer)
-  }
-
-  /**
-  * @return This token as a string without invisible symbols.
-  */
-  public get debugText(): string {
-    const buffer: CodePoint[] = []
-
-    for (const codePoint of this.symbols) {
-      switch (codePoint) {
-        case CodePoint.NEW_LINE:
-          buffer.push(CodePoint.COLON)
-          buffer.push(CodePoint.n)
-          break
-        case CodePoint.CARRIAGE_RETURN:
-          buffer.push(CodePoint.COLON)
-          buffer.push(CodePoint.r)
-          break
-        case CodePoint.TABULATION:
-          buffer.push(CodePoint.COLON)
-          buffer.push(CodePoint.t)
-          break
-        case CodePoint.SPACE:
-          buffer.push(CodePoint.COLON)
-          buffer.push(CodePoint.s)
-          break
-        case CodePoint.FORM_FEED:
-          buffer.push(CodePoint.COLON)
-          buffer.push(CodePoint.f)
-          break
-        default:
-          buffer.push(codePoint)
-          break
-      }
-    }
-
-    return String.fromCodePoint(...buffer)
   }
 
   /**
@@ -202,7 +124,7 @@ export class UnidocEvent {
     this.classes.clear()
 
     this.type = UnidocEventType.WORD
-    this.text = content
+    this.symbols.setString(content)
   }
 
   /**
@@ -216,7 +138,7 @@ export class UnidocEvent {
     this.classes.clear()
 
     this.type = UnidocEventType.WHITESPACE
-    this.text = content
+    this.symbols.setString(content)
   }
 
   /**
@@ -285,11 +207,9 @@ export class UnidocEvent {
   }
 
   /**
-  * Deep copy an existing instance.
-  *
-  * @param toCopy - An instance to copy.
+  * @see DataObject.copy
   */
-  public copy(toCopy: UnidocEvent): void {
+  public copy(toCopy: UnidocEvent): this {
     this.index = toCopy.index
     this.type = toCopy.type
     this.tag = toCopy.tag
@@ -303,10 +223,12 @@ export class UnidocEvent {
     for (const clazz of toCopy.classes) {
       this.classes.add(clazz)
     }
+
+    return this
   }
 
   /**
-  * @return A deep copy of this event.
+  * @see DataObject.clone
   */
   public clone(): UnidocEvent {
     const result: UnidocEvent = new UnidocEvent()
@@ -315,9 +237,9 @@ export class UnidocEvent {
   }
 
   /**
-  * Reset this event instance in order to reuse it.
+  * @see DataObject.clear
   */
-  public clear(): void {
+  public clear(): this {
     this.index = 0
     this.type = UnidocEventType.START_TAG
     this.tag = EMPTY_STRING
@@ -328,6 +250,8 @@ export class UnidocEvent {
 
     this.classes.clear()
     this.symbols.clear()
+
+    return this
   }
 
   /**
@@ -362,7 +286,7 @@ export class UnidocEvent {
 
     if (this.symbols.size > 0) {
       result += ' "'
-      result += this.debugText
+      result += this.symbols.toDebugString()
       result += '"'
     }
 
@@ -370,7 +294,7 @@ export class UnidocEvent {
   }
 
   /**
-  * @see Object.equals
+  * @see DataObject.equals
   */
   public equals(other: any): boolean {
     if (other == null) return false
@@ -444,30 +368,7 @@ export namespace UnidocEvent {
   }
 
   /**
-  * Return a deep copy of the given instance.
-  *
-  * @param toCopy - An instance to copy.
-  *
-  * @return A deep copy of the given instance.
-  */
-  export function copy(toCopy: UnidocEvent): UnidocEvent
-  export function copy(toCopy: null): null
-  export function copy(toCopy: undefined): undefined
-  export function copy(toCopy: UnidocEvent | null | undefined): UnidocEvent | null | undefined {
-    return toCopy == null ? toCopy : toCopy.clone()
-  }
-
+   * 
+   */
   export const ALLOCATOR: Duplicator<UnidocEvent> = Duplicator.fromFactory(create)
-
-  /**
-  * Return true if both object instances are equals.
-  *
-  * @param left - The first operand.
-  * @param right - The second operand.
-  *
-  * @return True if both operand are equals.
-  */
-  export function equals(left?: UnidocEvent, right?: UnidocEvent): boolean {
-    return left == null ? left == right : left.equals(right)
-  }
 }

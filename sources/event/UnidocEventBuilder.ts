@@ -1,9 +1,9 @@
-import { Pack, Sequence } from '@cedric-demongivert/gl-tool-collection'
-
-import { CodePoint } from '../symbol/CodePoint'
+import { UTF32String } from '../symbol/UTF32String'
 
 import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
+
+import { UnidocBuilder } from '../UnidocBuilder'
 
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
@@ -11,7 +11,7 @@ import { UnidocEventType } from './UnidocEventType'
 /**
  * 
  */
-export class UnidocEventBuilder {
+export class UnidocEventBuilder implements UnidocBuilder<UnidocEvent, UnidocEventBuilder>{
   /**
   *
   */
@@ -90,14 +90,14 @@ export class UnidocEventBuilder {
   /**
    * 
    */
-  public get symbols(): Pack<CodePoint> {
+  public get symbols(): UTF32String {
     return this._event.symbols
   }
 
   /**
    * 
    */
-  public set symbols(sequence: Pack<CodePoint>) {
+  public set symbols(sequence: UTF32String) {
     this._event.symbols.copy(sequence)
   }
 
@@ -162,7 +162,7 @@ export class UnidocEventBuilder {
   /**
    * 
    */
-  public setSymbols(symbols: Sequence<CodePoint>): this {
+  public setSymbols(symbols: UTF32String): this {
     this._event.symbols.copy(symbols)
     return this
   }
@@ -274,24 +274,54 @@ export class UnidocEventBuilder {
   }
 
   /**
-   * 
+   * @see UnidocBuilder.get
    */
   public get(): UnidocEvent {
     return this._event
   }
 
   /**
-   * 
+   * @see UnidocBuilder.build
    */
   public build(): UnidocEvent {
     return this._event.clone()
   }
 
   /**
-   * 
+   * @see UnidocBuilder.build
    */
-  public clear(): void {
+  public copy(toCopy: UnidocEvent | UnidocEventBuilder): this {
+    this._event.copy(toCopy instanceof UnidocEventBuilder ? toCopy._event : toCopy)
+    return this
+  }
+
+  /**
+   * @see UnidocBuilder.clone
+   */
+  public clone(): UnidocEventBuilder {
+    return new UnidocEventBuilder().copy(this)
+  }
+
+  /**
+   * @see UnidocBuilder.clear
+   */
+  public clear(): this {
     this._event.clear()
+    return this
+  }
+
+  /**
+   * @see UnidocBuilder.equals 
+   */
+  public equals(other: any): boolean {
+    if (other == null) return false
+    if (other === this) return true
+
+    if (other instanceof UnidocEventBuilder) {
+      return other._event.equals(this._event)
+    }
+
+    return false
   }
 }
 

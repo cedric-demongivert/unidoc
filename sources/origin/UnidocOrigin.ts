@@ -1,105 +1,132 @@
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from "@cedric-demongivert/gl-tool-collection"
+import { UnidocLocation } from "sources"
+import { DataObject } from "../DataObject"
 
-import { UnidocLocation } from '../location/UnidocLocation'
+import { UnidocRange } from "./UnidocRange"
 
-import { UnidocOriginElement } from './UnidocOriginElement'
+/**
+ * The identification of a symbol, or a range of symbol, in a source of symbols.
+ */
+export class UnidocOrigin implements DataObject {
+  /**
+   * The Unified Resource Identifier (URI) of the source.
+   */
+  public unifiedResourceIdentifier: string
 
-export class UnidocOrigin {
-  public readonly elements : Pack<UnidocOriginElement>
+  /**
+   * The range of symbol in the source.
+   */
+  public readonly location: UnidocRange
 
-  public constructor (capacity : number = 8) {
-    this.elements = Pack.any(capacity)
-  }
-
-  public reallocate (capacity : number) : void {
-    this.elements.reallocate(capacity)
-  }
-
-  public text (line : number, column : number, character : number) : UnidocOrigin
-  public text (location : UnidocLocation) : UnidocOrigin
-  public text (a : any, b? : any, c? : any) : UnidocOrigin {
-    this.elements.push(UnidocOriginElement.text(a, b, c))
-    return this
-  }
-
-  public buffer (byte : number) : UnidocOrigin {
-    this.elements.push(UnidocOriginElement.buffer(byte))
-    return this
-  }
-
-  public resource (unifiedResourceIdentifier : string) : UnidocOrigin {
-    this.elements.push(UnidocOriginElement.resource(unifiedResourceIdentifier))
-    return this
-  }
-
-  public network (address : string) : UnidocOrigin {
-    this.elements.push(UnidocOriginElement.network(address))
-    return this
-  }
-
-  public runtime () : UnidocOrigin {
-    this.elements.push(UnidocOriginElement.runtime())
-    return this
-  }
-
-  public concat (toCopy : UnidocOrigin) : void {
-    this.elements.concat(toCopy.elements)
-  }
-
-  public copy (toCopy : UnidocOrigin) : void {
-    this.elements.copy(toCopy.elements)
-  }
-
-  public clone () : UnidocOrigin {
-    const result : UnidocOrigin = new UnidocOrigin(this.elements.capacity)
-
-    result.copy(this)
-
-    return result
-  }
-
-  public clear () : void {
-    this.elements.clear()
+  /**
+   * 
+   */
+  public constructor(uri: string = UnidocOrigin.DEFAULT_URI, location?: UnidocRange | null | undefined) {
+    this.unifiedResourceIdentifier = UnidocOrigin.DEFAULT_URI
+    this.location = location ? location.clone() : new UnidocRange()
   }
 
   /**
-  * @see Object.toString
-  */
-  public toString () : string {
-    if (this.elements.size > 0) {
-      let result : string = this.elements.first.toString()
-
-      for (let index = 1; index < this.elements.size; ++index) {
-        result += ' at ' + this.elements.get(index).toString()
-      }
-
-      return result
-    } else {
-      return 'undefined origin'
-    }
+   * 
+   */
+  public inMemory(name: string): this {
+    this.unifiedResourceIdentifier = 'memory://' + name
+    return this
   }
 
   /**
-  * @see Object.equals
-  */
-  public equals (other : any) : boolean {
+   * 
+   */
+  public inFile(path: string): this {
+    this.unifiedResourceIdentifier = 'file://' + path
+    return this
+  }
+
+  /**
+   * 
+   */
+  public inURI(uri: string): this {
+    this.unifiedResourceIdentifier = uri
+    return this
+  }
+
+  /**
+   * 
+   */
+  public at(range: UnidocRange): this {
+    this.location.copy(range)
+    return this
+  }
+
+  /**
+   * @see DataObject.clear
+   */
+  public clear(): this {
+    this.unifiedResourceIdentifier = UnidocOrigin.DEFAULT_URI
+    this.location.clear()
+    return this
+  }
+
+  /**
+   * @see DataObject.clone
+   */
+  public clone(): UnidocOrigin {
+    return new UnidocOrigin().copy(this)
+  }
+
+  /**
+   * @see DataObject.copy
+   */
+  public copy(toCopy: this): this {
+    this.unifiedResourceIdentifier = toCopy.unifiedResourceIdentifier
+    this.location.copy(toCopy.location)
+    return this
+  }
+
+  /**
+   * @see Object.toString
+   */
+  public toString(): string {
+    return 'in ' + this.unifiedResourceIdentifier + ' ' + this.location.toString()
+  }
+
+  /**
+   * @see DataObject.equals 
+   */
+  public equals(other: any): boolean {
     if (other == null) return false
-    if (other === this) return true
+    if (other == this) return true
 
     if (other instanceof UnidocOrigin) {
-      return other.elements.equals(this.elements)
+      return (
+        other.unifiedResourceIdentifier === this.unifiedResourceIdentifier &&
+        other.location.equals(this.location)
+      )
     }
 
     return false
   }
 }
 
+/**
+ * 
+ */
 export namespace UnidocOrigin {
-  export const Element = UnidocOriginElement
+  /**
+   * 
+   */
+  export const DEFAULT_URI: string = 'memory://runtime'
 
-  export const RUNTIME : UnidocOrigin = new UnidocOrigin(1).runtime()
-
-  export function runtime () : UnidocOrigin {
-    return RUNTIME
+  /**
+   * A factory that allows to instantiate UnidocOrigin instances
+   */
+  export function create(uri: string = DEFAULT_URI, location?: UnidocRange | null | undefined): UnidocOrigin {
+    return new UnidocOrigin(uri, location)
   }
+
+
+  /**
+   * An allocator of UnidocOrigin instances.
+   */
+  export const ALLOCATOR: Duplicator<UnidocOrigin> = Duplicator.fromFactory(create)
 }

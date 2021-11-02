@@ -1,16 +1,20 @@
-import { Pack, Sequence } from '@cedric-demongivert/gl-tool-collection'
-import { UnidocRangeOrigin } from 'sources/origin'
-import { CodePoint } from 'sources/symbol'
+import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocOrigin } from '../origin/UnidocOrigin'
+import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
+
+import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
+import { UTF32String } from '../symbol/UTF32String'
+
+import { UnidocBuilder } from '../UnidocBuilder'
 
 import { UnidocToken } from './UnidocToken'
 import { UnidocTokenType } from './UnidocTokenType'
 
 /**
-* A unidoc token producer.
+* An unidoc token builder.
 */
-export class UnidocTokenBuilder {
+export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocTokenBuilder> {
   /**
    * 
    */
@@ -89,14 +93,14 @@ export class UnidocTokenBuilder {
   /**
    * 
    */
-  public get symbols(): Pack<CodePoint> {
+  public get symbols(): UTF32String {
     return this._token.symbols
   }
 
   /**
    * 
    */
-  public set symbols(sequence: Pack<CodePoint>) {
+  public set symbols(sequence: UTF32String) {
     this._token.symbols.copy(sequence)
   }
 
@@ -151,7 +155,7 @@ export class UnidocTokenBuilder {
   /**
    * 
    */
-  public appendSymbols(symbols: Sequence<number>): this {
+  public appendSymbols(symbols: UTF32String): this {
     this._token.symbols.concat(symbols)
     return this
   }
@@ -159,8 +163,16 @@ export class UnidocTokenBuilder {
   /**
    * 
    */
-  public appendSymbol(symbol: number): this {
+  public appendSymbol(symbol: UTF32CodeUnit): this {
     this._token.symbols.push(symbol)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public appendString(symbol: string): this {
+    this._token.symbols.concatString(symbol)
     return this
   }
 
@@ -261,24 +273,54 @@ export class UnidocTokenBuilder {
   }
 
   /**
-   * 
+   * @see UnidocBuilder.copy
+   */
+  public copy(toCopy: UnidocToken | UnidocTokenBuilder): this {
+    this._token.copy(toCopy instanceof UnidocTokenBuilder ? toCopy._token : toCopy)
+    return this
+  }
+
+  /**
+   * @see UnidocBuilder.copy
+   */
+  public clone(): UnidocTokenBuilder {
+    return UnidocTokenBuilder.create().copy(this)
+  }
+
+  /**
+   * @see UnidocBuilder.get
    */
   public get(): UnidocToken {
     return this._token
   }
 
   /**
-   * 
+   * @see UnidocBuilder.build
    */
   public build(): UnidocToken {
     return this._token.clone()
   }
 
   /**
-   * 
+   * @see UnidocBuilder.clear
    */
-  public clear(): void {
+  public clear(): this {
     this._token.clear()
+    return this
+  }
+
+  /**
+   * @see UnidocBuilder.equals 
+   */
+  public equals(other: any): boolean {
+    if (other == null) return false
+    if (other === this) return true
+
+    if (other instanceof UnidocTokenBuilder) {
+      return other._token.equals(this._token)
+    }
+
+    return false
   }
 }
 
