@@ -20,7 +20,7 @@ expect.extend({
       }
     } catch (error) {
       return {
-        message: () => `Expected ${UnidocBuffer.toString(result)} to match ${UnidocBuffer.toString(expectation)}. (${error.message})`,
+        message: () => `Expected ${UnidocBuffer.toString(result)} to match ${UnidocBuffer.toString(expectation)}. (${(error as any).message})`,
         pass: false
       }
     }

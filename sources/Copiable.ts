@@ -13,7 +13,7 @@ export interface Copiable extends Comparable {
    *
    * @return This instance, for chaining purposes.
    */
-  copy(toCopy: this): this
+  copy(toCopy: any): this
 }
 
 /**

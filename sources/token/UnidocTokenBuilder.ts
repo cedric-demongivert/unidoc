@@ -1,7 +1,8 @@
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
-
 import { UnidocOrigin } from '../origin/UnidocOrigin'
-import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
+import { UnidocSequenceOrigin } from '../origin/UnidocSequenceOrigin'
+
+import { UnidocSymbol } from '../symbol/UnidocSymbol'
 
 import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 import { UTF32String } from '../symbol/UTF32String'
@@ -51,43 +52,15 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
   /**
    * 
    */
-  public get origin(): UnidocRangeOrigin {
+  public get origin(): UnidocSequenceOrigin {
     return this._token.origin
   }
 
   /**
    * 
    */
-  public set origin(value: UnidocRangeOrigin) {
+  public set origin(value: UnidocSequenceOrigin) {
     this._token.origin.copy(value)
-  }
-
-  /**
-   * 
-   */
-  public get from(): UnidocOrigin {
-    return this._token.origin.from
-  }
-
-  /**
-   * 
-   */
-  public set from(value: UnidocOrigin) {
-    this._token.origin.from.copy(value)
-  }
-
-  /**
-   * 
-   */
-  public get to(): UnidocOrigin {
-    return this._token.origin.to
-  }
-
-  /**
-   * 
-   */
-  public set to(value: UnidocOrigin) {
-    this._token.origin.to.copy(value)
   }
 
   /**
@@ -114,25 +87,8 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
   /**
    * 
    */
-  public setOrigin(from: UnidocOrigin, to: UnidocOrigin = from): this {
-    this._token.origin.from.copy(from)
-    this._token.origin.to.copy(to)
-    return this
-  }
-
-  /**
-   * 
-   */
-  public setFrom(from: UnidocOrigin): this {
-    this._token.origin.from.copy(from)
-    return this
-  }
-
-  /**
-   * 
-   */
-  public setTo(to: UnidocOrigin): this {
-    this._token.origin.to.copy(to)
+  public setOrigin(origin: UnidocSequenceOrigin): this {
+    this._token.origin.copy(origin)
     return this
   }
 
@@ -147,32 +103,36 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
   /**
    * 
    */
-  public clearSymbols(): this {
-    this._token.symbols.clear()
-    return this
-  }
-
-  /**
-   * 
-   */
-  public appendSymbols(symbols: UTF32String): this {
+  public appendUTF32String(symbols: UTF32String, origin: UnidocSequenceOrigin): this {
     this._token.symbols.concat(symbols)
+    this._token.origin.concat(origin)
     return this
   }
 
   /**
    * 
    */
-  public appendSymbol(symbol: UTF32CodeUnit): this {
+  public appendUTF32Unit(symbol: UTF32CodeUnit, origin: UnidocOrigin): this {
     this._token.symbols.push(symbol)
+    this._token.origin.push(origin)
     return this
   }
 
   /**
    * 
    */
-  public appendString(symbol: string): this {
+  public appendSymbol(symbol: UnidocSymbol): this {
+    this._token.symbols.push(symbol.code)
+    this._token.origin.push(symbol.origin)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public appendString(symbol: string, origin: UnidocSequenceOrigin): this {
     this._token.symbols.concatString(symbol)
+    this._token.origin.concat(origin)
     return this
   }
 
@@ -259,7 +219,7 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
   /**
    * 
    */
-  public asNewline(type: '\r\n' | '\r' | '\n' = '\r\n'): this {
+  public asNewline(type: string = '\r\n'): this {
     this._token.asNewline(type)
     return this
   }

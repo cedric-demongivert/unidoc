@@ -2,37 +2,6 @@ import { Copiable } from '../sources/Copiable'
 import { Random } from '../sources/Random'
 
 /**
- * Validate the copy method of a given element.
- */
-export function describeCopy<Target extends Copiable>(factory: Random.Factory<Target>) {
-  /**
-   * 
-   */
-  describe('#copy', function () {
-    /**
-     * 
-     */
-    it('allows to deeply copy the state of another instance of the same type', function () {
-      for (let index = 0; index < 20; ++index) {
-        const random: number = Random.CURRENT.nextPositiveInteger(4000)
-
-        const origin: Target = factory(Random.singleton(random))
-        let destination: Target = factory(Random.singleton(random + 1))
-
-        expect(origin).not.toBe(destination)
-        expect(origin.equals(destination)).toBeFalsy()
-
-        const output: Target = destination.copy(origin)
-
-        expect(origin).not.toBe(destination)
-        expect(output).toBe(destination)
-        expect(origin.equals(destination)).toBeTruthy()
-      }
-    })
-  })
-}
-
-/**
  * 
  */
 describe('Copiable', function () {

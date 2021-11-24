@@ -80,20 +80,6 @@ export class UnidocTokenBuffer extends UnidocListener<UnidocToken> {
   }
 
   /**
-  * @return The starting location of this buffer.
-  */
-  public get from(): UnidocOrigin {
-    return this._tokens.size === 0 ? UnidocOrigin.runtime() : this._tokens.first.origin.from
-  }
-
-  /**
-  * @return The ending location of this buffer.
-  */
-  public get to(): UnidocOrigin {
-    return this._tokens.size === 0 ? UnidocOrigin.runtime() : this._tokens.last.origin.to
-  }
-
-  /**
   * @return The text content associated with this buffer.
   */
   public get text(): string {

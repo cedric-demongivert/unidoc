@@ -86,7 +86,7 @@ describe('UnidocRange', function () {
     it('return an instance of unidoc range between the given boundaries', function () {
       const start: UnidocLocation = new UnidocLocation(5, 2, 4)
       const end: UnidocLocation = new UnidocLocation(3, 6, 25)
-      const range: UnidocRange = UnidocRange.betweenCoordinates(5, 2, 4, 3, 6, 25)
+      const range: UnidocRange = UnidocRange.fromCoordinates(5, 2, 4).toCoordinates(3, 6, 25)
 
       expect(range.start.equals(start)).toBeTruthy()
       expect(range.end.equals(end)).toBeTruthy()
@@ -128,34 +128,58 @@ describe('UnidocRange', function () {
   /**
    * @dependsOn UnidocRange.constructor
    */
-  describe('#betweenLocations', function () {
-    it('make the range as containing the symbols between the requested coordinates', function () {
-      const start: UnidocLocation = new UnidocLocation(5, 2, 4)
-      const end: UnidocLocation = new UnidocLocation(3, 6, 25)
+  describe('#fromLocation', function () {
+    it('start the range at the given coordinates', function () {
+      const location: UnidocLocation = new UnidocLocation(5, 2, 4)
       const range: UnidocRange = new UnidocRange()
 
-      range.betweenLocations(start, end)
+      range.fromLocation(location)
 
-      expect(range.start.equals(start)).toBeTruthy()
-      expect(range.end.equals(end)).toBeTruthy()
-      expect(range.start).not.toBe(start)
-      expect(range.end).not.toBe(end)
+      expect(range.start.equals(location)).toBeTruthy()
+      expect(range.start).not.toBe(location)
     })
   })
 
   /**
    * @dependsOn UnidocRange.constructor
    */
-  describe('#betweenCoordinates', function () {
-    it('make the range as containing the symbols between the requested coordinates', function () {
-      const start: UnidocLocation = new UnidocLocation(5, 2, 4)
-      const end: UnidocLocation = new UnidocLocation(3, 6, 25)
+  describe('#toLocation', function () {
+    it('end the range at the given coordinates', function () {
+      const location: UnidocLocation = new UnidocLocation(5, 2, 4)
       const range: UnidocRange = new UnidocRange()
 
-      range.betweenCoordinates(5, 2, 4, 3, 6, 25)
+      range.toLocation(location)
 
-      expect(range.start.equals(start)).toBeTruthy()
-      expect(range.end.equals(end)).toBeTruthy()
+      expect(range.end.equals(location)).toBeTruthy()
+      expect(range.end).not.toBe(location)
+    })
+  })
+
+  /**
+   * @dependsOn UnidocRange.constructor
+   */
+  describe('#fromCoordinates', function () {
+    it('start the range at the given coordinates', function () {
+      const location: UnidocLocation = new UnidocLocation(5, 2, 4)
+      const range: UnidocRange = new UnidocRange()
+
+      range.fromCoordinates(5, 2, 4)
+
+      expect(range.start.equals(location)).toBeTruthy()
+    })
+  })
+
+  /**
+   * @dependsOn UnidocRange.constructor
+   */
+  describe('#toCoordinates', function () {
+    it('end the range at the given coordinates', function () {
+      const location: UnidocLocation = new UnidocLocation(5, 2, 4)
+      const range: UnidocRange = new UnidocRange()
+
+      range.toCoordinates(5, 2, 4)
+
+      expect(range.end.equals(location)).toBeTruthy()
     })
   })
 
@@ -186,18 +210,18 @@ describe('UnidocRange', function () {
     })
 
     it('return false if the instance is compared to a location with different coordinates', function () {
-      const range: UnidocRange = UnidocRange.betweenCoordinates(5, 8, 2, 2, 9, 9)
+      const range: UnidocRange = UnidocRange.fromCoordinates(5, 8, 2).toCoordinates(2, 9, 9)
 
-      expect(range.equals(UnidocRange.betweenCoordinates(5, 8, 3, 2, 9, 9))).toBeFalsy()
-      expect(range.equals(UnidocRange.betweenCoordinates(5, 8, 2, 2, 3, 9))).toBeFalsy()
-      expect(range.equals(UnidocRange.betweenCoordinates(3, 8, 2, 2, 9, 9))).toBeFalsy()
-      expect(range.equals(UnidocRange.betweenCoordinates(5, 8, 2, 2, 9, 3))).toBeFalsy()
+      expect(range.equals(UnidocRange.fromCoordinates(5, 8, 3).toCoordinates(2, 9, 9))).toBeFalsy()
+      expect(range.equals(UnidocRange.fromCoordinates(5, 8, 2).toCoordinates(2, 3, 9))).toBeFalsy()
+      expect(range.equals(UnidocRange.fromCoordinates(3, 8, 2).toCoordinates(2, 9, 9))).toBeFalsy()
+      expect(range.equals(UnidocRange.fromCoordinates(5, 8, 2).toCoordinates(2, 9, 3))).toBeFalsy()
     })
 
     it('return true if the instance is compared to a location with the same coordinates', function () {
-      const range: UnidocRange = UnidocRange.betweenCoordinates(5, 8, 2, 2, 9, 9)
+      const range: UnidocRange = UnidocRange.fromCoordinates(5, 8, 2).toCoordinates(2, 9, 9)
 
-      expect(range.equals(UnidocRange.betweenCoordinates(5, 8, 2, 2, 9, 9))).toBeTruthy()
+      expect(range.equals(UnidocRange.fromCoordinates(5, 8, 2).toCoordinates(2, 9, 9))).toBeTruthy()
     })
   })
 
@@ -209,7 +233,7 @@ describe('UnidocRange', function () {
   describe('#copy', function () {
     it('copy an existing range instance', function () {
       const range: UnidocRange = new UnidocRange()
-      const toCopy: UnidocRange = UnidocRange.betweenCoordinates(5, 8, 2, 2, 9, 9)
+      const toCopy: UnidocRange = UnidocRange.fromCoordinates(5, 8, 2).toCoordinates(2, 9, 9)
 
       expect(range.equals(toCopy)).toBeFalsy()
 
@@ -227,7 +251,7 @@ describe('UnidocRange', function () {
    */
   describe('#clone', function () {
     it('return a clone of the range instance', function () {
-      const range: UnidocRange = UnidocRange.betweenCoordinates(5, 8, 2, 2, 9, 9)
+      const range: UnidocRange = UnidocRange.fromCoordinates(5, 8, 2).toCoordinates(2, 9, 9)
       const clone: UnidocRange = range.clone()
 
       expect(range.equals(clone)).toBeTruthy()
@@ -243,7 +267,7 @@ describe('UnidocRange', function () {
    */
   describe('#clear', function () {
     it('reset the range to zero', function () {
-      const range: UnidocRange = UnidocRange.betweenCoordinates(5, 8, 2, 2, 9, 9)
+      const range: UnidocRange = UnidocRange.fromCoordinates(5, 8, 2).toCoordinates(2, 9, 9)
 
       range.clear()
 

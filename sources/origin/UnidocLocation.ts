@@ -1,97 +1,177 @@
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { DataObject } from '../DataObject'
-import { Random } from '../Random'
 
 /**
-* The location of a symbol in a unidoc document.
-*/
+ * A set of coordinates that identify a symbol in a document.
+ */
 export class UnidocLocation implements DataObject {
   /**
-  * The zero location.
-  */
+   * The location that identify the first symbol of a document.
+   */
   public static ZERO: UnidocLocation = new UnidocLocation(0, 0, 0)
 
   /**
-  * A document column.
-  */
+   * The number of symbols to skip from the begining of the current row in order to get to the identified symbol.
+   */
   public column: number
 
   /**
-  * A document line.
-  */
-  public line: number
+   * The number of rows to skip from the begining of the current document in order to get to the row that contain the identified symbol.
+   */
+  public row: number
 
   /**
-  * A document symbol.
-  */
-  public index: number
+   * The number of symbols to skip from the begining of the document in order to get to the identified symbol.
+   */
+  public symbol: number
 
   /**
-  * Instantiate a new unidoc location.
-  *
-  * @param [column = 0] - Document column.
-  * @param [line = 0] - Document line.
-  * @param [index = 0] - Buffer index.
-  */
-  public constructor(column: number = 0, line: number = 0, index: number = 0) {
+   * Instantiate a new unidoc location in accordance with the given set of coordinates.
+   *
+   * @param [column = 0]
+   * @param [row = 0]
+   * @param [symbol = 0]
+   * 
+   * @see UnidocLocation.column
+   * @see UnidocLocation.row
+   * @see UnidocLocation.symbol
+   */
+  public constructor(column: number = 0, row: number = 0, symbol: number = 0) {
     this.column = column
-    this.line = line
-    this.index = index
+    this.row = row
+    this.symbol = symbol
   }
 
   /**
-  * Update this location by adding the given columns, lines and indices.
-  *
-  * @param column - Columns to add.
-  * @param line - Lines to add.
-  * @param index - Indices to add.
-  * 
-  * @return This instance for chaining purposes.
-  */
-  public add(column: number, line: number, index: number): this {
+   * Move this location after the next non-linebreaking symbol.
+   * 
+   * @param [times = 1]
+   * 
+   * @return This instance for chaining purposes.
+   */
+  public next(times: number = 1): this {
+    this.column += times
+    this.symbol += times
+    return this
+  }
+
+  /**
+   * Move this location after the next linebreaking symbol.
+   * 
+   * @param [times = 1]
+   * 
+   * @return This instance for chaining purposes.
+   */
+  public break(times: number = 1): this {
+    this.column = 0
+    this.row += times
+    this.symbol += times
+    return this
+  }
+
+  /**
+   * Update this location by adding the given values to the matching coordinates.
+   *
+   * @param column
+   * @param row
+   * @param symbol
+   * 
+   * @return This instance for chaining purposes.
+   * 
+   * @see UnidocLocation.column
+   * @see UnidocLocation.row
+   * @see UnidocLocation.symbol
+   */
+  public add(column: number, row: number, symbol: number): this {
     this.column += column
-    this.line += line
-    this.index += index
+    this.row += row
+    this.symbol += symbol
 
     return this
   }
 
   /**
-  * Update this location by subtracting the given columns, lines and indices.
-  *
-  * @param column - Columns to subtract.
-  * @param line - Lines to subtract.
-  * @param index - Indices to subtract.
-  * 
-  * @return This instance for chaining purposes.
-  */
-  public subtract(column: number, line: number, index: number): this {
+   * Update this location by subtracting the given values to the matching coordinates.
+   *
+   * @param column
+   * @param row
+   * @param symbol
+   * 
+   * @return This instance for chaining purposes.
+   * 
+   * @see UnidocLocation.column
+   * @see UnidocLocation.row
+   * @see UnidocLocation.symbol
+   */
+  public subtract(column: number, row: number, symbol: number): this {
     this.column = column > this.column ? 0 : this.column - column
-    this.line = line > this.line ? 0 : this.line - line
-    this.index = index > this.index ? 0 : this.index - index
+    this.row = row > this.row ? 0 : this.row - row
+    this.symbol = symbol > this.symbol ? 0 : this.symbol - symbol
 
     return this
   }
 
   /**
-  * Update this location.
-  *
-  * @param column - Document column.
-  * @param line - Document line.
-  * @param index - Buffer index.
-  * 
-  * @return This instance for chaining purposes.
-  */
-  public set(line: number, column: number, index: number): this {
+   * Update this location by setting the matching coordinates to the given values.
+   *
+   * @param column
+   * @param row
+   * @param symbol
+   * 
+   * @return This instance for chaining purposes.
+   * 
+   * @see UnidocLocation.column
+   * @see UnidocLocation.row
+   * @see UnidocLocation.symbol
+   */
+  public set(column: number, row: number, symbol: number): this {
     this.column = column
-    this.line = line
-    this.index = index
+    this.row = row
+    this.symbol = symbol
+
+    return this
   }
 
   /**
-  * @see DataObject.clone
-  */
+   * Update this location by setting the matching coordinate to the given value.
+   * 
+   * @return This instance for chaining purposes.
+   * 
+   * @see UnidocLocation.column
+   */
+  public setColumn(column: number): this {
+    this.column = column
+    return this
+  }
+
+  /**
+   * Update this location by setting the matching coordinate to the given value.
+   * 
+   * @return This instance for chaining purposes.
+   * 
+   * @see UnidocLocation.row
+   */
+  public setRow(row: number): this {
+    this.row = row
+    return this
+  }
+
+  /**
+   * Update this location by setting the matching coordinate to the given value.
+   * 
+   * @return This instance for chaining purposes.
+   * 
+   * @see UnidocLocation.symbol
+   */
+  public setSymbol(symbol: number): this {
+    this.symbol = symbol
+    return this
+  }
+
+  /**
+   * @see DataObject.clone
+   */
   public clone(): UnidocLocation {
     const result: UnidocLocation = new UnidocLocation()
     result.copy(this)
@@ -99,35 +179,35 @@ export class UnidocLocation implements DataObject {
   }
 
   /**
-  * @see DataObject.copy
-  */
+   * @see DataObject.copy
+   */
   public copy(toCopy: this): this {
     this.column = toCopy.column
-    this.line = toCopy.line
-    this.index = toCopy.index
+    this.row = toCopy.row
+    this.symbol = toCopy.symbol
     return this
   }
 
   /**
-  * @see DataObject.clear
-  */
+   * @see DataObject.clear
+   */
   public clear(): this {
     this.column = 0
-    this.line = 0
-    this.index = 0
+    this.row = 0
+    this.symbol = 0
     return this
   }
 
   /**
-  * @see Object.toString
-  */
+   * @see Object.toString
+   */
   public toString(): string {
-    return `${this.column}:${this.line}/${this.index}`
+    return `${this.column}:${this.row}/${this.symbol}`
   }
 
   /**
-  * @see DataObject.equals
-  */
+   * @see DataObject.equals
+   */
   public equals(other: any): boolean {
     if (other == null) return false
     if (other === this) return true
@@ -135,12 +215,21 @@ export class UnidocLocation implements DataObject {
     if (other instanceof UnidocLocation) {
       return (
         other.column === this.column &&
-        other.line === this.line &&
-        other.index === this.index
+        other.row === this.row &&
+        other.symbol === this.symbol
       )
     }
 
     return false
+  }
+
+  /**
+   * 
+   */
+  public *[Symbol.iterator](): Generator<number> {
+    yield this.column
+    yield this.row
+    yield this.symbol
   }
 }
 
@@ -149,14 +238,22 @@ export class UnidocLocation implements DataObject {
  */
 export namespace UnidocLocation {
   /**
+   * Instantiate a new unidoc location in accordance with the given set of coordinates.
+   *
+   * @param [column = 0]
+   * @param [row = 0]
+   * @param [symbol = 0]
    * 
+   * @see UnidocLocation.column
+   * @see UnidocLocation.row
+   * @see UnidocLocation.symbol
    */
-  export function create(line: number = 0, column: number = 0, index: number = 0): UnidocLocation {
-    return new UnidocLocation(line, column, index)
+  export function create(column: number = 0, row: number = 0, symbol: number = 0): UnidocLocation {
+    return new UnidocLocation(column, row, symbol)
   }
 
   /**
-   * 
+   * An allocator that allows to track a pool of objects for classes that want to optimize the overall memory usage.
    */
   export const ALLOCATOR: Duplicator<UnidocLocation> = Duplicator.fromFactory(create)
 }

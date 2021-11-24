@@ -4,8 +4,8 @@ describe('UnidocLocation', function () {
   describe('#ZERO', function () {
     it('return an instance of unidoc location with all of it\'s member to zero', function () {
       expect(UnidocLocation.ZERO.column).toBe(0)
-      expect(UnidocLocation.ZERO.line).toBe(0)
-      expect(UnidocLocation.ZERO.index).toBe(0)
+      expect(UnidocLocation.ZERO.row).toBe(0)
+      expect(UnidocLocation.ZERO.symbol).toBe(0)
     })
   })
 
@@ -14,8 +14,8 @@ describe('UnidocLocation', function () {
       const location: UnidocLocation = new UnidocLocation()
 
       expect(location.column).toBe(0)
-      expect(location.line).toBe(0)
-      expect(location.index).toBe(0)
+      expect(location.row).toBe(0)
+      expect(location.symbol).toBe(0)
     })
 
     it('return an instance of unidoc location with the requested members otherwise', function () {
@@ -23,12 +23,12 @@ describe('UnidocLocation', function () {
       const second: UnidocLocation = new UnidocLocation(2, 3, 5)
 
       expect(first.column).toBe(1)
-      expect(first.line).toBe(7)
-      expect(first.index).toBe(8)
+      expect(first.row).toBe(7)
+      expect(first.symbol).toBe(8)
 
       expect(second.column).toBe(2)
-      expect(second.line).toBe(3)
-      expect(second.index).toBe(5)
+      expect(second.row).toBe(3)
+      expect(second.symbol).toBe(5)
     })
   })
 
@@ -37,16 +37,16 @@ describe('UnidocLocation', function () {
       const location: UnidocLocation = UnidocLocation.create()
 
       expect(location.column).toBe(0)
-      expect(location.line).toBe(0)
-      expect(location.index).toBe(0)
+      expect(location.row).toBe(0)
+      expect(location.symbol).toBe(0)
     })
 
     it('return a location with the given coordinates otherwise', function () {
       const location: UnidocLocation = UnidocLocation.create(2, 8, 5)
 
       expect(location.column).toBe(2)
-      expect(location.line).toBe(8)
-      expect(location.index).toBe(5)
+      expect(location.row).toBe(8)
+      expect(location.symbol).toBe(5)
     })
   })
 
@@ -54,24 +54,24 @@ describe('UnidocLocation', function () {
    * @dependsOn UnidocLocation#constructor
    */
   describe('#add', function () {
-    it('add the given number of columns, lines and indices', function () {
+    it('add the given number of columns, rows and indices', function () {
       const location: UnidocLocation = new UnidocLocation(1, 7, 8)
 
       expect(location.column).toBe(1)
-      expect(location.line).toBe(7)
-      expect(location.index).toBe(8)
+      expect(location.row).toBe(7)
+      expect(location.symbol).toBe(8)
 
       location.add(5, 2, 3)
 
       expect(location.column).toBe(1 + 5)
-      expect(location.line).toBe(7 + 2)
-      expect(location.index).toBe(8 + 3)
+      expect(location.row).toBe(7 + 2)
+      expect(location.symbol).toBe(8 + 3)
 
       location.add(3, 4, 5)
 
       expect(location.column).toBe(1 + 5 + 3)
-      expect(location.line).toBe(7 + 2 + 4)
-      expect(location.index).toBe(8 + 3 + 5)
+      expect(location.row).toBe(7 + 2 + 4)
+      expect(location.symbol).toBe(8 + 3 + 5)
     })
   })
 
@@ -79,44 +79,44 @@ describe('UnidocLocation', function () {
    * @dependsOn UnidocLocation#constructor
    */
   describe('#subtract', function () {
-    it('subtract the given number of columns, lines and indices', function () {
+    it('subtract the given number of columns, rows and indices', function () {
       const location: UnidocLocation = new UnidocLocation(8, 12, 5)
 
       expect(location.column).toBe(8)
-      expect(location.line).toBe(12)
-      expect(location.index).toBe(5)
+      expect(location.row).toBe(12)
+      expect(location.symbol).toBe(5)
 
       location.subtract(5, 2, 3)
 
       expect(location.column).toBe(8 - 5)
-      expect(location.line).toBe(12 - 2)
-      expect(location.index).toBe(5 - 3)
+      expect(location.row).toBe(12 - 2)
+      expect(location.symbol).toBe(5 - 3)
     })
 
     it('keep the value positives when the quantity to subtract is to high', function () {
       const location: UnidocLocation = new UnidocLocation(8, 12, 5)
 
       expect(location.column).toBe(8)
-      expect(location.line).toBe(12)
-      expect(location.index).toBe(5)
+      expect(location.row).toBe(12)
+      expect(location.symbol).toBe(5)
 
       location.subtract(0, 24, 0)
 
       expect(location.column).toBe(8)
-      expect(location.line).toBe(0)
-      expect(location.index).toBe(5)
+      expect(location.row).toBe(0)
+      expect(location.symbol).toBe(5)
 
       location.subtract(24, 0, 0)
 
       expect(location.column).toBe(0)
-      expect(location.line).toBe(0)
-      expect(location.index).toBe(5)
+      expect(location.row).toBe(0)
+      expect(location.symbol).toBe(5)
 
       location.subtract(0, 0, 24)
 
       expect(location.column).toBe(0)
-      expect(location.line).toBe(0)
-      expect(location.index).toBe(0)
+      expect(location.row).toBe(0)
+      expect(location.symbol).toBe(0)
     })
   })
 
@@ -128,14 +128,14 @@ describe('UnidocLocation', function () {
       const location: UnidocLocation = new UnidocLocation(8, 12, 5)
 
       expect(location.column).toBe(8)
-      expect(location.line).toBe(12)
-      expect(location.index).toBe(5)
+      expect(location.row).toBe(12)
+      expect(location.symbol).toBe(5)
 
       location.set(5, 2, 3)
 
       expect(location.column).toBe(5)
-      expect(location.line).toBe(2)
-      expect(location.index).toBe(3)
+      expect(location.row).toBe(2)
+      expect(location.symbol).toBe(3)
     })
   })
 

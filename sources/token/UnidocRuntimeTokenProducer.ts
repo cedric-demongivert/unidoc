@@ -1,15 +1,16 @@
 import { UnidocPublisher } from '../stream/UnidocPublisher'
 import { UnidocProducerEvent } from '../stream/UnidocProducerEvent'
 
-import { UnidocLocationTracker } from '../origin/UnidocLocationTracker'
-
+import { UnidocTracker } from '../origin/UnidocTracker'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { UnidocParser } from '../parser/UnidocParser'
-
 import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 
 import { UnidocToken } from './UnidocToken'
 import { UnidocTokenBuffer } from './UnidocTokenBuffer'
 import { UnidocTokenBuilder } from './UnidocTokenBuilder'
+import { UnidocURI } from '../origin/UnidocURI'
+import { UnidocAuthority } from '../origin/UnidocAuthority'
 
 const DEFAULT_OPENING_BLOCK_LINE: string = '{'
 const DEFAULT_CLOSING_BLOCK_LINE: string = '}'
@@ -21,7 +22,11 @@ const STATE_NEWLINE: number = 3
 
 function getState(unit: UTF32CodeUnit): number {
   switch (unit) {
-    case UTF32CodeUnit.NEW_LINE:
+    case UTF32CodeUnit.VERTICAL_TABULATION:
+    case UTF32CodeUnit.FORM_FEED:
+    case UTF32CodeUnit.LINE_SEPARATOR:
+    case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+    case UTF32CodeUnit.NEXT_LINE:
       return STATE_NEWLINE
     case UTF32CodeUnit.CARRIAGE_RETURN:
       return STATE_CARRIAGE_RETURN
@@ -41,7 +46,7 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   /**
    * 
    */
-  private readonly _tracker: UnidocLocationTracker
+  private readonly _tracker: UnidocTracker
 
   /**
    * 
@@ -49,14 +54,35 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   private readonly _token: UnidocTokenBuilder
 
   /**
+   * 
+   */
+  private readonly _origin: UnidocOrigin
+
+  /**
+   * 
+   */
+  public readonly name: string
+
+  /**
   * Instantiate a new unidoc token.
   *
-  * @param [capacity = 16] - Initial capacity of the symbol buffer of this token.
+  * @param [name: string = UnidocRuntimeTokenProducer.DEFAULT_NAME]
   */
-  public constructor() {
+  public constructor(name: string = UnidocRuntimeTokenProducer.DEFAULT_NAME) {
     super()
     this._token = new UnidocTokenBuilder()
-    this._tracker = new UnidocLocationTracker()
+    this._token.origin.push(UnidocRuntimeTokenProducer.origin())
+    this._origin = this._token.origin.origins.last
+    this._tracker = new UnidocTracker()
+    this.name = name
+  }
+
+  /**
+   * 
+   */
+  public fromSource(uri: UnidocURI): this {
+    this._origin.source.copy(uri)
+    return this
   }
 
   /**
@@ -69,13 +95,12 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   */
   public produceIdentifier(value: string, line: string = value): UnidocRuntimeTokenProducer {
     const token: UnidocTokenBuilder = this._token
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
 
-    token.from.clear()
-    token.to.clear()
-
-    token.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    token.to.text(this._tracker.location).runtime()
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
 
     token.asIdentifier(value)
 
@@ -96,13 +121,12 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   */
   public produceClass(value: string, line: string = value): UnidocRuntimeTokenProducer {
     const token: UnidocTokenBuilder = this._token
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
 
-    token.from.clear()
-    token.to.clear()
-
-    token.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    token.to.text(this._tracker.location).runtime()
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
 
     token.asClass(value)
 
@@ -123,13 +147,12 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   */
   public produceTag(value: string, line: string = value): UnidocRuntimeTokenProducer {
     const token: UnidocTokenBuilder = this._token
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
 
-    token.from.clear()
-    token.to.clear()
-
-    token.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    token.to.text(this._tracker.location).runtime()
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
 
     token.asTag(value)
 
@@ -149,13 +172,12 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   */
   public produceBlockStart(line: string = DEFAULT_OPENING_BLOCK_LINE): UnidocRuntimeTokenProducer {
     const token: UnidocTokenBuilder = this._token
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
 
-    token.from.clear()
-    token.to.clear()
-
-    token.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    token.to.text(this._tracker.location).runtime()
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
 
     token.asBlockStart()
 
@@ -175,13 +197,12 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   */
   public produceBlockEnd(line: string = DEFAULT_CLOSING_BLOCK_LINE): UnidocRuntimeTokenProducer {
     const token: UnidocTokenBuilder = this._token
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
 
-    token.from.clear()
-    token.to.clear()
-
-    token.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    token.to.text(this._tracker.location).runtime()
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
 
     token.asBlockEnd()
 
@@ -202,13 +223,12 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   */
   public produceSpace(value: string, line: string = value): UnidocRuntimeTokenProducer {
     const token: UnidocTokenBuilder = this._token
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
 
-    token.from.clear()
-    token.to.clear()
-
-    token.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    token.to.text(this._tracker.location).runtime()
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
 
     token.asSpace(value)
 
@@ -227,15 +247,14 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceNewline(type: '\r\n' | '\r' | '\n' = '\r\n', line: string = type): UnidocRuntimeTokenProducer {
+  public produceNewline(type: string, line: string = type): UnidocRuntimeTokenProducer {
     const token: UnidocTokenBuilder = this._token
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
 
-    token.from.clear()
-    token.to.clear()
-
-    token.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    token.to.text(this._tracker.location).runtime()
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
 
     token.asNewline(type)
 
@@ -256,13 +275,12 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   */
   public produceWord(value: string, line: string = value): UnidocRuntimeTokenProducer {
     const token: UnidocTokenBuilder = this._token
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
 
-    token.from.clear()
-    token.to.clear()
-
-    token.from.text(this._tracker.location).runtime()
-    this._tracker.nextString(line)
-    token.to.text(this._tracker.location).runtime()
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
 
     token.asWord(value)
 
@@ -281,57 +299,57 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
   * @return This producer instance for chaining purposes.
   */
   public produceString(value: string): UnidocRuntimeTokenProducer {
-    if (value.length > 0) {
-      let offset: number = 0
-      let cursor: number = 1
-      let state: number = getState(value.UTF32CodeUnitAt(0) as UTF32CodeUnit)
+    if (value.length <= 0) return this
 
-      while (cursor < value.length) {
-        const nextState: number = getState(value.UTF32CodeUnitAt(cursor) as UTF32CodeUnit)
+    let offset: number = 0
+    let cursor: number = 1
+    let state: number | undefined = STATE_WORD
 
-        switch (state) {
-          case STATE_WORD:
-            if (nextState !== state) {
-              this.produceWord(value.substring(offset, cursor))
-              offset = cursor
-            }
-            break
-          case STATE_SPACE:
-            if (nextState !== state) {
-              this.produceSpace(value.substring(offset, cursor))
-              offset = cursor
-            }
-            break
-          case STATE_CARRIAGE_RETURN:
-            if (nextState !== STATE_NEWLINE) {
-              this.produceNewline(value.substring(offset, cursor) as '\r')
-              offset = cursor
-            }
-            break
-          case STATE_NEWLINE:
-            this.produceNewline(value.substring(offset, cursor) as '\n' | '\r\n')
-            offset = cursor
-            break
-        }
-
-        cursor += 1
-        state = nextState
-      }
+    for (const unit of UTF32CodeUnit.fromString(value)) {
+      const nextState: number = getState(unit)
 
       switch (state) {
         case STATE_WORD:
-          this.produceWord(value.substring(offset, cursor))
+          if (nextState !== state) {
+            this.produceWord(value.substring(offset, cursor))
+            offset = cursor
+          }
           break
         case STATE_SPACE:
-          this.produceSpace(value.substring(offset, cursor))
+          if (nextState !== state) {
+            this.produceSpace(value.substring(offset, cursor))
+            offset = cursor
+          }
           break
         case STATE_CARRIAGE_RETURN:
-          this.produceNewline(value.substring(offset, cursor) as '\r')
+          if (nextState !== STATE_NEWLINE) {
+            this.produceNewline(value.substring(offset, cursor))
+            offset = cursor
+          }
           break
         case STATE_NEWLINE:
-          this.produceNewline(value.substring(offset, cursor) as '\n' | '\r\n')
+          this.produceNewline(value.substring(offset, cursor))
+          offset = cursor
           break
       }
+
+      cursor += 1
+      state = nextState
+    }
+
+    switch (state) {
+      case STATE_WORD:
+        this.produceWord(value.substring(offset, cursor))
+        break
+      case STATE_SPACE:
+        this.produceSpace(value.substring(offset, cursor))
+        break
+      case STATE_CARRIAGE_RETURN:
+        this.produceNewline(value.substring(offset, cursor))
+        break
+      case STATE_NEWLINE:
+        this.produceNewline(value.substring(offset, cursor))
+        break
     }
 
     return this
@@ -349,6 +367,23 @@ export class UnidocRuntimeTokenProducer extends UnidocPublisher<UnidocToken> {
  * 
  */
 export namespace UnidocRuntimeTokenProducer {
+  /**
+   * 
+   */
+  export const URI: Readonly<UnidocURI> = Object.freeze(new UnidocURI('memory').setAuthority(UnidocAuthority.LOOPBACK).pushPath('UnidocRuntimeTokenProducer'))
+
+  /**
+   * 
+   */
+  export function origin(): UnidocOrigin {
+    return UnidocOrigin.create(URI)
+  }
+
+  /**
+   * 
+   */
+  export const DEFAULT_NAME: string = UnidocRuntimeTokenProducer.name
+
   /**
    * 
    */

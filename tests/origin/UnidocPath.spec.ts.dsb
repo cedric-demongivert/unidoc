@@ -2,8 +2,6 @@
 
 import { UnidocPath } from '../../sources/origin/UnidocPath'
 import { UnidocOrigin } from '../../sources/origin/UnidocOrigin'
-import { UnidocLocation } from '../../sources/origin/UnidocLocation'
-import { UnidocRange } from '../../sources/origin/UnidocRange'
 
 /**
  * @dependsOn UnidocOrigin
@@ -26,9 +24,9 @@ describe('UnidocPath', function () {
       const s2: UnidocOrigin = new UnidocOrigin()
       const s3: UnidocOrigin = new UnidocOrigin()
 
-      s1.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s2.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s3.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s1.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s2.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s3.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       expect(path.size).toBe(0)
 
@@ -58,10 +56,10 @@ describe('UnidocPath', function () {
       const s22: UnidocOrigin = new UnidocOrigin()
       const s3: UnidocOrigin = new UnidocOrigin()
 
-      s1.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s21.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s22.inURI('http://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s3.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s1.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s21.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s22.inURI('http://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s3.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       path.push(s1)
       path.push(s21)
@@ -105,10 +103,10 @@ describe('UnidocPath', function () {
       const s21: UnidocOrigin = new UnidocOrigin()
       const s22: UnidocOrigin = new UnidocOrigin()
 
-      s11.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s12.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s21.inURI('http://127.0.0.1/test').at(UnidocRange.betweenCoordinates(9, 10, 80, 1, 15, 122))
-      s22.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s11.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s12.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s21.inURI('http://127.0.0.1/test').fromCoordinates(9, 10, 80).toCoordinates(1, 15, 122)
+      s22.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       first.push(s11)
       first.push(s12)
@@ -146,10 +144,10 @@ describe('UnidocPath', function () {
       const s3: UnidocOrigin = new UnidocOrigin()
       const s4: UnidocOrigin = new UnidocOrigin()
 
-      s1.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s2.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s3.inURI('http://127.0.0.1/test').at(UnidocRange.betweenCoordinates(9, 10, 80, 1, 15, 122))
-      s4.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s1.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s2.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s3.inURI('http://127.0.0.1/test').fromCoordinates(9, 10, 80).toCoordinates(1, 15, 122)
+      s4.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       path.push(s1)
       path.push(s2)
@@ -184,10 +182,10 @@ describe('UnidocPath', function () {
       const s3: UnidocOrigin = new UnidocOrigin()
       const s4: UnidocOrigin = new UnidocOrigin()
 
-      s1.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s2.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s3.inURI('http://127.0.0.1/test').at(UnidocRange.betweenCoordinates(9, 10, 80, 1, 15, 122))
-      s4.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s1.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s2.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s3.inURI('http://127.0.0.1/test').fromCoordinates(9, 10, 80).toCoordinates(1, 15, 122)
+      s4.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       path.push(s1)
       path.push(s2)
@@ -223,10 +221,10 @@ describe('UnidocPath', function () {
       const s3: UnidocOrigin = new UnidocOrigin()
       const s4: UnidocOrigin = new UnidocOrigin()
 
-      s1.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s2.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s3.inURI('http://127.0.0.1/test').at(UnidocRange.betweenCoordinates(9, 10, 80, 1, 15, 122))
-      s4.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s1.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s2.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s3.inURI('http://127.0.0.1/test').fromCoordinates(9, 10, 80).toCoordinates(1, 15, 122)
+      s4.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       source.push(s1)
       source.push(s2)
@@ -261,10 +259,10 @@ describe('UnidocPath', function () {
       const s3: UnidocOrigin = new UnidocOrigin()
       const s4: UnidocOrigin = new UnidocOrigin()
 
-      s1.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s2.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s3.inURI('http://127.0.0.1/test').at(UnidocRange.betweenCoordinates(9, 10, 80, 1, 15, 122))
-      s4.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s1.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s2.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s3.inURI('http://127.0.0.1/test').fromCoordinates(9, 10, 80).toCoordinates(1, 15, 122)
+      s4.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       path.push(s1)
       path.push(s2)
@@ -290,10 +288,10 @@ describe('UnidocPath', function () {
       const s3: UnidocOrigin = new UnidocOrigin()
       const s4: UnidocOrigin = new UnidocOrigin()
 
-      s1.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s2.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s3.inURI('http://127.0.0.1/test').at(UnidocRange.betweenCoordinates(9, 10, 80, 1, 15, 122))
-      s4.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s1.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s2.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s3.inURI('http://127.0.0.1/test').fromCoordinates(9, 10, 80).toCoordinates(1, 15, 122)
+      s4.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       path.push(s1)
       path.push(s2)
@@ -344,10 +342,10 @@ describe('UnidocPath', function () {
       const s21: UnidocOrigin = new UnidocOrigin()
       const s22: UnidocOrigin = new UnidocOrigin()
 
-      s11.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s12.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s21.inURI('http://127.0.0.1/test').at(UnidocRange.betweenCoordinates(9, 10, 80, 1, 15, 122))
-      s22.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s11.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s12.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s21.inURI('http://127.0.0.1/test').fromCoordinates(9, 10, 80).toCoordinates(1, 15, 122)
+      s22.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       first.push(s11)
       first.push(s12)
@@ -367,10 +365,10 @@ describe('UnidocPath', function () {
       const s3: UnidocOrigin = new UnidocOrigin()
       const s4: UnidocOrigin = new UnidocOrigin()
 
-      s1.inFile('file_1').at(UnidocRange.betweenCoordinates(5, 2, 12, 3, 9, 45))
-      s2.inURI('ftp://127.0.0.1').at(UnidocRange.betweenCoordinates(6, 3, 13, 9, 5, 32))
-      s3.inURI('http://127.0.0.1/test').at(UnidocRange.betweenCoordinates(9, 10, 80, 1, 15, 122))
-      s4.inMemory('runtime').at(UnidocRange.betweenCoordinates(2, 6, 17, 2, 8, 29))
+      s1.inFile('file_1').fromCoordinates(5, 2, 12).toCoordinates(3, 9, 45)
+      s2.inURI('ftp://127.0.0.1').fromCoordinates(6, 3, 13).toCoordinates(9, 5, 32)
+      s3.inURI('http://127.0.0.1/test').fromCoordinates(9, 10, 80).toCoordinates(1, 15, 122)
+      s4.inMemory('runtime').fromCoordinates(2, 6, 17).toCoordinates(2, 8, 29)
 
       first.push(s1)
       first.push(s2)

@@ -282,4 +282,17 @@ export namespace UTF32String {
   export function fromUTF16String(value: UTF16String): UTF32String {
     return new UTF32String(new Uint32Array(value.UTF32Size)).setUTF16String(value)
   }
+
+  /**
+   * 
+   */
+  export function fromCodeUnits(codes: Iterable<UTF32CodeUnit>, capacity: number = 0): UTF32String {
+    const result: UTF32String = new UTF32String(new Uint32Array(capacity))
+
+    for (const code of codes) {
+      result.push(code)
+    }
+
+    return result
+  }
 }

@@ -2,7 +2,7 @@ import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
 import { UTF32String } from '../symbol/UTF32String'
 
-import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
+import { UnidocPath } from '../origin/UnidocPath'
 
 import { DataObject } from '../DataObject'
 
@@ -14,10 +14,10 @@ const EMPTY_STRING: string = ''
 /**
 * A unidoc event.
 */
-export class UnidocEvent implements DataObject<UnidocEvent> {
+export class UnidocEvent implements DataObject {
   /**
-  * Event index.
-  */
+   * Index of this event in the sequence of event that form the underlying document.
+   */
   public index: number
 
   /**
@@ -28,12 +28,12 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
   * The discovered tag, if any.
   */
-  public tag: string
+  public readonly tag: UTF32String
 
   /**
   * Identifier associated to the block or the tag if any.
   */
-  public identifier: string
+  public readonly identifier: UTF32String
 
   /**
   * Classes associated to the block or the tag if any.
@@ -48,7 +48,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
   * Ending location of the event into the parsed document.
   */
-  public readonly origin: UnidocRangeOrigin
+  public readonly origin: UnidocPath
 
   /**
   * Instantiate a new unidoc event.
@@ -56,11 +56,11 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   public constructor() {
     this.index = 0
     this.type = UnidocEventType.START_TAG
-    this.tag = EMPTY_STRING
-    this.identifier = EMPTY_STRING
+    this.tag = UTF32String.allocate(64)
+    this.identifier = UTF32String.allocate(64)
     this.classes = new Set<string>()
-    this.symbols = UTF32String.allocate(128)
-    this.origin = new UnidocRangeOrigin().runtime()
+    this.symbols = UTF32String.allocate(64)
+    this.origin = new UnidocPath()
   }
 
   /**
@@ -74,7 +74,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   *
   */
   public isStartOfTag(tag: string): boolean {
-    return this.type === UnidocEventType.START_TAG && this.tag === tag
+    return this.type === UnidocEventType.START_TAG && this.tag.equalsToString(tag)
   }
 
   /**
@@ -88,7 +88,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   *
   */
   public isEndOfTag(tag: string): boolean {
-    return this.type === UnidocEventType.END_TAG && this.tag === tag
+    return this.type === UnidocEventType.END_TAG && this.tag.equalsToString(tag)
   }
 
   /**
@@ -119,8 +119,8 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   * @param content - Content of the resulting event.
   */
   public asWord(content: string): void {
-    this.identifier = EMPTY_STRING
-    this.tag = EMPTY_STRING
+    this.identifier.clear()
+    this.tag.clear()
     this.classes.clear()
 
     this.type = UnidocEventType.WORD
@@ -133,8 +133,8 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   * @param content - Content of the resulting event.
   */
   public asWhitespace(content: string): void {
-    this.identifier = EMPTY_STRING
-    this.tag = EMPTY_STRING
+    this.identifier.clear()
+    this.tag.clear()
     this.classes.clear()
 
     this.type = UnidocEventType.WHITESPACE
@@ -151,14 +151,14 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
     this.classes.clear()
     this.type = UnidocEventType.START_TAG
 
-    this.tag = EMPTY_STRING
-    this.identifier = EMPTY_STRING
+    this.tag.clear()
+    this.identifier.clear()
 
     const tokens: RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
 
     if (tokens != null) {
-      this.tag = tokens[1]
-      this.identifier = tokens[2] == null ? EMPTY_STRING : tokens[2].substring(1)
+      this.tag.setString(tokens[1])
+      this.identifier.setString(tokens[2] == null ? EMPTY_STRING : tokens[2].substring(1))
 
       if (tokens[3] != null) {
         for (const token of tokens[3].substring(1).split('.')) {
@@ -178,14 +178,14 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
     this.classes.clear()
     this.type = UnidocEventType.END_TAG
 
-    this.tag = EMPTY_STRING
-    this.identifier = EMPTY_STRING
+    this.tag.clear()
+    this.identifier.clear()
 
     const tokens: RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
 
     if (tokens != null) {
-      this.tag = tokens[1]
-      this.identifier = tokens[2] == null ? EMPTY_STRING : tokens[2].substring(1)
+      this.tag.setString(tokens[1])
+      this.identifier.setString(tokens[2] == null ? EMPTY_STRING : tokens[2].substring(1))
 
       if (tokens[3] != null) {
         for (const token of tokens[3].substring(1).split('.')) {
@@ -212,8 +212,8 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   public copy(toCopy: UnidocEvent): this {
     this.index = toCopy.index
     this.type = toCopy.type
-    this.tag = toCopy.tag
-    this.identifier = toCopy.identifier
+    this.tag.copy(toCopy.tag)
+    this.identifier.copy(toCopy.identifier)
 
     this.symbols.copy(toCopy.symbols)
     this.origin.copy(toCopy.origin)
@@ -242,12 +242,9 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   public clear(): this {
     this.index = 0
     this.type = UnidocEventType.START_TAG
-    this.tag = EMPTY_STRING
-    this.identifier = EMPTY_STRING
-
+    this.tag.clear()
+    this.identifier.clear()
     this.origin.clear()
-    this.origin.runtime()
-
     this.classes.clear()
     this.symbols.clear()
 
@@ -266,14 +263,14 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
     result += ' '
     result += this.origin.toString()
 
-    if (this.tag.length > 0) {
+    if (this.tag.size > 0) {
       result += ' \\'
-      result += this.tag
+      result += this.tag.toString()
     }
 
-    if (this.identifier.length > 0) {
+    if (this.identifier.size > 0) {
       result += ' #'
-      result += this.identifier
+      result += this.identifier.toString()
     }
 
     if (this.classes.size > 0) {
@@ -305,8 +302,8 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
         other.index !== this.index ||
         other.type !== this.type ||
         other.classes.size !== this.classes.size ||
-        other.identifier !== this.identifier ||
-        other.tag !== this.tag ||
+        !other.identifier.equals(this.identifier) ||
+        !other.tag.equals(this.tag) ||
         !other.origin.equals(this.origin)
       ) { return false }
 

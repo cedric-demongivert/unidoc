@@ -1,8 +1,7 @@
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocPublisher } from '../stream/UnidocPublisher'
-
-import { UnidocOrigin } from '../origin/UnidocOrigin'
+import { UnidocSequenceOrigin } from '../origin/UnidocSequenceOrigin'
 
 import { UnidocToken } from './UnidocToken'
 import { UnidocTokenType } from './UnidocTokenType'
@@ -30,8 +29,6 @@ export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
     super()
 
     this._token = new UnidocToken()
-    this._token.origin.from.runtime()
-    this._token.origin.to.runtime()
     this._index = 0
   }
 
@@ -45,51 +42,9 @@ export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
   /**
    * 
    */
-  public at(origin: UnidocOrigin): UnidocTokenProducer {
-    this._token.origin.from.copy(origin)
-    this._token.origin.to.copy(origin)
+  public setOrigin(origin: UnidocSequenceOrigin): UnidocTokenProducer {
+    this._token.origin.copy(origin)
     return this
-  }
-
-  /**
-   * 
-   */
-  public from(): UnidocOrigin
-
-  /**
-   * 
-   */
-  public from(origin: UnidocOrigin): UnidocTokenProducer
-
-  public from(origin?: UnidocOrigin): UnidocOrigin | UnidocTokenProducer {
-    if (origin) {
-      this._token.origin.from.copy(origin)
-      return this
-    } else {
-      this._token.origin.from.clear()
-      return this._token.origin.from
-    }
-
-  }
-
-  /**
-   * 
-   */
-  public to(): UnidocOrigin
-
-  /**
-   * 
-   */
-  public to(origin: UnidocOrigin): UnidocTokenProducer
-
-  public to(origin?: UnidocOrigin): UnidocOrigin | UnidocTokenProducer {
-    if (origin) {
-      this._token.origin.to.copy(origin)
-      return this
-    } else {
-      this._token.origin.to.clear()
-      return this._token.origin.to
-    }
   }
 
   /**
@@ -201,7 +156,7 @@ export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
   *
   * @return This producer instance for chaining purposes.
   */
-  public produceNewline(type: '\r\n' | '\r' | '\n' = '\r\n'): UnidocTokenProducer {
+  public produceNewline(type: string = '\r\n'): UnidocTokenProducer {
     this._token.asNewline(type)
 
     this.produce(this._token)

@@ -271,6 +271,19 @@ export namespace UTF16String {
   export function fromUTF32String(value: UTF32String): UTF16String {
     return new UTF16String(new Uint16Array(value.UTF16Size)).setUTF32String(value)
   }
+
+  /**
+   * 
+   */
+  export function fromCodeUnits(codes: Iterable<UTF16CodeUnit>, capacity: number = 0): UTF16String {
+    const result: UTF16String = new UTF16String(new Uint16Array(capacity))
+
+    for (const code of codes) {
+      result.push(code)
+    }
+
+    return result
+  }
 }
 
 /**

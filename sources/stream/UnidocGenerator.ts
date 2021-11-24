@@ -17,7 +17,7 @@ export interface UnidocGenerator<Output> {
   /**
    * 
    */
-  skip(elements?: number | undefined): void
+  skip(elements?: number | undefined): this
 
   /**
    * 
@@ -27,7 +27,7 @@ export interface UnidocGenerator<Output> {
   /**
    * 
    */
-  generator(): Generator<Output, undefined, unknown>
+  generator(): Generator<Output, void, unknown>
 }
 
 /**
@@ -62,10 +62,12 @@ export function UnidocGenerator<Produce, BaseConstructor extends Constructor>(Pr
     /**
      * 
      */
-    public skip(elements: number = 1): void {
+    public skip(elements: number = 1): this {
       for (let index = 0; index < elements; ++index) {
         this.next()
       }
+
+      return this
     }
 
     /**

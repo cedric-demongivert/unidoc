@@ -4,15 +4,13 @@ import '../jest/buffer-extension'
 
 import { UnidocBuffer } from '../../sources/buffer/UnidocBuffer'
 
-import { UnidocSource } from '../../sources/source/UnidocSource'
+import { UnidocSymbols } from '../../sources/symbol/UnidocSymbols'
 
 import { UnidocToken } from '../../sources/token/UnidocToken'
 import { UnidocRuntimeTokenProducer } from '../../sources/token/UnidocRuntimeTokenProducer'
 
 import { UnidocLexerState } from '../../sources/lexer/UnidocLexerState'
 import { UnidocLexer } from '../../sources/lexer/UnidocLexer'
-
-import { skipSuccess } from '../../sources/stream/skipSuccess'
 
 
 /**
@@ -24,11 +22,12 @@ import { skipSuccess } from '../../sources/stream/skipSuccess'
 */
 function tokenization(content: string): UnidocBuffer<UnidocToken> {
   const lexer: UnidocLexer = new UnidocLexer()
-  const source: UnidocSource = UnidocSource.fromString(content)
   const output: UnidocBuffer<UnidocToken> = UnidocBuffer.bufferize(lexer, UnidocToken.ALLOCATOR)
 
-  lexer.subscribe(source)
-  source.read()
+  for (const symbol of UnidocSymbols.fromString(content)) {
+    lexer.next(symbol)
+  }
+  lexer.success()
 
   return output
 }
@@ -39,11 +38,11 @@ namespace tokenization {
   */
   export function online(content: string): UnidocBuffer<UnidocToken> {
     const lexer: UnidocLexer = new UnidocLexer()
-    const source: UnidocSource = UnidocSource.fromString(content)
     const output: UnidocBuffer<UnidocToken> = UnidocBuffer.bufferize(lexer, UnidocToken.ALLOCATOR)
 
-    lexer.subscribe(skipSuccess(source))
-    source.read()
+    for (const symbol of UnidocSymbols.fromString(content)) {
+      lexer.next(symbol)
+    }
 
     return output
   }
@@ -53,6 +52,7 @@ function ofProduction(configurator: (this: UnidocRuntimeTokenProducer) => void):
   const producer: UnidocRuntimeTokenProducer = UnidocRuntimeTokenProducer.create()
   const expectation: UnidocBuffer<UnidocToken> = UnidocBuffer.bufferize(producer, UnidocToken.ALLOCATOR)
 
+  producer.fromSource(UnidocSymbols.fromString.URI)
   configurator.call(producer)
 
   return expectation
@@ -223,27 +223,9 @@ describe('UnidocLexer', function () {
     })
 
     it('recognize degenerated identifiers as words', function () {
-      expect(tokenization.online('#acuriousαidentifier ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('#acuriousαidentifier')
-          this.success()
-        })
-      )
-    })
-
-    it('recognize degenerated identifiers as words', function () {
       expect(tokenization.online('##acuriousidentifier ')).toMatchBuffer(
         ofProduction(function () {
           this.produceWord('##acuriousidentifier')
-          this.success()
-        })
-      )
-    })
-
-    it('recognize degenerated tags as words', function () {
-      expect(tokenization.online('\\acuriousαtag ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('\\acuriousαtag')
           this.success()
         })
       )
@@ -334,7 +316,10 @@ describe('UnidocLexer', function () {
   describe('newline recognition', function () {
     it('recognize newlines', function () {
       expect(tokenization('\r\n\n\r\r')).toMatchBuffer(ofProduction(function () {
-        this.produceString('\r\n\n\r\r')
+        this.produceNewline('\r\n')
+        this.produceNewline('\n')
+        this.produceNewline('\r')
+        this.produceNewline('\r')
         this.success()
       }))
     })
@@ -342,8 +327,8 @@ describe('UnidocLexer', function () {
 
   describe('space recognition', function () {
     it('recognize spaces', function () {
-      expect(tokenization(' \f\t\t ')).toMatchBuffer(ofProduction(function () {
-        this.produceSpace(' \f\t\t ')
+      expect(tokenization(' \t\t ')).toMatchBuffer(ofProduction(function () {
+        this.produceSpace(' \t\t ')
         this.success()
       }))
     })

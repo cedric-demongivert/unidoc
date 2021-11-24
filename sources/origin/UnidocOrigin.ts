@@ -1,69 +1,133 @@
 import { Duplicator } from "@cedric-demongivert/gl-tool-collection"
-import { UnidocLocation } from "sources"
+
 import { DataObject } from "../DataObject"
 
+import { UnidocLocation } from "./UnidocLocation"
 import { UnidocRange } from "./UnidocRange"
+import { UnidocURI } from "./UnidocURI"
 
 /**
- * The identification of a symbol, or a range of symbol, in a source of symbols.
+ * The identification of a range of symbol from one source.
  */
 export class UnidocOrigin implements DataObject {
   /**
-   * The Unified Resource Identifier (URI) of the source.
+   * The source that contains the identified range of symbol.
    */
-  public unifiedResourceIdentifier: string
+  public readonly source: UnidocURI
 
   /**
-   * The range of symbol in the source.
+   * The coordinates of the identified range of symbol.
    */
-  public readonly location: UnidocRange
+  public readonly range: UnidocRange
 
   /**
    * 
    */
-  public constructor(uri: string = UnidocOrigin.DEFAULT_URI, location?: UnidocRange | null | undefined) {
-    this.unifiedResourceIdentifier = UnidocOrigin.DEFAULT_URI
-    this.location = location ? location.clone() : new UnidocRange()
+  public constructor(source?: UnidocURI | undefined, range?: UnidocRange | undefined) {
+    this.source = source ? source.clone() : new UnidocURI()
+    this.range = range ? range.clone() : new UnidocRange()
   }
 
   /**
    * 
    */
-  public inMemory(name: string): this {
-    this.unifiedResourceIdentifier = 'memory://' + name
+  public isPreceding(other: UnidocOrigin): boolean {
+    return (
+      this.source.equals(other.source) &&
+      this.range.end.equals(other.range.start)
+    )
+  }
+
+  /**
+   * 
+   */
+  public isFollowing(other: UnidocOrigin): boolean {
+    return (
+      this.source.equals(other.source) &&
+      this.range.start.equals(other.range.end)
+    )
+  }
+
+  /**
+   * Update the source that contains the identified range of symbol.
+   * 
+   * @param source - The new source that contains the identified range of symbol.
+   * 
+   * @return This instance for chaining purposes.
+   */
+  public setSource(source: UnidocURI): this {
+    this.source.copy(source)
     return this
   }
 
   /**
+   * @see UnidocRange.atCoordinates
    * 
+   * @return This instance for chaining purposes.
    */
-  public inFile(path: string): this {
-    this.unifiedResourceIdentifier = 'file://' + path
+  public atCoordinates(column: number, row: number, symbol: number): this {
+    this.range.atCoordinates(column, row, symbol)
     return this
   }
 
   /**
+   * @see UnidocRange.atLocation
    * 
+   * @return This instance for chaining purposes.
    */
-  public inURI(uri: string): this {
-    this.unifiedResourceIdentifier = uri
+  public atLocation(location: UnidocLocation): this {
+    this.range.atLocation(location)
     return this
   }
 
   /**
+   * @see UnidocRange.fromCoordinates
    * 
+   * @return This instance for chaining purposes.
    */
-  public at(range: UnidocRange): this {
-    this.location.copy(range)
+  public fromCoordinates(column: number, row: number, symbol: number): this {
+    this.range.fromCoordinates(column, row, symbol)
+    return this
+  }
+
+  /**
+   * @see UnidocRange.fromLocation
+   * 
+   * @return This instance for chaining purposes.
+   */
+  public fromLocation(location: UnidocLocation): this {
+    this.range.fromLocation(location)
+    return this
+  }
+
+  /**
+   * @see UnidocRange.toCoordinates
+   * 
+   * @return This instance for chaining purposes.
+   */
+  public toCoordinates(column: number, row: number, symbol: number): this {
+    this.range.toCoordinates(column, row, symbol)
+    return this
+  }
+
+  /**
+   * @see UnidocRange.toLocation
+   * 
+   * @return This instance for chaining purposes.
+   */
+  public toLocation(location: UnidocLocation): this {
+    this.range.toLocation(location)
     return this
   }
 
   /**
    * @see DataObject.clear
+   * 
+   * @return This instance for chaining purposes.
    */
   public clear(): this {
-    this.unifiedResourceIdentifier = UnidocOrigin.DEFAULT_URI
-    this.location.clear()
+    this.source.clear()
+    this.range.clear()
     return this
   }
 
@@ -77,9 +141,9 @@ export class UnidocOrigin implements DataObject {
   /**
    * @see DataObject.copy
    */
-  public copy(toCopy: this): this {
-    this.unifiedResourceIdentifier = toCopy.unifiedResourceIdentifier
-    this.location.copy(toCopy.location)
+  public copy(toCopy: UnidocOrigin): this {
+    this.source.copy(toCopy.source)
+    this.range.copy(toCopy.range)
     return this
   }
 
@@ -87,7 +151,7 @@ export class UnidocOrigin implements DataObject {
    * @see Object.toString
    */
   public toString(): string {
-    return 'in ' + this.unifiedResourceIdentifier + ' ' + this.location.toString()
+    return 'in ' + this.source.toString() + ' ' + this.range.toString()
   }
 
   /**
@@ -99,8 +163,8 @@ export class UnidocOrigin implements DataObject {
 
     if (other instanceof UnidocOrigin) {
       return (
-        other.unifiedResourceIdentifier === this.unifiedResourceIdentifier &&
-        other.location.equals(this.location)
+        other.source.equals(this.source) &&
+        other.range.equals(this.range)
       )
     }
 
@@ -115,13 +179,13 @@ export namespace UnidocOrigin {
   /**
    * 
    */
-  export const DEFAULT_URI: string = 'memory://runtime'
+  export const DEFAULT: Readonly<UnidocOrigin> = new UnidocOrigin()
 
   /**
    * A factory that allows to instantiate UnidocOrigin instances
    */
-  export function create(uri: string = DEFAULT_URI, location?: UnidocRange | null | undefined): UnidocOrigin {
-    return new UnidocOrigin(uri, location)
+  export function create(source?: UnidocURI | undefined, range?: UnidocRange | undefined): UnidocOrigin {
+    return new UnidocOrigin(source, range)
   }
 
 

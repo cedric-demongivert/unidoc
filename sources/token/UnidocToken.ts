@@ -3,7 +3,7 @@ import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 import { UTF32String } from '../symbol/UTF32String'
 
-import { UnidocPath } from '../origin/UnidocPath'
+import { UnidocSequenceOrigin } from '../origin/UnidocSequenceOrigin'
 
 import { DataObject } from '../DataObject'
 
@@ -14,7 +14,7 @@ import { UnidocTokenType } from './UnidocTokenType'
  */
 export class UnidocToken implements DataObject {
   /**
-   * Index of this token in the sequence of token of the underlying document.
+   * Index of this token in the sequence of token that form the underlying document.
    */
   public index: number
 
@@ -26,7 +26,7 @@ export class UnidocToken implements DataObject {
   /**
    * The location of this token in the underlying source of symbols.
    */
-  public readonly origin: UnidocPath
+  public readonly origin: UnidocSequenceOrigin
 
   /**
    * Symbols that compose this unidoc token.
@@ -42,7 +42,7 @@ export class UnidocToken implements DataObject {
     this.index = 0
     this.type = UnidocTokenType.DEFAULT_TYPE
     this.symbols = UTF32String.allocate(capacity)
-    this.origin = new UnidocPath()
+    this.origin = new UnidocSequenceOrigin()
   }
 
   /**
@@ -119,7 +119,7 @@ export class UnidocToken implements DataObject {
   *
   * @param [type = '\r\n'] - Type of new line to configure.
   */
-  public asNewline(type: '\r\n' | '\r' | '\n' = '\r\n'): void {
+  public asNewline(type: string = '\r\n'): void {
     this.as(UnidocTokenType.NEW_LINE, type)
   }
 

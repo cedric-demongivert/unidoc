@@ -25,7 +25,7 @@ describe('UnidocOrigin', function () {
     })
 
     it('instantiate an origin with the given URI and coordinates if all the parameters are defined', function () {
-      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 12)))
+      const origin: UnidocOrigin = new UnidocOrigin('ftp://127.0.0.1', UnidocRange.atCoordinates(5, 8, 12))
 
       expect(origin.unifiedResourceIdentifier).toBe('ftp://127.0.0.1')
       expect(origin.location.equals(new UnidocRange(new UnidocLocation(5, 8, 12)))).toBeTruthy()
@@ -51,10 +51,10 @@ describe('UnidocOrigin', function () {
     })
 
     it('instantiate an origin with the given URI and coordinates if all the parameters are defined', function () {
-      const origin: UnidocOrigin = UnidocOrigin.create('ftp://127.0.0.1', new UnidocRange(new UnidocLocation(5, 8, 12)))
+      const origin: UnidocOrigin = UnidocOrigin.create('ftp://127.0.0.1', UnidocRange.atCoordinates(5, 8, 12))
 
       expect(origin.unifiedResourceIdentifier).toBe('ftp://127.0.0.1')
-      expect(origin.location.equals(new UnidocRange(new UnidocLocation(5, 8, 12)))).toBeTruthy()
+      expect(origin.location.equals(UnidocRange.atCoordinates(5, 8, 12))).toBeTruthy()
     })
   })
 

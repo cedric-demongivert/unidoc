@@ -1,7 +1,7 @@
 
 export { UnidocLocation } from './UnidocLocation'
-export { UnidocLocationTracker } from './UnidocLocationTracker'
-export { UnidocLocationTrackerState } from './UnidocLocationTrackerState'
+export { UnidocTracker } from './UnidocTracker'
 export { UnidocOrigin } from './UnidocOrigin'
+export { UnidocSequenceOrigin } from './UnidocSequenceOrigin'
 export { UnidocPath } from './UnidocPath'
 export { UnidocRange } from './UnidocRange'

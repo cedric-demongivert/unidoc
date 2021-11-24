@@ -12,7 +12,7 @@ export class Random {
   /**
    * 
    */
-  private readonly generator: Chance.Chance
+  private generator: Chance.Chance
 
   /**
    * 
@@ -38,7 +38,7 @@ export class Random {
    * 
    */
   public setSeed(seed: number): void {
-    this.generator.seed = seed
+    this.generator = new Chance(seed)
     this.seed = seed
   }
 
@@ -81,6 +81,32 @@ export class Random {
   public nextPositiveInteger(maximum: number = 2147483647): number {
     return this.nextInteger(0, maximum)
   }
+
+  /**
+   * 
+   */
+  public nextElement<T>(elements: T[]): T | undefined {
+    if (elements.length > 0) {
+      return elements[this.nextPositiveInteger(elements.length - 1)]
+    } else {
+      return undefined
+    }
+  }
+
+  /**
+   * 
+   */
+  public nextElements<T>(elements: T[], length: number = 0): T[] {
+    const result: T[] = []
+
+    if (elements.length > 0) {
+      for (let index = 0; index < length; ++index) {
+        result.push(elements[this.nextPositiveInteger(elements.length - 1)])
+      }
+    }
+
+    return result
+  }
 }
 
 /**
@@ -119,6 +145,26 @@ export namespace Random {
    * 
    */
   export const nextPositiveInteger = CURRENT.nextPositiveInteger.bind(CURRENT)
+
+  /**
+   * 
+   */
+  export const nextElement = CURRENT.nextElement.bind(CURRENT)
+
+  /**
+   * 
+   */
+  export const nextElements = CURRENT.nextElements.bind(CURRENT)
+
+  /**
+   * 
+   */
+  export const getSeed = CURRENT.getSeed.bind(CURRENT)
+
+  /**
+   * 
+   */
+  export const setSeed = CURRENT.setSeed.bind(CURRENT)
 
   /**
    * A factory that returns random instances of a given class.

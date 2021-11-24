@@ -1,10 +1,9 @@
 import { Allocator, Duplicator, Pack } from "@cedric-demongivert/gl-tool-collection"
-import { UnidocRange } from "sources"
 
 import { DataObject } from "../DataObject"
 
-import { UnidocLocation } from "./UnidocLocation"
-import { UnidocOrigin } from "./UnidocOrigin"
+import { UnidocSequenceOrigin } from "./UnidocSequenceOrigin"
+import { UnidocRange } from "./UnidocRange"
 
 /**
  * A path to a given location in a source of symbols.
@@ -13,7 +12,7 @@ export class UnidocPath implements DataObject {
   /**
    * 
    */
-  public readonly elements: Pack<UnidocOrigin>
+  public readonly elements: Pack<UnidocSequenceOrigin>
 
   /**
    * 
@@ -91,29 +90,29 @@ export class UnidocPath implements DataObject {
   }
 
   /**
-   * 
+   * @mayBeDeleted
    */
   public inMemory(name: string, range: UnidocRange = UnidocRange.ZERO): this {
     this.elements.size += 1
-    this.elements.last.inMemory(name).at(range)
+    this.elements.last.inMemory(name).setLocation(range)
     return this
   }
 
   /**
-   * 
+   * @mayBeDeleted
    */
   public inFile(path: string, range: UnidocRange = UnidocRange.ZERO): this {
     this.elements.size += 1
-    this.elements.last.inFile(path).at(range)
+    this.elements.last.inFile(path).setLocation(range)
     return this
   }
 
   /**
-   * 
+   * @mayBeDeleted
    */
   public inURI(uri: string, range: UnidocRange = UnidocRange.ZERO): this {
     this.elements.size += 1
-    this.elements.last.inURI(uri).at(range)
+    this.elements.last.inURI(uri).setLocation(range)
     return this
   }
 

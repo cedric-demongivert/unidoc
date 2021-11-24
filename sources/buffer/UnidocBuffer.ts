@@ -1,7 +1,8 @@
 import { Pack } from '@cedric-demongivert/gl-tool-collection'
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
-import { UnidocProducer } from 'sources/stream/UnidocProducer'
+
+import { UnidocProducer } from '../stream/UnidocProducer'
 
 import { UnidocBufferizer } from './UnidocBufferizer'
 

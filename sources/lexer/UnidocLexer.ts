@@ -133,33 +133,50 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterAntislash(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    if (
-      (codePoint >= UTF32CodeUnit.LATIN_SMALL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_SMALL_LETTER_Z) ||
-      (codePoint >= UTF32CodeUnit.LATIN_CAPITAL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_CAPITAL_LETTER_Z) ||
-      (codePoint >= UTF32CodeUnit.ZERO && codePoint <= UTF32CodeUnit.NINE) ||
-      (codePoint === UTF32CodeUnit.MINUS) ||
-      (codePoint === UTF32CodeUnit.COLON)
-    ) {
-      this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-      this._state = UnidocLexerState.TAG
-    } else {
-      switch (codePoint) {
-        case UTF32CodeUnit.SPACE:
-        case UTF32CodeUnit.HORIZONTAL_TABULATION:
-        case UTF32CodeUnit.FORM_FEED:
-        case UTF32CodeUnit.NEW_LINE:
-        case UTF32CodeUnit.CARRIAGE_RETURN:
-          this.emit(UnidocTokenType.WORD)
-          this._state = UnidocLexerState.START
-          this.nextAfterStart(symbol)
-          break
-        default:
-          this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-          this._state = UnidocLexerState.WORD
-          break
-      }
+    switch (symbol.code) {
+      // Space
+      case UTF32CodeUnit.SPACE:
+      case UTF32CodeUnit.HORIZONTAL_TABULATION:
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
+      // New line
+      case UTF32CodeUnit.VERTICAL_TABULATION:
+      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
+      case UTF32CodeUnit.NEW_LINE:
+      case UTF32CodeUnit.CARRIAGE_RETURN:
+        this.emit(UnidocTokenType.WORD)
+        this._state = UnidocLexerState.START
+        this.nextAfterStart(symbol)
+        break
+      // "Escape sequence"
+      case UTF32CodeUnit.FULL_STOP:
+      case UTF32CodeUnit.NUMBER_SIGN:
+      case UTF32CodeUnit.LEFT_CURLY_BRACKET:
+      case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
+      case UTF32CodeUnit.REVERSE_SOLIDUS:
+        this._token.appendSymbol(symbol)
+        this._state = UnidocLexerState.WORD
+        break
+      default:
+        this._token.appendSymbol(symbol)
+        this._state = UnidocLexerState.TAG
+        break
     }
   }
 
@@ -169,36 +186,46 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterTag(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    if (
-      (codePoint >= UTF32CodeUnit.LATIN_SMALL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_SMALL_LETTER_Z) ||
-      (codePoint >= UTF32CodeUnit.LATIN_CAPITAL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_CAPITAL_LETTER_Z) ||
-      (codePoint >= UTF32CodeUnit.ZERO && codePoint <= UTF32CodeUnit.NINE) ||
-      (codePoint === UTF32CodeUnit.MINUS)
-    ) {
-      this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-    } else {
-      switch (codePoint) {
-        case UTF32CodeUnit.HORIZONTAL_TABULATION:
-        case UTF32CodeUnit.REVERSE_SOLIDUS:
-        case UTF32CodeUnit.SPACE:
-        case UTF32CodeUnit.FORM_FEED:
-        case UTF32CodeUnit.NEW_LINE:
-        case UTF32CodeUnit.CARRIAGE_RETURN:
-        case UTF32CodeUnit.FULL_STOP:
-        case UTF32CodeUnit.NUMBER_SIGN:
-        case UTF32CodeUnit.LEFT_CURLY_BRACKET:
-        case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
-          this.emit(UnidocTokenType.TAG)
-          this._state = UnidocLexerState.START
-          this.nextAfterStart(symbol)
-          break
-        default:
-          this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-          this._state = UnidocLexerState.WORD
-          break
-      }
+    switch (symbol.code) {
+      // Space
+      case UTF32CodeUnit.SPACE:
+      case UTF32CodeUnit.HORIZONTAL_TABULATION:
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
+      // New line
+      case UTF32CodeUnit.VERTICAL_TABULATION:
+      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
+      case UTF32CodeUnit.NEW_LINE:
+      case UTF32CodeUnit.CARRIAGE_RETURN:
+      // Other control
+      case UTF32CodeUnit.FULL_STOP:
+      case UTF32CodeUnit.NUMBER_SIGN:
+      case UTF32CodeUnit.LEFT_CURLY_BRACKET:
+      case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
+      case UTF32CodeUnit.REVERSE_SOLIDUS:
+        this.emit(UnidocTokenType.TAG)
+        this._state = UnidocLexerState.START
+        this.nextAfterStart(symbol)
+        break
+      default:
+        this._token.appendSymbol(symbol)
+        break
     }
   }
 
@@ -208,23 +235,43 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterWord(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    switch (codePoint) {
-      case UTF32CodeUnit.HORIZONTAL_TABULATION:
+    switch (symbol.code) {
+      // Space
       case UTF32CodeUnit.SPACE:
+      case UTF32CodeUnit.HORIZONTAL_TABULATION:
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
+      // New line
+      case UTF32CodeUnit.VERTICAL_TABULATION:
       case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
       case UTF32CodeUnit.NEW_LINE:
-      case UTF32CodeUnit.REVERSE_SOLIDUS:
       case UTF32CodeUnit.CARRIAGE_RETURN:
+      // Other control
       case UTF32CodeUnit.LEFT_CURLY_BRACKET:
       case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
+      case UTF32CodeUnit.REVERSE_SOLIDUS: // @improvment Check escape sequence in word.
         this.emit(UnidocTokenType.WORD)
         this._state = UnidocLexerState.START
         this.nextAfterStart(symbol)
         break
       default:
-        this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
+        this._token.appendSymbol(symbol)
         break
     }
   }
@@ -235,11 +282,9 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterCarriageReturn(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    switch (codePoint) {
+    switch (symbol.code) {
       case UTF32CodeUnit.NEW_LINE:
-        this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
+        this._token.appendSymbol(symbol)
         this.emit(UnidocTokenType.NEW_LINE)
         this._state = UnidocLexerState.START
         break
@@ -257,13 +302,26 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterSpace(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    switch (codePoint) {
+    switch (symbol.code) {
+      // Space
       case UTF32CodeUnit.SPACE:
       case UTF32CodeUnit.HORIZONTAL_TABULATION:
-      case UTF32CodeUnit.FORM_FEED:
-        this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
+        this._token.appendSymbol(symbol)
         break
       default:
         this.emit(UnidocTokenType.SPACE)
@@ -279,34 +337,50 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterDot(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    if (
-      codePoint >= UTF32CodeUnit.LATIN_SMALL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_SMALL_LETTER_Z ||
-      codePoint >= UTF32CodeUnit.LATIN_CAPITAL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_CAPITAL_LETTER_Z ||
-      codePoint >= UTF32CodeUnit.ZERO && codePoint <= UTF32CodeUnit.NINE ||
-      codePoint === UTF32CodeUnit.MINUS
-    ) {
-      this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-      this._state = UnidocLexerState.CLASS
-    } else {
-      switch (codePoint) {
-        case UTF32CodeUnit.SPACE:
-        case UTF32CodeUnit.HORIZONTAL_TABULATION:
-        case UTF32CodeUnit.FORM_FEED:
-        case UTF32CodeUnit.NEW_LINE:
-        case UTF32CodeUnit.CARRIAGE_RETURN:
-        case UTF32CodeUnit.LEFT_CURLY_BRACKET:
-        case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
-          this.emit(UnidocTokenType.WORD)
-          this._state = UnidocLexerState.START
-          this.nextAfterStart(symbol)
-          break
-        default:
-          this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-          this._state = UnidocLexerState.WORD
-          break
-      }
+    switch (symbol.code) {
+      // Space
+      case UTF32CodeUnit.SPACE:
+      case UTF32CodeUnit.HORIZONTAL_TABULATION:
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
+      // New line
+      case UTF32CodeUnit.VERTICAL_TABULATION:
+      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
+      case UTF32CodeUnit.NEW_LINE:
+      case UTF32CodeUnit.CARRIAGE_RETURN:
+      // Other control
+      case UTF32CodeUnit.LEFT_CURLY_BRACKET:
+      case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
+      case UTF32CodeUnit.REVERSE_SOLIDUS:
+        this.emit(UnidocTokenType.WORD)
+        this._state = UnidocLexerState.START
+        this.nextAfterStart(symbol)
+        break
+      case UTF32CodeUnit.FULL_STOP:
+      case UTF32CodeUnit.NUMBER_SIGN:
+        this._token.appendSymbol(symbol)
+        this._state = UnidocLexerState.WORD
+        break
+      default:
+        this._token.appendSymbol(symbol)
+        this._state = UnidocLexerState.CLASS
+        break
     }
   }
   /**
@@ -315,35 +389,46 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterClass(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    if (
-      codePoint >= UTF32CodeUnit.LATIN_SMALL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_SMALL_LETTER_Z ||
-      codePoint >= UTF32CodeUnit.LATIN_CAPITAL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_CAPITAL_LETTER_Z ||
-      codePoint >= UTF32CodeUnit.ZERO && codePoint <= UTF32CodeUnit.NINE ||
-      codePoint === UTF32CodeUnit.MINUS
-    ) {
-      this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-    } else {
-      switch (codePoint) {
-        case UTF32CodeUnit.HORIZONTAL_TABULATION:
-        case UTF32CodeUnit.REVERSE_SOLIDUS:
-        case UTF32CodeUnit.SPACE:
-        case UTF32CodeUnit.NEW_LINE:
-        case UTF32CodeUnit.CARRIAGE_RETURN:
-        case UTF32CodeUnit.FULL_STOP:
-        case UTF32CodeUnit.NUMBER_SIGN:
-        case UTF32CodeUnit.LEFT_CURLY_BRACKET:
-        case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
-          this.emit(UnidocTokenType.CLASS)
-          this._state = UnidocLexerState.START
-          this.nextAfterStart(symbol)
-          break
-        default:
-          this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-          this._state = UnidocLexerState.WORD
-          break
-      }
+    switch (symbol.code) {
+      // Space
+      case UTF32CodeUnit.SPACE:
+      case UTF32CodeUnit.HORIZONTAL_TABULATION:
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
+      // New line
+      case UTF32CodeUnit.VERTICAL_TABULATION:
+      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
+      case UTF32CodeUnit.NEW_LINE:
+      case UTF32CodeUnit.CARRIAGE_RETURN:
+      // Other control
+      case UTF32CodeUnit.FULL_STOP:
+      case UTF32CodeUnit.NUMBER_SIGN:
+      case UTF32CodeUnit.LEFT_CURLY_BRACKET:
+      case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
+      case UTF32CodeUnit.REVERSE_SOLIDUS:
+        this.emit(UnidocTokenType.CLASS)
+        this._state = UnidocLexerState.START
+        this.nextAfterStart(symbol)
+        break
+      default:
+        this._token.appendSymbol(symbol)
+        break
     }
   }
 
@@ -353,34 +438,50 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterSharp(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    if (
-      codePoint >= UTF32CodeUnit.LATIN_SMALL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_SMALL_LETTER_Z ||
-      codePoint >= UTF32CodeUnit.LATIN_CAPITAL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_CAPITAL_LETTER_Z ||
-      codePoint >= UTF32CodeUnit.ZERO && codePoint <= UTF32CodeUnit.NINE ||
-      codePoint === UTF32CodeUnit.MINUS
-    ) {
-      this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-      this._state = UnidocLexerState.IDENTIFIER
-    } else {
-      switch (codePoint) {
-        case UTF32CodeUnit.SPACE:
-        case UTF32CodeUnit.HORIZONTAL_TABULATION:
-        case UTF32CodeUnit.FORM_FEED:
-        case UTF32CodeUnit.NEW_LINE:
-        case UTF32CodeUnit.CARRIAGE_RETURN:
-        case UTF32CodeUnit.LEFT_CURLY_BRACKET:
-        case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
-          this.emit(UnidocTokenType.WORD)
-          this._state = UnidocLexerState.START
-          this.nextAfterStart(symbol)
-          break
-        default:
-          this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-          this._state = UnidocLexerState.WORD
-          break
-      }
+    switch (symbol.code) {
+      // Space
+      case UTF32CodeUnit.SPACE:
+      case UTF32CodeUnit.HORIZONTAL_TABULATION:
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
+      // New line
+      case UTF32CodeUnit.VERTICAL_TABULATION:
+      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
+      case UTF32CodeUnit.NEW_LINE:
+      case UTF32CodeUnit.CARRIAGE_RETURN:
+      // Other control
+      case UTF32CodeUnit.LEFT_CURLY_BRACKET:
+      case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
+      case UTF32CodeUnit.REVERSE_SOLIDUS:
+        this.emit(UnidocTokenType.WORD)
+        this._state = UnidocLexerState.START
+        this.nextAfterStart(symbol)
+        break
+      case UTF32CodeUnit.NUMBER_SIGN:
+      case UTF32CodeUnit.FULL_STOP:
+        this._token.appendSymbol(symbol)
+        this._state = UnidocLexerState.WORD
+        break
+      default:
+        this._token.appendSymbol(symbol)
+        this._state = UnidocLexerState.IDENTIFIER
+        break
     }
   }
 
@@ -390,35 +491,46 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterIdentifier(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-
-    if (
-      codePoint >= UTF32CodeUnit.LATIN_SMALL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_SMALL_LETTER_Z ||
-      codePoint >= UTF32CodeUnit.LATIN_CAPITAL_LETTER_A && codePoint <= UTF32CodeUnit.LATIN_CAPITAL_LETTER_Z ||
-      codePoint >= UTF32CodeUnit.ZERO && codePoint <= UTF32CodeUnit.NINE ||
-      codePoint === UTF32CodeUnit.MINUS
-    ) {
-      this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-    } else {
-      switch (codePoint) {
-        case UTF32CodeUnit.HORIZONTAL_TABULATION:
-        case UTF32CodeUnit.REVERSE_SOLIDUS:
-        case UTF32CodeUnit.SPACE:
-        case UTF32CodeUnit.NEW_LINE:
-        case UTF32CodeUnit.CARRIAGE_RETURN:
-        case UTF32CodeUnit.FULL_STOP:
-        case UTF32CodeUnit.NUMBER_SIGN:
-        case UTF32CodeUnit.LEFT_CURLY_BRACKET:
-        case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
-          this.emit(UnidocTokenType.IDENTIFIER)
-          this._state = UnidocLexerState.START
-          this.nextAfterStart(symbol)
-          break
-        default:
-          this._token.appendSymbol(codePoint).setTo(symbol.origin.to)
-          this._state = UnidocLexerState.WORD
-          break
-      }
+    switch (symbol.code) {
+      // Space
+      case UTF32CodeUnit.SPACE:
+      case UTF32CodeUnit.HORIZONTAL_TABULATION:
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
+      // New line
+      case UTF32CodeUnit.VERTICAL_TABULATION:
+      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
+      case UTF32CodeUnit.NEW_LINE:
+      case UTF32CodeUnit.CARRIAGE_RETURN:
+      // Other control
+      case UTF32CodeUnit.LEFT_CURLY_BRACKET:
+      case UTF32CodeUnit.RIGHT_CURLY_BRACKET:
+      case UTF32CodeUnit.REVERSE_SOLIDUS:
+      case UTF32CodeUnit.NUMBER_SIGN:
+      case UTF32CodeUnit.FULL_STOP:
+        this.emit(UnidocTokenType.IDENTIFIER)
+        this._state = UnidocLexerState.START
+        this.nextAfterStart(symbol)
+        break
+      default:
+        this._token.appendSymbol(symbol)
+        break
     }
   }
 
@@ -428,10 +540,9 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @param symbol - The symbol to handle.
   */
   private nextAfterStart(symbol: UnidocSymbol): void {
-    const codePoint: UTF32CodeUnit = symbol.code
-    this._token.appendSymbol(codePoint).setOrigin(symbol.origin.from, symbol.origin.to)
+    this._token.appendSymbol(symbol)
 
-    switch (codePoint) {
+    switch (symbol.code) {
       case UTF32CodeUnit.LEFT_CURLY_BRACKET:
         this.emit(UnidocTokenType.BLOCK_START)
         break
@@ -441,11 +552,32 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
       case UTF32CodeUnit.REVERSE_SOLIDUS:
         this._state = UnidocLexerState.REVERSE_SOLIDUS
         break
+      // Space
       case UTF32CodeUnit.SPACE:
       case UTF32CodeUnit.HORIZONTAL_TABULATION:
-      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.NO_BREAK_SPACE:
+      case UTF32CodeUnit.EN_QUAD:
+      case UTF32CodeUnit.EM_QUAD:
+      case UTF32CodeUnit.EN_SPACE:
+      case UTF32CodeUnit.EM_SPACE:
+      case UTF32CodeUnit.THREE_PER_EM_SPACE:
+      case UTF32CodeUnit.FOUR_PER_EM_SPACE:
+      case UTF32CodeUnit.SIX_PER_EM_SPACE:
+      case UTF32CodeUnit.FIGURE_SPACE:
+      case UTF32CodeUnit.PUNCTUATION_SPACE:
+      case UTF32CodeUnit.THIN_SPACE:
+      case UTF32CodeUnit.HAIR_SPACE:
+      case UTF32CodeUnit.MEDIUM_MATHEMATICAL_SPACE:
+      case UTF32CodeUnit.IDEOGRAPHIC_SPACE:
+      case UTF32CodeUnit.OGHAM_SPACE_MARK:
         this._state = UnidocLexerState.SPACE
         break
+      // New line
+      case UTF32CodeUnit.VERTICAL_TABULATION:
+      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
       case UTF32CodeUnit.NEW_LINE:
         this.emit(UnidocTokenType.NEW_LINE)
         break
@@ -477,7 +609,8 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
 
     token.setType(type)
     output.next(token.get())
-    token.setOrigin(token.to).clearSymbols()
+    token.origin.clear()
+    token.symbols.clear()
     token.incrementIndex()
   }
 

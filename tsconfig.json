@@ -12,10 +12,11 @@
     "declaration": true,
     "declarationDir": "./distribution/types",
     "outDir": "./distribution/sources",
-    "baseUrl": "."
+    "baseUrl": ".",
+    "esModuleInterop": true
   },
   "include": [
-    "sources/**/*"
+    "sources/index.ts"
   ],
   "exclude": [
     "sources/next/**/*",

@@ -1,35 +1,44 @@
 import { Allocator, Duplicator } from '@cedric-demongivert/gl-tool-collection'
-import { DataObject } from 'sources/DataObject'
+import { DataObject } from '../DataObject'
 
 import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 
 import { UnidocLocation } from './UnidocLocation'
-import { UnidocLocationTrackerState } from './UnidocLocationTrackerState'
 
 /**
  * Track the position of a cursor in a given UTF32 text.
  */
-export class UnidocLocationTracker implements DataObject {
+export class UnidocTracker implements DataObject {
   /**
    * The current location of the cursor.
    */
   public readonly location: UnidocLocation
 
   /**
-   * The current inner-state of this tracker.
+   * True, if the previous symbol was an unicode CARRIAGE_RETURN.
    */
-  private _state: UnidocLocationTrackerState
+  private carriageReturn: boolean
 
   /**
-   * Instantiate a new tracker.
+   * Instantiate a new tracker at the given coordinates.
+   * 
+   * Return by default a tracker at the begining of the document.
+   * 
+   * @param [column = 0]
+   * @param [row = 0]
+   * @param [index = 0]
+   * 
+   * @see UnidocLocation.column
+   * @see UnidocLocation.row
+   * @see UnidocLocation.index
    */
   public constructor(column: number = 0, row: number = 0, index: number = 0) {
     this.location = new UnidocLocation(column, row, index)
-    this._state = UnidocLocationTrackerState.DEFAULT
+    this.carriageReturn = false
   }
 
   /**
-   * Feed this tracker with a Javascript string.
+   * Feed this tracker with a UTF-16 javascript string.
    * 
    * The tracker will update the location of it's cursor to the end of the given string as if
    * it was the content that follows the one that was already processed by this tracker.
@@ -47,7 +56,7 @@ export class UnidocLocationTracker implements DataObject {
   }
 
   /**
-   * Feed this tracker with an UTF32 code unit..
+   * Feed this tracker with an UTF32 code unit.
    * 
    * The tracker will update the location of it's cursor to the end of the given unit as if
    * it was the content that follows the ones that was already processed by this tracker.
@@ -55,6 +64,8 @@ export class UnidocLocationTracker implements DataObject {
    * @param symbol - The symbol to process.
    * 
    * @return This instance for chaining purposes.
+   * 
+   * @see https://www.unicode.org/reports/tr14/
    */
   public next(symbol: UTF32CodeUnit): this {
     const location: UnidocLocation = this.location
@@ -62,24 +73,30 @@ export class UnidocLocationTracker implements DataObject {
     switch (symbol) {
       case UTF32CodeUnit.CARRIAGE_RETURN:
         location.column = 0
-        location.line += 1
-        location.index += 1
-        this._state = UnidocLocationTrackerState.RETURN
+        location.row += 1
+        location.symbol += 1
+        this.carriageReturn = true
         break
       case UTF32CodeUnit.NEW_LINE:
-        if (this._state === UnidocLocationTrackerState.RETURN) {
-          location.index += 1
-          this._state = UnidocLocationTrackerState.SYMBOL
-        } else {
-          location.column = 0
-          location.line += 1
-          location.index += 1
+        if (this.carriageReturn) {
+          location.symbol += 1
+          this.carriageReturn = false
+          break
         }
+      case UTF32CodeUnit.VERTICAL_TABULATION:
+      case UTF32CodeUnit.FORM_FEED:
+      case UTF32CodeUnit.LINE_SEPARATOR:
+      case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+      case UTF32CodeUnit.NEXT_LINE:
+        location.column = 0
+        location.row += 1
+        location.symbol += 1
+        this.carriageReturn = false
         break
       default:
-        location.line += 1
-        location.index += 1
-        this._state = UnidocLocationTrackerState.SYMBOL
+        location.column += 1
+        location.symbol += 1
+        this.carriageReturn = false
         break
     }
 
@@ -91,7 +108,7 @@ export class UnidocLocationTracker implements DataObject {
    */
   public clear(): this {
     this.location.clear()
-    this._state = UnidocLocationTrackerState.DEFAULT
+    this.carriageReturn = false
     return this
   }
 
@@ -100,15 +117,15 @@ export class UnidocLocationTracker implements DataObject {
    */
   public copy(toCopy: this): this {
     this.location.copy(toCopy.location)
-    this._state = toCopy._state
+    this.carriageReturn = toCopy.carriageReturn
     return this
   }
 
   /**
    * @see DataObject.clone
    */
-  public clone(): UnidocLocationTracker {
-    const result: UnidocLocationTracker = new UnidocLocationTracker()
+  public clone(): UnidocTracker {
+    const result: UnidocTracker = new UnidocTracker()
     result.copy(this)
     return result
   }
@@ -120,9 +137,11 @@ export class UnidocLocationTracker implements DataObject {
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof UnidocLocationTracker) {
-      return other.location.equals(this.location) &&
-        other._state === this._state
+    if (other instanceof UnidocTracker) {
+      return (
+        other.location.equals(this.location) &&
+        other.carriageReturn === this.carriageReturn
+      )
     }
 
     return false
@@ -132,16 +151,16 @@ export class UnidocLocationTracker implements DataObject {
 /**
  * 
  */
-export namespace UnidocLocationTracker {
+export namespace UnidocTracker {
   /**
    * 
    */
-  export function create(column: number = 0, line: number = 0, index: number = 0): UnidocLocationTracker {
-    return new UnidocLocationTracker(column, line, index)
+  export function create(column: number = 0, line: number = 0, index: number = 0): UnidocTracker {
+    return new UnidocTracker(column, line, index)
   }
 
   /**
    * 
    */
-  export const ALLOCATOR: Allocator<UnidocLocationTracker> = Duplicator.fromFactory(create)
+  export const ALLOCATOR: Allocator<UnidocTracker> = Duplicator.fromFactory(create)
 }

@@ -124,17 +124,113 @@ export namespace UTF32CodeUnit {
   /**
    * @see https://www.unicode.org/charts/PDF/U0000.pdf
    */
+  export const NO_BREAK_SPACE: UTF32CodeUnit = 0x000000A0
+
+  /**
+   * 
+   */
+  export const EN_QUAD: UTF32CodeUnit = 0x00002000
+
+  /**
+   * 
+   */
+  export const EM_QUAD: UTF32CodeUnit = 0x00002001
+
+  /**
+   * 
+   */
+  export const EN_SPACE: UTF32CodeUnit = 0x00002002
+
+  /**
+   * 
+   */
+  export const EM_SPACE: UTF32CodeUnit = 0x00002003
+
+  /**
+   * 
+   */
+  export const THREE_PER_EM_SPACE: UTF32CodeUnit = 0x00002004
+
+  /**
+   * 
+   */
+  export const FOUR_PER_EM_SPACE: UTF32CodeUnit = 0x00002005
+
+  /**
+   * 
+   */
+  export const SIX_PER_EM_SPACE: UTF32CodeUnit = 0x00002006
+
+  /**
+   * 
+   */
+  export const FIGURE_SPACE: UTF32CodeUnit = 0x00002007
+
+  /**
+   * 
+   */
+  export const PUNCTUATION_SPACE: UTF32CodeUnit = 0x00002008
+
+  /**
+   * 
+   */
+  export const THIN_SPACE: UTF32CodeUnit = 0x00002009
+
+  /**
+   * 
+   */
+  export const HAIR_SPACE: UTF32CodeUnit = 0x0000200A
+
+  /**
+   * 
+   */
+  export const OGHAM_SPACE_MARK: UTF32CodeUnit = 0x00001680
+
+  /**
+   * 
+   */
+  export const MEDIUM_MATHEMATICAL_SPACE: UTF32CodeUnit = 0x0000205F
+
+  /**
+   * 
+   */
+  export const IDEOGRAPHIC_SPACE: UTF32CodeUnit = 0x00003000
+
+  /**
+   * @see https://www.unicode.org/charts/PDF/U0000.pdf
+   */
   export const NEW_LINE: UTF32CodeUnit = 0x0000000A
+
+  /**
+   * @see https://www.unicode.org/reports/tr14/#BK
+   */
+  export const LINE_SEPARATOR: UTF32CodeUnit = 0x00002028
+
+  /**
+   * @see https://www.unicode.org/reports/tr14/#BK
+   */
+  export const PARAGRAPH_SEPARATOR: UTF32CodeUnit = 0x00002029
+
+  /**
+   * @see https://www.unicode.org/charts/PDF/U0000.pdf
+   */
+  export const VERTICAL_TABULATION: UTF32CodeUnit = 0x0000000B
+
+  /**
+   * @see https://www.unicode.org/charts/PDF/U0000.pdf
+   */
+  export const FORM_FEED: UTF32CodeUnit = 0x0000000C
+
+  /**
+   * @see https://www.unicode.org/reports/tr14/#NL
+   */
+  export const NEXT_LINE: UTF32CodeUnit = 0x00000085
 
   /**
    * @see https://www.unicode.org/charts/PDF/U0000.pdf
    */
   export const CARRIAGE_RETURN: UTF32CodeUnit = 0x0000000D
 
-  /**
-   * @see https://www.unicode.org/charts/PDF/U0000.pdf
-   */
-  export const FORM_FEED: UTF32CodeUnit = 0x0000000C
 
   /**
    * @see https://www.unicode.org/charts/PDF/U0000.pdf
@@ -410,6 +506,44 @@ export namespace UTF32CodeUnit {
    * @see https://www.unicode.org/charts/PDF/U0000.pdf
    */
   export const LATIN_CAPITAL_LETTER_Z: UTF32CodeUnit = 0x0000005A
+
+  /**
+   * 
+   */
+  export const LATIN_SMALL_LETTER_A_Z: UTF32CodeUnit[] = [
+    LATIN_SMALL_LETTER_A, LATIN_SMALL_LETTER_B,
+    LATIN_SMALL_LETTER_C, LATIN_SMALL_LETTER_D,
+    LATIN_SMALL_LETTER_E, LATIN_SMALL_LETTER_F,
+    LATIN_SMALL_LETTER_G, LATIN_SMALL_LETTER_H,
+    LATIN_SMALL_LETTER_I, LATIN_SMALL_LETTER_J,
+    LATIN_SMALL_LETTER_K, LATIN_SMALL_LETTER_L,
+    LATIN_SMALL_LETTER_M, LATIN_SMALL_LETTER_N,
+    LATIN_SMALL_LETTER_O, LATIN_SMALL_LETTER_P,
+    LATIN_SMALL_LETTER_Q, LATIN_SMALL_LETTER_R,
+    LATIN_SMALL_LETTER_S, LATIN_SMALL_LETTER_T,
+    LATIN_SMALL_LETTER_U, LATIN_SMALL_LETTER_V,
+    LATIN_SMALL_LETTER_W, LATIN_SMALL_LETTER_X,
+    LATIN_SMALL_LETTER_Y, LATIN_SMALL_LETTER_Z
+  ]
+
+  /**
+   * 
+   */
+  export const LATIN_CAPITAL_LETTER_A_Z: UTF32CodeUnit[] = [
+    LATIN_CAPITAL_LETTER_A, LATIN_CAPITAL_LETTER_B,
+    LATIN_CAPITAL_LETTER_C, LATIN_CAPITAL_LETTER_D,
+    LATIN_CAPITAL_LETTER_E, LATIN_CAPITAL_LETTER_F,
+    LATIN_CAPITAL_LETTER_G, LATIN_CAPITAL_LETTER_H,
+    LATIN_CAPITAL_LETTER_I, LATIN_CAPITAL_LETTER_J,
+    LATIN_CAPITAL_LETTER_K, LATIN_CAPITAL_LETTER_L,
+    LATIN_CAPITAL_LETTER_M, LATIN_CAPITAL_LETTER_N,
+    LATIN_CAPITAL_LETTER_O, LATIN_CAPITAL_LETTER_P,
+    LATIN_CAPITAL_LETTER_Q, LATIN_CAPITAL_LETTER_R,
+    LATIN_CAPITAL_LETTER_S, LATIN_CAPITAL_LETTER_T,
+    LATIN_CAPITAL_LETTER_U, LATIN_CAPITAL_LETTER_V,
+    LATIN_CAPITAL_LETTER_W, LATIN_CAPITAL_LETTER_X,
+    LATIN_CAPITAL_LETTER_Y, LATIN_CAPITAL_LETTER_Z
+  ]
 
   /**
    *

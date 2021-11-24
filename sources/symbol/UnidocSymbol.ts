@@ -1,6 +1,6 @@
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UnidocPath } from '../origin/UnidocPath'
+import { UnidocOrigin } from '../origin/UnidocOrigin'
 
 import { DataObject } from '../DataObject'
 
@@ -17,18 +17,22 @@ export class UnidocSymbol implements DataObject {
   public code: UTF32CodeUnit
 
   /**
-   * Origin of this symbol in the underlying source of symbol.
+   * Origin of this symbol.
    */
-  public readonly origin: UnidocPath
+  public readonly origin: UnidocOrigin
 
   /**
-   * Instantiate a new null symbol of unknown origin.
+   * Instantiate a new null symbol with a default origin.
+   * 
+   * @param [code = UTF32CodeUnit.NULL] - The UTF32 code unit of the symbol to instantiate.
+   * @param [origin = UnidocOrigin.DEFAULT] - The origin of the symbol to instantiate.
    * 
    * @see DataObject
+   * @see UnidocOrigin.DEFAULT
    */
-  public constructor() {
+  public constructor(code: UTF32CodeUnit = UTF32CodeUnit.NULL, origin: UnidocOrigin = UnidocOrigin.DEFAULT) {
     this.code = UTF32CodeUnit.NULL
-    this.origin = new UnidocPath()
+    this.origin = origin.clone()
   }
 
   /**
@@ -50,7 +54,7 @@ export class UnidocSymbol implements DataObject {
    *
    * @return This symbol instance for chaining purposes.
    */
-  public setOrigin(origin: UnidocPath): this {
+  public setOrigin(origin: UnidocOrigin): this {
     this.origin.copy(origin)
     return this
   }
@@ -111,14 +115,22 @@ export class UnidocSymbol implements DataObject {
 
 export namespace UnidocSymbol {
   /**
-   * Instantiate and initialize a symbol.
-   *
-   * @param [symbol = UTF32CodeUnit.NULL] - The unicode symbol to wrap.
-   * @param [origin = UnidocPath.create()] - The origin of the symbol.
-   *
+   * 
+   */
+  export const DEFAULT: Readonly<UnidocSymbol> = new UnidocSymbol()
+
+  /**
+   * Instantiate a new null symbol with a default origin.
+   * 
+   * @param[code = UTF32CodeUnit.NULL] - The UTF32 code unit of the symbol to instantiate.
+   * @param[origin = UnidocOrigin.DEFAULT] - The origin of the symbol to instantiate.
+   * 
+   * @see DataObject
+   * @see UnidocOrigin.DEFAULT
+   * 
    * @return The requested unidoc symbol instance.
    */
-  export function create(symbol: UTF16CodeUnit = UTF32CodeUnit.NULL, origin: UnidocPath = UnidocPath.create()): UnidocSymbol {
+  export function create(symbol: UTF16CodeUnit = UTF32CodeUnit.NULL, origin: UnidocOrigin = UnidocOrigin.DEFAULT): UnidocSymbol {
     return new UnidocSymbol().setSymbol(symbol).setOrigin(origin)
   }
 
