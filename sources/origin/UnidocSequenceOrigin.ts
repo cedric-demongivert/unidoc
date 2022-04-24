@@ -3,6 +3,7 @@ import { Duplicator, Pack } from "@cedric-demongivert/gl-tool-collection"
 import { DataObject } from "../DataObject"
 import { UnidocOrigin } from "./UnidocOrigin"
 
+// UnidocManyrigin
 /**
  * The identification of a sequence of symbol from one or more sources.
  */

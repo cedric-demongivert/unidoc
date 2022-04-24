@@ -6,6 +6,7 @@ import { UnidocLocation } from "./UnidocLocation"
 import { UnidocRange } from "./UnidocRange"
 import { UnidocURI } from "./UnidocURI"
 
+//UnidocMonorigin
 /**
  * The identification of a range of symbol from one source.
  */

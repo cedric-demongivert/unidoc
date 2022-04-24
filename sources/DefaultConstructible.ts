@@ -1,7 +1,5 @@
 /**
- * A class that describe an object that can be instantiated without any parameter.
- * 
- * A default constructible class MUST define a constructor that can be called without any parameter.
+ * A class of objects that can be instantiated without parameters.
  */
 export interface DefaultConstructible {
 
@@ -23,13 +21,13 @@ export namespace DefaultConstructible {
 
 
   /**
-   * Instantiate a default constructible object.
+   * Instantiates a default constructible object.
    * 
-   * @parameter clazz - A default constructible class.
+   * @parameter defaultConstructibleClass - A default constructible class.
    * 
    * @return An instance of the given class.
    */
-  export function create<Target>(clazz: Constructor<Target>): Target {
-    return new clazz()
+  export function create<Target>(defaultConstructibleClass: Constructor<Target>): Target {
+    return new defaultConstructibleClass()
   }
 }

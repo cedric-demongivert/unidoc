@@ -5,7 +5,7 @@ import { Copiable } from "./Copiable"
 import { DefaultConstructible } from "./DefaultConstructible"
 
 /**
- * A class that describe an instance designed for representing and manipulating of data.
+ * A class of objects designed for representing and manipulating data.
  */
 export interface DataObject extends Clearable, Clonable, Comparable, Copiable, DefaultConstructible {
   /**

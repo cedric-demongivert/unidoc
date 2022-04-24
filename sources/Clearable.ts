@@ -1,11 +1,11 @@
 /**
- * A class that describe an instance that can be cleared, namely, be reseted to a default state. 
+ * It is a class of objects that can be cleared, namely, reset to a default state. 
  */
 export interface Clearable {
   /**
-   * Reset this instance to it's default state.
+   * Reset this instance to its default state.
    *
-   * @return This instance for chaining purposes.
+   * @return A reference to this instance for chaining purposes.
    */
   clear(): this
 }
@@ -15,11 +15,11 @@ export interface Clearable {
  */
 export namespace Clearable {
   /**
-   * Reset the given instance of a Clearable class to it's default state.
+   * It reset the given clearable instance to its default state.
    * 
-   * @param value - An instance to reset.
+   * @param value - A clearable instance to reset.
    * 
-   * @return The given instance for chaining purposes.
+   * @return A reference to this instance for chaining purposes.
    */
   export function clear<Target extends Clearable>(value: Target): Target {
     return value.clear()

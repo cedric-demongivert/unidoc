@@ -1,13 +1,16 @@
 /**
- * A class that describe an instance that can return a deep-copy of itself. 
+ * A class of objects that can return a deep copy of themselves. 
  */
 export interface Clonable {
   /**
-   * @return A deep-copy of this instance.
+   * @return A reference to a deep copy of this instance.
    */
   clone(): Clonable
 }
 
+/**
+ * 
+ */
 export namespace Clonable {
   /**
    * 
@@ -20,40 +23,39 @@ export namespace Clonable {
   }
 
   /**
-   * Return a copy of an undefined instance of a Clonable class.
+   * Return undefined.
    * 
-   * @parameter An undefined instance of a Clonable class.
+   * @parameter toCopy - An undefined reference.
    * 
    * @return The given parameter as-is.
    */
   export function copy(toCopy: undefined): undefined
   /**
-   * Return a copy of a null reference to an instance of a Clonable class.
+   * Return null.
    * 
-   * @parameter An null reference to an instance of a Clonable class.
+   * @parameter An null reference.
    * 
    * @return The given parameter as-is.
    */
   export function copy(toCopy: null): null
   /**
-   * Deep-copy a given instance of a Clonable class.
+   * Returns a reference to a deep copy of the given clonable instance.
    *
-   * @param toCopy - An instance of a Clonable class to deep-copy.
+   * @param toCopy - A reference to a clonable instance to copy.
    *
-   * @return A deep-copy of the given instance.
+   * @return A reference to a deep copy of the given clonable instance.
    */
   export function copy<Target extends Clonable>(toCopy: Conciliation<Target>): Target
   /**
-   * Deep-copy an instance of a copiable class if it is defined.
+   * If defined, returns a reference to a deep copy of the given clonable instance.
    * 
-   * If the value to copy is null or undefined, this function will return it as-is.
+   * If the given reference is null or undefined, this function will return it as-is.
    *
-   * @param toCopy - An instance of a copiable class to deep-copy, undefined, or null.
+   * @param toCopy - A reference to a clonable instance, a null reference, or undefined.
    *
-   * @return A copy of the given instance if it is defined, the given parameter otherwise.
+   * @return If defined, a reference to a deep copy of the given clonable instance, the given parameter otherwise.
    */
   export function copy<Target extends Clonable>(toCopy: Conciliation<Target> | null | undefined): Target | null | undefined
-  // Implementation.
   export function copy<Target extends Clonable>(toCopy: Conciliation<Target> | null | undefined): Target | null | undefined {
     return toCopy == null ? toCopy : toCopy.clone()
   }

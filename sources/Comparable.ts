@@ -1,5 +1,5 @@
 /**
- * A class that describe instances that can be compared to any type of object.
+ * A class of objects that are comparable to other objects.
  */
 export interface Comparable {
   /**
@@ -13,9 +13,7 @@ export interface Comparable {
    *   - It is transitive: for any non-null reference values x, y, and z, if x.equals(y) returns true and y.equals(z) returns true, then x.equals(z) should return true.
    *   - It is consistent: for any non-null reference values x and y, multiple invocations of x.equals(y) consistently return true or consistently return false, provided no information used in equals comparisons on the objects is modified.
    *   - For any non-null reference value x, x.equals(null) should return false.
-   * 
-   * The equals method for class Object implements the most discriminating possible equivalence relation on objects; that is, for any non-null
-   * reference values x and y, this method returns true if and only if x and y refer to the same object (x == y has the value true).
+   *   - For any non-null reference value x, x.equals(undefined) should return false.
    */
   equals(other: any): boolean
 }
@@ -25,42 +23,70 @@ export interface Comparable {
  */
 export namespace Comparable {
   /**
-   * Special case. 
+   * Compares a null or undefined reference with a reference to a comparable object.
+   * 
+   * @param left - A null or undefined reference.
+   * @param right - A reference to a comparable object.
+   * 
+   * @return Always false.
    */
   export function equals(left: null | undefined, right: Comparable): false
   /**
-   * Special case. 
+   * Compares a reference to a comparable object with a null or undefined reference.
+   * 
+   * @param left - A reference to a comparable object.
+   * @param right - A null or undefined reference.
+   * 
+   * @return Always false.
    */
   export function equals(left: Comparable, right: null | undefined): false
   /**
-   * Special case. 
+   * Compares a null reference with an undefined reference.
+   * 
+   * @param left - A null reference.
+   * @param right - An undefined reference.
+   * 
+   * @return Always false.
    */
   export function equals(left: null, right: undefined): false
   /**
-   * Special case. 
+   * Compares an undefined reference with a null reference.
+   * 
+   * @param left - An undefined reference.
+   * @param right - A null reference.
+   * 
+   * @return Always false.
    */
   export function equals(left: undefined, right: null): false
   /**
-   * Special case. 
+   * Compares two undefined references.
+   * 
+   * @param left - An undefined reference.
+   * @param right - An undefined reference.
+   * 
+   * @return Always true.
    */
   export function equals(left: undefined, right: undefined): true
   /**
-   * Special case. 
+   * Compares two null references.
+   * 
+   * @param left - A null reference.
+   * @param right - A null reference.
+   * 
+   * @return Always true.
    */
   export function equals(left: null, right: null): true
   /**
-   * Return true if the given comparable instances are equals.
+   * Returns true if the references refer to "equal" objects as defined by the Comparable.equals method.
    * 
-   * If both left and right are nullable values, the comparison will 
-   * be made with the strict equality operator.
+   * If both operands are null or undefined references, this method will compare them with the strict equality operator.
    *
-   * @param left - The comparable instance to use as a left operand, or a null value.
-   * @param right - The comparable instance to use as a right operand, or a null value.
+   * @param left - A reference to a comparable instance, or a null or undefined reference.
+   * @param right - A reference to a comparable instance, or a null or undefined reference.
    *
-   * @return True if both operands are equals.
+   * @return True if the references refer to "equal" objects as defined by the Comparable.equals method.
    */
   export function equals(left: Comparable | null | undefined, right: Comparable | null | undefined): boolean
-  // Implementation
   export function equals(left: Comparable | null | undefined, right: Comparable | null | undefined): boolean {
     return left == null ? left === right : left.equals(right)
   }

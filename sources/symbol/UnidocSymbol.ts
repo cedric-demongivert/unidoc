@@ -122,8 +122,8 @@ export namespace UnidocSymbol {
   /**
    * Instantiate a new null symbol with a default origin.
    * 
-   * @param[code = UTF32CodeUnit.NULL] - The UTF32 code unit of the symbol to instantiate.
-   * @param[origin = UnidocOrigin.DEFAULT] - The origin of the symbol to instantiate.
+   * @param [code = UTF32CodeUnit.NULL] - The UTF32 code unit of the symbol to instantiate.
+   * @param [origin = UnidocOrigin.DEFAULT] - The origin of the symbol to instantiate.
    * 
    * @see DataObject
    * @see UnidocOrigin.DEFAULT
