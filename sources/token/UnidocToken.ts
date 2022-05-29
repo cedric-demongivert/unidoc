@@ -10,11 +10,11 @@ import { DataObject } from '../DataObject'
 import { UnidocTokenType } from './UnidocTokenType'
 
 /**
- * A sequence of unidoc symbol that represent a given class of word.
+ * A sequence of symbols, an instance of a given class of words.
  */
 export class UnidocToken implements DataObject {
   /**
-   * Index of this token in the sequence of token that form the underlying document.
+   * Index of this token in the sequence of tokens that form the underlying document.
    */
   public index: number
 
@@ -46,23 +46,23 @@ export class UnidocToken implements DataObject {
   }
 
   /**
-  * Configure this token to be of the given type, at the given location and with
-  * the given code points.
-  *
-  * @param type - New type of this token.
-  * @param value - New code points of this token.
-  */
+   * Configure this token to be of the given type, at the given location and with
+   * the given code points.
+   *
+   * @param type - New type of this token.
+   * @param value - New code points of this token.
+   */
   public as(type: UnidocTokenType, value: string): void {
     this.type = type
     this.symbols.setString(value)
   }
 
   /**
-  * Configure this token as an identifier token that start at the given location
-  * and contains the given code points.
-  *
-  * @param value - New code points of this token.
-  */
+   * Configure this token as an identifier that start at the given location
+   * and contains the given code points.
+   *
+   * @param value - New code points of this token.
+   */
   public asIdentifier(value: string): void {
     this.as(UnidocTokenType.IDENTIFIER, value)
   }
@@ -149,9 +149,9 @@ export class UnidocToken implements DataObject {
   }
 
   /**
-  * @see DataObject.copy
+  * @see DataObject.prototype.copy
   */
-  public copy(toCopy: this): this {
+  public copy(toCopy: UnidocToken): this {
     this.index = toCopy.index
     this.type = toCopy.type
     this.origin.copy(toCopy.origin)
@@ -160,7 +160,7 @@ export class UnidocToken implements DataObject {
   }
 
   /**
-  * @see DataObject.clone
+  * @see DataObject.prototype.clone
   */
   public clone(): UnidocToken {
     const result: UnidocToken = new UnidocToken(this.symbols.capacity)
@@ -169,7 +169,7 @@ export class UnidocToken implements DataObject {
   }
 
   /**
-  * @see DataObject.clear
+  * @see DataObject.prototype.clear
   */
   public clear(): this {
     this.index = 0
@@ -180,7 +180,7 @@ export class UnidocToken implements DataObject {
   }
 
   /**
-  * @see Object.toString
+  * @see Object.prototype.toString
   */
   public toString(): string {
     let result: string = this.constructor.name

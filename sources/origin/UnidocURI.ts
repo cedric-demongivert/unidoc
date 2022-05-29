@@ -1,6 +1,5 @@
 import { Duplicator, Pack } from "@cedric-demongivert/gl-tool-collection"
 
-import { Comparable } from "../Comparable"
 import { DataObject } from "../DataObject"
 
 import { UnidocAuthority } from "./UnidocAuthority"

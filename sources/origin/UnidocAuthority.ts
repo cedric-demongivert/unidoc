@@ -1,4 +1,5 @@
 import { Duplicator } from "@cedric-demongivert/gl-tool-collection"
+
 import { DataObject } from "../DataObject"
 
 /**
@@ -8,14 +9,14 @@ import { DataObject } from "../DataObject"
  */
 export class UnidocAuthority implements DataObject {
   /**
-   * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2
-   */
-  public host: string
-
-  /**
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
    */
   public userInfo: string | undefined
+
+  /**
+   * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2
+   */
+  public host: string
 
   /**
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.3
@@ -25,22 +26,16 @@ export class UnidocAuthority implements DataObject {
   /**
    * Instantiate a new authority.
    * 
+   * @param [userInfo]
    * @param [host=UnidocAuthority.DEFAULT_HOST]
+   * @param [port]
    * 
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2
    */
-  public constructor(host: string = UnidocAuthority.DEFAULT_HOST) {
+  public constructor(userInfo?: string | undefined, host: string = UnidocAuthority.DEFAULT_HOST, port?: number | undefined) {
+    this.userInfo = userInfo
     this.host = host
-    this.userInfo = undefined
-    this.port = undefined
-  }
-
-  /**
-   * 
-   */
-  public setHost(host: string): this {
-    this.host = host
-    return this
+    this.port = port
   }
 
   /**
@@ -62,6 +57,14 @@ export class UnidocAuthority implements DataObject {
   /**
    * 
    */
+  public setHost(host: string): this {
+    this.host = host
+    return this
+  }
+
+  /**
+   * 
+   */
   public setPort(port: number | undefined): this {
     this.port = port
     return this
@@ -76,50 +79,50 @@ export class UnidocAuthority implements DataObject {
   }
 
   /**
-   * @see DataObject.clear
+   * @see Clearable.prototype.clear
    */
   public clear(): this {
-    this.host = UnidocAuthority.DEFAULT_HOST
     this.userInfo = undefined
+    this.host = UnidocAuthority.DEFAULT_HOST
     this.port = undefined
     return this
   }
 
   /**
-   * @see DataObject.clone
+   * @see Clonable.prototype.clone
    */
   public clone(): UnidocAuthority {
     return new UnidocAuthority().copy(this)
   }
 
   /**
-   * @see DataObject.copy
+   * 
    */
-  public copy(toCopy: UnidocAuthority): this {
-    this.host = toCopy.host
+  public copy(toCopy: Readonly<UnidocAuthority>): this {
     this.userInfo = toCopy.userInfo
+    this.host = toCopy.host
     this.port = toCopy.port
     return this
   }
 
   /**
-   * @see Object.toString
+   * @see Object.prototype.toString
    */
   public toString(): string {
     return (this.userInfo == null ? '' : this.userInfo + '@') + this.host + (this.port == null ? '' : ':' + this.port.toString())
   }
 
   /**
-   * @see DataObject.equals 
+   * @see Comparable.prototype.equals 
    */
-  public equals(other: any): boolean {
+  public equals(other: unknown): boolean {
     if (other == null) return false
     if (other === this) return true
 
     if (other instanceof UnidocAuthority) {
       return (
-        other.host === this.host &&
         other.userInfo === this.userInfo &&
+        other.host === this.host &&
         other.port === this.port
       )
     }
@@ -145,8 +148,8 @@ export namespace UnidocAuthority {
   /**
    * 
    */
-  export function create(host: string = DEFAULT_HOST): UnidocAuthority {
-    return new UnidocAuthority(DEFAULT_HOST)
+  export function create(userInfo?: string | undefined, host: string = DEFAULT_HOST, port?: number | undefined): UnidocAuthority {
+    return new UnidocAuthority(userInfo, host, port)
   }
 
 

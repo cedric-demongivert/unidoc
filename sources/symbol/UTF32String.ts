@@ -1,5 +1,4 @@
-import { Pack } from "@cedric-demongivert/gl-tool-collection"
-import { BufferPack } from "@cedric-demongivert/gl-tool-collection"
+import { Pack, BufferPack } from "@cedric-demongivert/gl-tool-collection"
 
 import { UTF32CodeUnit } from "./UTF32CodeUnit"
 import { UTF16String } from "./UTF16String"

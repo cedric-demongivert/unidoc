@@ -7,11 +7,6 @@ import { DataObject } from '../DataObject'
  */
 export class UnidocLocation implements DataObject {
   /**
-   * The location that identify the first symbol of a document.
-   */
-  public static ZERO: UnidocLocation = new UnidocLocation(0, 0, 0)
-
-  /**
    * The number of symbols to skip from the begining of the current row in order to get to the identified symbol.
    */
   public column: number
@@ -44,16 +39,39 @@ export class UnidocLocation implements DataObject {
   }
 
   /**
+   * 
+   */
+  public setColumn(column: number): this {
+    this.column = column
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setRow(row: number): this {
+    this.row = row
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setSymbol(symbol: number): this {
+    this.symbol = symbol
+    return this
+  }
+
+  /**
    * Move this location after the next non-linebreaking symbol.
    * 
    * @param [times = 1]
    * 
    * @return This instance for chaining purposes.
    */
-  public next(times: number = 1): this {
+  public next(times: number = 1): void {
     this.column += times
     this.symbol += times
-    return this
   }
 
   /**
@@ -63,11 +81,10 @@ export class UnidocLocation implements DataObject {
    * 
    * @return This instance for chaining purposes.
    */
-  public break(times: number = 1): this {
+  public break(times: number = 1): void {
     this.column = 0
     this.row += times
     this.symbol += times
-    return this
   }
 
   /**
@@ -87,7 +104,6 @@ export class UnidocLocation implements DataObject {
     this.column += column
     this.row += row
     this.symbol += symbol
-
     return this
   }
 
@@ -108,7 +124,6 @@ export class UnidocLocation implements DataObject {
     this.column = column > this.column ? 0 : this.column - column
     this.row = row > this.row ? 0 : this.row - row
     this.symbol = symbol > this.symbol ? 0 : this.symbol - symbol
-
     return this
   }
 
@@ -121,56 +136,19 @@ export class UnidocLocation implements DataObject {
    * 
    * @return This instance for chaining purposes.
    * 
-   * @see UnidocLocation.column
-   * @see UnidocLocation.row
-   * @see UnidocLocation.symbol
+   * @see UnidocLocation.prototype.column
+   * @see UnidocLocation.prototype.row
+   * @see UnidocLocation.prototype.symbol
    */
   public set(column: number, row: number, symbol: number): this {
     this.column = column
     this.row = row
     this.symbol = symbol
-
     return this
   }
 
   /**
-   * Update this location by setting the matching coordinate to the given value.
-   * 
-   * @return This instance for chaining purposes.
-   * 
-   * @see UnidocLocation.column
-   */
-  public setColumn(column: number): this {
-    this.column = column
-    return this
-  }
-
-  /**
-   * Update this location by setting the matching coordinate to the given value.
-   * 
-   * @return This instance for chaining purposes.
-   * 
-   * @see UnidocLocation.row
-   */
-  public setRow(row: number): this {
-    this.row = row
-    return this
-  }
-
-  /**
-   * Update this location by setting the matching coordinate to the given value.
-   * 
-   * @return This instance for chaining purposes.
-   * 
-   * @see UnidocLocation.symbol
-   */
-  public setSymbol(symbol: number): this {
-    this.symbol = symbol
-    return this
-  }
-
-  /**
-   * @see DataObject.clone
+   * @see DataObject.prototype.clone
    */
   public clone(): UnidocLocation {
     const result: UnidocLocation = new UnidocLocation()
@@ -179,9 +157,9 @@ export class UnidocLocation implements DataObject {
   }
 
   /**
-   * @see DataObject.copy
+   * @see Copiable.prototype.copy
    */
-  public copy(toCopy: this): this {
+  public copy(toCopy: Readonly<UnidocLocation>): this {
     this.column = toCopy.column
     this.row = toCopy.row
     this.symbol = toCopy.symbol
@@ -189,7 +167,7 @@ export class UnidocLocation implements DataObject {
   }
 
   /**
-   * @see DataObject.clear
+   * @see DataObject.prototype.clear
    */
   public clear(): this {
     this.column = 0
@@ -199,16 +177,16 @@ export class UnidocLocation implements DataObject {
   }
 
   /**
-   * @see Object.toString
+   * @see Object.prototype.toString
    */
   public toString(): string {
-    return `${this.column}:${this.row}/${this.symbol}`
+    return `${this.column}:${this.row}[${this.symbol}]`
   }
 
   /**
-   * @see DataObject.equals
+   * @see DataObject.prototype.equals
    */
-  public equals(other: any): boolean {
+  public equals(other: unknown): boolean {
     if (other == null) return false
     if (other === this) return true
 
@@ -226,10 +204,17 @@ export class UnidocLocation implements DataObject {
   /**
    * 
    */
-  public *[Symbol.iterator](): Generator<number> {
+  public * values(): IterableIterator<number> {
     yield this.column
     yield this.row
     yield this.symbol
+  }
+
+  /**
+   * @see Iterable.prototype[Symbol.iterator]
+   */
+  public [Symbol.iterator](): IterableIterator<number> {
+    return this.values()
   }
 }
 
@@ -237,6 +222,11 @@ export class UnidocLocation implements DataObject {
  * 
  */
 export namespace UnidocLocation {
+  /**
+   * The location that identify the first symbol of a document.
+   */
+  export const ZERO: Readonly<UnidocLocation> = Object.freeze(new UnidocLocation(0, 0, 0))
+
   /**
    * Instantiate a new unidoc location in accordance with the given set of coordinates.
    *

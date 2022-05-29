@@ -1,15 +1,12 @@
-import { Clearable } from "./Clearable"
-import { Clonable } from "./Clonable"
-import { Comparable } from "./Comparable"
-import { Copiable } from "./Copiable"
+import { Clearable, Clonable, Comparable } from "@cedric-demongivert/gl-tool-utils"
 import { DefaultConstructible } from "./DefaultConstructible"
 
 /**
  * A class of objects designed for representing and manipulating data.
  */
-export interface DataObject extends Clearable, Clonable, Comparable, Copiable, DefaultConstructible {
+export interface DataObject extends Clearable, Clonable, Comparable, DefaultConstructible {
   /**
-   * @see Clonable.clone
+   * @see Clonable.prototype.clone
    */
   clone(): DataObject
 }
@@ -26,26 +23,21 @@ export namespace DataObject {
   /**
    * @see Clearable.clear
    */
-  export const clear: typeof Clearable.clear = Clearable.clear
+  export const clear = Clearable.clear
 
   /**
    * @see Clonable.copy
    */
-  export const copy: typeof Clonable.copy = Clonable.copy
+  export const copy = Clonable.copy
 
   /**
    * @see Comparable.equals
    */
-  export const equals: typeof Comparable.equals = Comparable.equals
-
-  /**
-   * @see Copiable.move
-   */
-  export const move: typeof Copiable.move = Copiable.move
+  export const equals = Comparable.equals
 
   /**
    * @see DefaultConstructible.create
    */
-  export const create: typeof DefaultConstructible.create = DefaultConstructible.create
+  export const create = DefaultConstructible.create
 }
 

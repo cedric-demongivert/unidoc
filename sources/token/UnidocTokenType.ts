@@ -128,4 +128,25 @@ export namespace UnidocTokenType {
       default: return undefined
     }
   }
+
+  /**
+  * Return a 2-character string representation of a given unidoc token type.
+  *
+  * @param value - Unidoc token type to stringify.
+  * 
+  * @return A 2-character string representation of a given unidoc token type.
+  */
+  export function toSignature(value: UnidocTokenType): string | undefined {
+    switch (value) {
+      case IDENTIFIER: return 'ID'
+      case CLASS: return 'CS'
+      case TAG: return 'TG'
+      case BLOCK_START: return 'BS'
+      case BLOCK_END: return 'BE'
+      case NEW_LINE: return 'NL'
+      case SPACE: return 'SC'
+      case WORD: return 'WD'
+      default: return undefined
+    }
+  }
 }

@@ -27,8 +27,10 @@ export class UnidocRange implements DataObject {
    * @param [end] - The ending coordinates of the new range to instantiate.
    */
   public constructor(start?: UnidocLocation | undefined | null, end?: UnidocLocation | undefined | null) {
-    this.start = start ? start.clone() : new UnidocLocation()
-    this.end = end ? end.clone() : (start ? start.clone() : new UnidocLocation())
+    const definedStart: UnidocLocation = start || UnidocLocation.ZERO
+
+    this.start = definedStart.clone()
+    this.end = (end || definedStart).clone()
   }
 
   /**
@@ -124,9 +126,9 @@ export class UnidocRange implements DataObject {
   }
 
   /**
-   * @see DataObject.equals 
+   * @see Comparable.prototype.equals 
    */
-  public equals(other: any): boolean {
+  public equals(other: unknown): boolean {
     if (other == null) return false
     if (other === this) return true
 
@@ -141,39 +143,66 @@ export class UnidocRange implements DataObject {
   }
 
   /**
-   * @see DataObject.copy
+   * 
    */
-  public copy(toCopy: this): this {
+  public copy(toCopy: UnidocRange): this {
     this.start.copy(toCopy.start)
     this.end.copy(toCopy.end)
     return this
   }
 
   /**
-   * @see DataObject.clone
+   * @see Clonable.prototype.clone
    */
   public clone(): UnidocRange {
     return new UnidocRange(this.start, this.end)
   }
 
   /**
-   * @see Object.toString
+   * @see Object.prototype.toString
    */
   public toString(): string {
-    if (this.start.equals(this.end)) {
-      return `at ${this.start.toString()}`
+    const start = this.start
+    const end = this.end
+
+    if (start.equals(end)) {
+      return `at ${start.toString()}`
     } else {
-      return `from ${this.start.toString()} to ${this.end.toString()}`
+      return `from ${start.toString()} to ${end.toString()}`
     }
   }
 
-
   /**
-   * @see DataObject.clear
+   * @see DataObject.prototype.clear
    */
   public clear(): this {
     this.start.clear()
     this.end.clear()
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setStart(start: UnidocLocation): this {
+    this.start.copy(start)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setEnd(end: UnidocLocation): this {
+    this.end.copy(end)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setLocation(location: UnidocLocation): this {
+    this.start.copy(location)
+    this.end.copy(location)
     return this
   }
 }

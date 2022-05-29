@@ -7,7 +7,7 @@ import { UnidocRange } from "./UnidocRange"
 /**
  * The identification of a range of symbol in a source of symbols.
  */
-export class UnidocOrigin implements DataObject {
+export class UnidocSource implements DataObject {
   /**
    * The Unified Resource Identifier (URI) of the source.
    */
@@ -21,8 +21,8 @@ export class UnidocOrigin implements DataObject {
   /**
    * 
    */
-  public constructor(uri: string = UnidocOrigin.DEFAULT_URI, location?: UnidocRange | null | undefined) {
-    this.unifiedResourceIdentifier = UnidocOrigin.DEFAULT_URI
+  public constructor(unifiedResourceIdentifier: string = UnidocSource.DEFAULT_URI, location?: UnidocRange | null | undefined) {
+    this.unifiedResourceIdentifier = unifiedResourceIdentifier
     this.location = location ? location.clone() : new UnidocRange()
   }
 
@@ -107,45 +107,45 @@ export class UnidocOrigin implements DataObject {
   }
 
   /**
-   * @see DataObject.clear
+   * @see Clearable.prototype.clear
    */
   public clear(): this {
-    this.unifiedResourceIdentifier = UnidocOrigin.DEFAULT_URI
+    this.unifiedResourceIdentifier = UnidocSource.DEFAULT_URI
     this.location.clear()
     return this
   }
 
   /**
-   * @see DataObject.clone
+   * @see Clonable.prototype.clone
    */
-  public clone(): UnidocOrigin {
-    return new UnidocOrigin().copy(this)
+  public clone(): UnidocSource {
+    return new UnidocSource().copy(this)
   }
 
   /**
-   * @see DataObject.copy
+   * 
    */
-  public copy(toCopy: this): this {
+  public copy(toCopy: UnidocSource): this {
     this.unifiedResourceIdentifier = toCopy.unifiedResourceIdentifier
     this.location.copy(toCopy.location)
     return this
   }
 
   /**
-   * @see Object.toString
+   * @see Object.prototype.toString
    */
   public toString(): string {
     return 'in ' + this.unifiedResourceIdentifier + ' ' + this.location.toString()
   }
 
   /**
-   * @see DataObject.equals 
+   * @see Comparable.prototype.equals 
    */
-  public equals(other: any): boolean {
+  public equals(other: unknown): boolean {
     if (other == null) return false
     if (other == this) return true
 
-    if (other instanceof UnidocOrigin) {
+    if (other instanceof UnidocSource) {
       return (
         other.unifiedResourceIdentifier === this.unifiedResourceIdentifier &&
         other.location.equals(this.location)
@@ -159,7 +159,7 @@ export class UnidocOrigin implements DataObject {
 /**
  * 
  */
-export namespace UnidocOrigin {
+export namespace UnidocSource {
   /**
    * 
    */
@@ -168,18 +168,18 @@ export namespace UnidocOrigin {
   /**
    * 
    */
-  export const DEFAULT: Readonly<UnidocOrigin> = new UnidocOrigin()
+  export const DEFAULT: Readonly<UnidocSource> = new UnidocSource()
 
   /**
-   * A factory that allows to instantiate UnidocOrigin instances
+   * A factory that allows to instantiate UnidocSource instances
    */
-  export function create(uri: string = DEFAULT_URI, location?: UnidocRange | null | undefined): UnidocOrigin {
-    return new UnidocOrigin(uri, location)
+  export function create(uri: string = DEFAULT_URI, location?: UnidocRange | null | undefined): UnidocSource {
+    return new UnidocSource(uri, location)
   }
 
 
   /**
-   * An allocator of UnidocOrigin instances.
+   * An allocator of UnidocSource instances.
    */
-  export const ALLOCATOR: Duplicator<UnidocOrigin> = Duplicator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocSource> = Duplicator.fromFactory(create)
 }
