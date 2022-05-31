@@ -26,6 +26,11 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   private readonly _token: UnidocTokenBuilder
 
   /**
+   * 
+   */
+  private _first: boolean
+
+  /**
   * Instantiate a new unidoc lexer.
   *
   * @param [capacity = 64] - Unidoc lexer internal symbol buffer capacity.
@@ -35,6 +40,7 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
 
     this._state = UnidocLexerState.START
     this._token = new UnidocTokenBuilder(capacity)
+    this._first = true
   }
 
   /**
@@ -603,15 +609,15 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
     const token: UnidocTokenBuilder = this._token
     const output: UnidocSink<UnidocToken> = this.output
 
-    if (token.index === 0) {
+    if (this._first) {
       output.start()
+      this._first = false
     }
 
     token.setType(type)
     output.next(token.get())
     token.origin.clear()
     token.symbols.clear()
-    token.incrementIndex()
   }
 
   /**
@@ -620,6 +626,7 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   public clear(): void {
     this._state = UnidocLexerState.START
     this._token.clear()
+    this._first = true
     this.off()
   }
 }

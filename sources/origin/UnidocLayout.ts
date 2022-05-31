@@ -93,10 +93,10 @@ export class UnidocLayout implements DataObject<UnidocLayout> {
     const origins: Pack<UnidocOrigin> = this.origins
 
     if (origins.size > 0) {
-      let result: string = 'in ' + origins.first.toString() + ' ' + origins.first.toString()
+      let result: string = origins.first.toString()
 
       for (let index = 1, size = origins.size; index < size; ++index) {
-        result += ', in ' + origins.first.toString() + ' ' + origins.first.toString()
+        result += ', ' + origins.get(index).toString()
       }
 
       return result

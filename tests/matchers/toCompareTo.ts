@@ -62,7 +62,7 @@ function createNoEqualMethodMessage(this: jest.MatcherContext, received: object)
 function createNotEqualMessage(this: jest.MatcherContext, received: unknown, expected: unknown) {
   return (
     `Expected ${chalk.red(toString(received))}\r\n   To be ${chalk.green(toString(expected))}\r\n\r\nBut there is notable differences :\r\n` +
-    this.utils.printDiffOrStringify(expected, received, 'expected', 'received', true)
+    this.utils.printDiffOrStringify(expected, received, toString(received), toString(expected), false)
   )
 }
 

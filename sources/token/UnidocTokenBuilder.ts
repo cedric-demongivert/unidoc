@@ -1,11 +1,7 @@
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
-import { UnidocOrigin } from '../origin/UnidocOrigin'
-import { UnidocLayout } from '../origin/UnidocLayout'
 
-import { UnidocSymbol } from '../symbol/UnidocSymbol'
-
-import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
-import { UTF32String } from '../symbol/UTF32String'
+import { UnidocOrigin, UnidocLayout } from '../origin'
+import { UnidocSymbol, UTF32CodeUnit, UTF32String } from '../symbol'
 
 import { UnidocBuilder } from '../UnidocBuilder'
 
@@ -20,20 +16,6 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
    * 
    */
   private readonly _token: UnidocToken
-
-  /**
-   * 
-   */
-  public get index(): number {
-    return this._token.index
-  }
-
-  /**
-   * 
-   */
-  public set index(value: number) {
-    this._token.index = value
-  }
 
   /**
    * 
@@ -141,30 +123,6 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
    */
   public setType(type: UnidocTokenType): this {
     this._token.type = type
-    return this
-  }
-
-  /**
-   * 
-   */
-  public setIndex(index: number): this {
-    this._token.index = index
-    return this
-  }
-
-  /**
-   * 
-   */
-  public incrementIndex(): this {
-    this._token.index += 1
-    return this
-  }
-
-  /**
-   * 
-   */
-  public decrementIndex(): this {
-    this._token.index -= 1
     return this
   }
 

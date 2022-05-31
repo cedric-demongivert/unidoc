@@ -1,9 +1,7 @@
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
-import { UTF32String } from '../symbol/UTF32String'
-
-import { UnidocLayout } from '../origin/UnidocLayout'
+import { UTF32CodeUnit, UTF32String } from '../symbol'
+import { UnidocLayout } from '../origin'
 
 import { DataObject } from '../DataObject'
 
@@ -13,11 +11,6 @@ import { UnidocTokenType } from './UnidocTokenType'
  * A sequence of symbols, an instance of a given class of words.
  */
 export class UnidocToken implements DataObject<UnidocToken> {
-  /**
-   * Index of this token in the sequence of tokens that form the underlying document.
-   */
-  public index: number
-
   /**
    * Type of this unidoc token.
    */
@@ -39,18 +32,9 @@ export class UnidocToken implements DataObject<UnidocToken> {
    * @param [capacity = 16] - Initial capacity of symbols of this token instance.
    */
   public constructor(capacity: number = 16) {
-    this.index = 0
     this.type = UnidocTokenType.DEFAULT_TYPE
     this.origin = new UnidocLayout()
     this.symbols = UTF32String.allocate(capacity)
-  }
-
-  /**
-   *  
-   */
-  public setIndex(index: number): this {
-    this.index = index
-    return this
   }
 
   /**
@@ -184,7 +168,6 @@ export class UnidocToken implements DataObject<UnidocToken> {
   * @see DataObject.prototype.copy
   */
   public copy(toCopy: UnidocToken): this {
-    this.index = toCopy.index
     this.type = toCopy.type
     this.origin.copy(toCopy.origin)
     this.symbols.copy(toCopy.symbols)
@@ -204,7 +187,6 @@ export class UnidocToken implements DataObject<UnidocToken> {
   * @see DataObject.prototype.clear
   */
   public clear(): this {
-    this.index = 0
     this.type = UnidocTokenType.DEFAULT_TYPE
     this.symbols.clear()
     this.origin.clear()
@@ -215,20 +197,7 @@ export class UnidocToken implements DataObject<UnidocToken> {
   * @see Object.prototype.toString
   */
   public toString(): string {
-    let result: string = this.constructor.name
-
-    result += ' '
-    result += this.index.toString().padEnd(5)
-    result += ' #'
-    result += this.type.toString().padEnd(2)
-    result += ' ('
-    result += (UnidocTokenType.toString(this.type) || 'undefined').padEnd(10)
-    result += ') "'
-    result += this.symbols.toDebugString()
-    result += '" '
-    result += this.origin.toString()
-
-    return result
+    return `${this.constructor.name} ${UnidocTokenType.toSignature(this.type)} ${this.symbols.toDebugString()} ${this.origin.toString()}`
   }
 
   /**
@@ -239,10 +208,11 @@ export class UnidocToken implements DataObject<UnidocToken> {
     if (other === this) return true
 
     if (other instanceof UnidocToken) {
-      return other.index === this.index &&
+      return (
         other.type === this.type &&
         other.origin.equals(this.origin) &&
         other.symbols.equals(this.symbols)
+      )
     }
 
     return false

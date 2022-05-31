@@ -1,7 +1,7 @@
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocPublisher } from '../stream/UnidocPublisher'
-import { UnidocSequenceOrigin } from '../origin/UnidocSequenceOrigin'
+import { UnidocLayout } from '../origin/UnidocLayout'
 
 import { UnidocToken } from './UnidocToken'
 import { UnidocTokenType } from './UnidocTokenType'
@@ -16,11 +16,6 @@ export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
   private readonly _token: UnidocToken
 
   /**
-   * 
-   */
-  private _index: number
-
-  /**
   * Instantiate a new unidoc token.
   *
   * @param [capacity = 16] - Initial capacity of the symbol buffer of this token.
@@ -29,7 +24,6 @@ export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
     super()
 
     this._token = new UnidocToken()
-    this._index = 0
   }
 
   /**
@@ -42,7 +36,7 @@ export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
   /**
    * 
    */
-  public setOrigin(origin: UnidocSequenceOrigin): UnidocTokenProducer {
+  public setOrigin(origin: UnidocLayout): UnidocTokenProducer {
     this._token.origin.copy(origin)
     return this
   }
@@ -183,9 +177,6 @@ export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
   * @see ListenableUnidocProducer.produce
   */
   public produce(token: UnidocToken = this._token): void {
-    token.index = this._index
-    this._index += 1
-
     this.output.next(token)
   }
 
@@ -207,7 +198,6 @@ export class UnidocTokenProducer extends UnidocPublisher<UnidocToken> {
    * 
    */
   public clear(): void {
-    this._index = 0
     this._token.clear()
     this.off()
   }

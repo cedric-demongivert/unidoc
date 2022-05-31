@@ -27,7 +27,7 @@ export class UnidocCoroutine<Product> implements UnidocConsumer<Product> {
   /**
    * 
    */
-  public constructor(iterator: Factory<UnidocCoroutine.Coroutine<Product>>) {
+  public constructor(iterator: UnidocCoroutine.Definition<Product>) {
     this._element = new UnidocElement()
     this._parent = undefined
     this._iterator = iterator()
@@ -114,14 +114,19 @@ export namespace UnidocCoroutine {
   /**
    * 
    */
-  export function create<Product>(iterator: Factory<Coroutine<Product>>): UnidocCoroutine<Product> {
+  export type Definition<Product> = Factory<Coroutine<Product>>
+
+  /**
+   * 
+   */
+  export function create<Product>(iterator: Definition<Product>): UnidocCoroutine<Product> {
     return new UnidocCoroutine(iterator)
   }
 
   /**
    * 
    */
-  export function feed<Product>(iterator: Iterator<Product>, coroutine: Factory<Coroutine<Product>>): void {
+  export function feed<Product>(iterator: Iterator<Product>, coroutine: Definition<Product>): void {
     feedConsumer(iterator, UnidocCoroutine.create(coroutine))
   }
 }

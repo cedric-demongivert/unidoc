@@ -1,63 +1,42 @@
 /** eslint-env jest */
 
-import '../jest/buffer-extension'
+import { Factory } from '@cedric-demongivert/gl-tool-utils'
 
-import { UnidocStream } from '../../sources/UnidocStream'
-
-import { UnidocBuffer } from '../../sources/buffer/UnidocBuffer'
-
-import { UnidocSymbols } from '../../sources/symbol/UnidocSymbols'
-
+import { feed } from '../../sources/stream/feed'
+import { UnidocCoroutine } from '../../sources/stream/UnidocCoroutine'
 import { UnidocToken } from '../../sources/token/UnidocToken'
-import { UnidocRuntimeTokenProducer } from '../../sources/token/UnidocRuntimeTokenProducer'
-
+import { UnidocTokenFlow } from '../../sources/token/UnidocTokenFlow'
+import { UnidocSymbols } from '../../sources/symbol/UnidocSymbols'
 import { UnidocLexerState } from '../../sources/lexer/UnidocLexerState'
 import { UnidocLexer } from '../../sources/lexer/UnidocLexer'
 
+/**
+ * 
+ */
+import '../matchers'
 
 /**
-* Return the result of the tokenization of the given content by a lexer instance.
-*
-* @param content - The content to transform into a buffer of tokens.
-*
-* @return A buffer with the result of the lexer.
-*/
-function tokenization(content: string): UnidocBuffer<UnidocToken> {
+ * 
+ */
+function match(content: string, scenario: Factory<UnidocCoroutine.Coroutine<UnidocToken>, [UnidocTokenFlow]>): void {
   const lexer: UnidocLexer = new UnidocLexer()
-  const output: UnidocBuffer<UnidocToken> = UnidocBuffer.bufferize(lexer, UnidocToken.ALLOCATOR)
+  const flow: UnidocTokenFlow = new UnidocTokenFlow(UnidocSymbols.fromString.URI)
 
-  for (const symbol of UnidocSymbols.fromString(content)) {
-    lexer.next(symbol)
-  }
-  lexer.success()
-
-  return output
+  UnidocCoroutine.create<UnidocToken>(scenario.bind(undefined, flow)).subscribe(lexer)
+  feed(UnidocSymbols.fromString(content), lexer)
 }
 
-namespace tokenization {
-  /**
-  * Like tokenization but without the completion event from the source.
-  */
-  export function online(content: string): UnidocBuffer<UnidocToken> {
-    const lexer: UnidocLexer = new UnidocLexer()
-    const output: UnidocBuffer<UnidocToken> = UnidocBuffer.bufferize(lexer, UnidocToken.ALLOCATOR)
+/**
+ * 
+ */
+function matchOnline(content: string, scenario: Factory<UnidocCoroutine.Coroutine<UnidocToken>, [UnidocTokenFlow]>): void {
+  const lexer: UnidocLexer = new UnidocLexer()
+  const flow: UnidocTokenFlow = new UnidocTokenFlow(UnidocSymbols.fromString.URI)
+  const coroutine: UnidocCoroutine<UnidocToken> = UnidocCoroutine.create<UnidocToken>(scenario.bind(undefined, flow))
 
-    for (const symbol of UnidocSymbols.fromString(content)) {
-      lexer.next(symbol)
-    }
-
-    return output
-  }
-}
-
-function ofProduction(configurator: (this: UnidocRuntimeTokenProducer) => void): UnidocBuffer<UnidocToken> {
-  const producer: UnidocRuntimeTokenProducer = UnidocRuntimeTokenProducer.create()
-  const expectation: UnidocBuffer<UnidocToken> = UnidocBuffer.bufferize(producer, UnidocToken.ALLOCATOR)
-
-  producer.fromSource(UnidocSymbols.fromString.URI)
-  configurator.call(producer)
-
-  return expectation
+  coroutine.subscribe(lexer)
+  feed.online(UnidocSymbols.fromString(content), lexer)
+  coroutine.success()
 }
 
 /**
@@ -67,14 +46,9 @@ describe('UnidocLexer', function () {
   /**
    * 
    */
-  describe('#constructor', function () {
-    /**
-     * 
-     */
-    it('instantiate a new lexer', function () {
-      const lexer: UnidocLexer = new UnidocLexer()
-      expect(lexer.state).toBe(UnidocLexerState.START)
-    })
+  it('instantiate a new lexer', function () {
+    const lexer: UnidocLexer = new UnidocLexer()
+    expect(lexer.state).toBe(UnidocLexerState.START)
   })
 
   /**
@@ -85,24 +59,13 @@ describe('UnidocLexer', function () {
      * 
      */
     it('recognize block opening', function () {
-      const lexer: UnidocLexer = new UnidocLexer()
-
-      UnidocStream.feed(
-        UnidocSymbols.fromString('{{{'),
-        UnidocStream.pipe(
-          lexer,
-          UnidocStream.coroutine(function* () {
-
-          })
-        )
-      )
-
-      expect(tokenization('{{{')).toMatchBuffer(ofProduction(function () {
-        this.produceBlockStart()
-        this.produceBlockStart()
-        this.produceBlockStart()
-        this.success()
-      }))
+      match('{{{', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenBlockStart())
+        expect(yield).toBeNext(flow.thenBlockStart())
+        expect(yield).toBeNext(flow.thenBlockStart())
+        expect(yield).toBeSuccess()
+      })
     })
   })
 
@@ -114,12 +77,13 @@ describe('UnidocLexer', function () {
      * 
      */
     it('recognize block termination', function () {
-      expect(tokenization('}}}')).toMatchBuffer(ofProduction(function () {
-        this.produceBlockEnd()
-        this.produceBlockEnd()
-        this.produceBlockEnd()
-        this.success()
-      }))
+      match('}}}', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenBlockEnd())
+        expect(yield).toBeNext(flow.thenBlockEnd())
+        expect(yield).toBeNext(flow.thenBlockEnd())
+        expect(yield).toBeSuccess()
+      })
     })
   })
 
@@ -131,51 +95,47 @@ describe('UnidocLexer', function () {
      * 
      */
     it('recognize tags', function () {
-      expect(tokenization('\\alberta\\Chicago\\3d\\--meow-w')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceTag('\\alberta')
-          this.produceTag('\\Chicago')
-          this.produceTag('\\3d')
-          this.produceTag('\\--meow-w')
-          this.success()
-        })
-      )
+      match('\\alberta\\Chicago\\3d\\--meow-w', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenTag('\\alberta'))
+        expect(yield).toBeNext(flow.thenTag('\\Chicago'))
+        expect(yield).toBeNext(flow.thenTag('\\3d'))
+        expect(yield).toBeNext(flow.thenTag('\\--meow-w'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize tags when they are followed by a class', function () {
-      expect(tokenization.online('\\alberta.')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceTag('\\alberta')
-          this.success()
-        })
-      )
+      matchOnline('\\alberta.', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenTag('\\alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize tags when they are followed by a space', function () {
-      expect(tokenization.online('\\alberta ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceTag('\\alberta')
-          this.success()
-        })
-      )
+      matchOnline('\\alberta ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenTag('\\alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize tags when they are followed by an identifier', function () {
-      expect(tokenization.online('\\alberta#')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceTag('\\alberta')
-          this.success()
-        })
-      )
+      matchOnline('\\alberta#', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenTag('\\alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
   })
 
@@ -187,39 +147,47 @@ describe('UnidocLexer', function () {
      * 
      */
     it('recognize classes', function () {
-      expect(tokenization('.alberta.Chicago.3d.--meow-w')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceClass('.alberta')
-          this.produceClass('.Chicago')
-          this.produceClass('.3d')
-          this.produceClass('.--meow-w')
-          this.success()
-        })
-      )
+      match('.alberta.Chicago.3d.--meow-w', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenClass('.alberta'))
+        expect(yield).toBeNext(flow.thenClass('.Chicago'))
+        expect(yield).toBeNext(flow.thenClass('.3d'))
+        expect(yield).toBeNext(flow.thenClass('.--meow-w'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize classes when they are followed by a space', function () {
-      expect(tokenization.online('.alberta ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceClass('.alberta')
-          this.success()
-        })
-      )
+      matchOnline('.alberta ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenClass('.alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize classes when they are followed by a tag', function () {
-      expect(tokenization.online('.alberta\\')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceClass('.alberta')
-          this.success()
-        })
-      )
+      matchOnline('.alberta\\', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenClass('.alberta'))
+        expect(yield).toBeSuccess()
+      })
+    })
+
+    /**
+     * 
+     */
+    it('recognize classes when they are followed by an identifier', function () {
+      matchOnline('.alberta#', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenClass('.alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
   })
 
@@ -231,39 +199,47 @@ describe('UnidocLexer', function () {
      * 
      */
     it('recognize identifiers', function () {
-      expect(tokenization('#alberta#Chicago#3d#--meow-w')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceIdentifier('#alberta')
-          this.produceIdentifier('#Chicago')
-          this.produceIdentifier('#3d')
-          this.produceIdentifier('#--meow-w')
-          this.success()
-        })
-      )
+      match('#alberta#Chicago#3d#--meow-w', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenIdentifier('#alberta'))
+        expect(yield).toBeNext(flow.thenIdentifier('#Chicago'))
+        expect(yield).toBeNext(flow.thenIdentifier('#3d'))
+        expect(yield).toBeNext(flow.thenIdentifier('#--meow-w'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize identifiers when they are followed by a space', function () {
-      expect(tokenization.online('#alberta ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceIdentifier('#alberta')
-          this.success()
-        })
-      )
+      matchOnline('#alberta ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenIdentifier('#alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize identifiers when they are followed by a tag', function () {
-      expect(tokenization.online('#alberta\\')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceIdentifier('#alberta')
-          this.success()
-        })
-      )
+      matchOnline('#alberta\\', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenIdentifier('#alberta'))
+        expect(yield).toBeSuccess()
+      })
+    })
+
+    /**
+     * 
+     */
+    it('recognize identifiers when they are followed by a class', function () {
+      matchOnline('#alberta.', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenIdentifier('#alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
   })
 
@@ -275,157 +251,144 @@ describe('UnidocLexer', function () {
      * 
      */
     it('recognize words', function () {
-      expect(tokenization('only 1 test on this str#ing')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('only')
-          this.produceSpace(' ')
-          this.produceWord('1')
-          this.produceSpace(' ')
-          this.produceWord('test')
-          this.produceSpace(' ')
-          this.produceWord('on')
-          this.produceSpace(' ')
-          this.produceWord('this')
-          this.produceSpace(' ')
-          this.produceWord('str#ing')
-          this.success()
-        })
-      )
+      match('only 1 test on this str#ing', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('only'))
+        expect(yield).toBeNext(flow.thenSpace(' '))
+        expect(yield).toBeNext(flow.thenWord('1'))
+        expect(yield).toBeNext(flow.thenSpace(' '))
+        expect(yield).toBeNext(flow.thenWord('test'))
+        expect(yield).toBeNext(flow.thenSpace(' '))
+        expect(yield).toBeNext(flow.thenWord('on'))
+        expect(yield).toBeNext(flow.thenSpace(' '))
+        expect(yield).toBeNext(flow.thenWord('this'))
+        expect(yield).toBeNext(flow.thenSpace(' '))
+        expect(yield).toBeNext(flow.thenWord('str#ing'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize degenerated classes as words', function () {
-      /**
-       * 
-       */
-      expect(tokenization.online('..acuriousclass ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('..acuriousclass')
-          this.success()
-        })
-      )
+      matchOnline('..acuriousclass ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('..acuriousclass'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize degenerated identifiers as words', function () {
-      expect(tokenization.online('##acuriousidentifier ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('##acuriousidentifier')
-          this.success()
-        })
-      )
+      matchOnline('##acuriousidentifier ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('##acuriousidentifier'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize degenerated tags as words', function () {
-      expect(tokenization.online('\\\\acurioustag ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('\\\\acurioustag')
-          this.success()
-        })
-      )
+      matchOnline('\\\\acurioustag ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('\\\\acurioustag'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize dot as words', function () {
-      expect(tokenization.online('. ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('.')
-          this.success()
-        })
-      )
+      matchOnline('. ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('.'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize sharp as words', function () {
-      expect(tokenization.online('# ')).toMatchBuffer(ofProduction(function () {
-        this.produceWord('#')
-        this.success()
-      }))
+      matchOnline('# ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('#'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize antislash as words', function () {
-      expect(tokenization.online('\\ ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('\\')
-          this.success()
-        })
-      )
+      matchOnline('\\ ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('\\'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize words that contains dots', function () {
-      expect(tokenization.online('alberta.test. ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('alberta.test.')
-          this.success()
-        })
-      )
+      matchOnline('alberta.test. ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('alberta.test.'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize words when they are followed by a space', function () {
-      expect(tokenization.online('alberta ')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('alberta')
-          this.success()
-        })
-      )
+      matchOnline('alberta ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize words when they are followed by a tag', function () {
-      expect(tokenization.online('alberta\\')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('alberta')
-          this.success()
-        })
-      )
+      matchOnline('alberta\\', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('alberta'))
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize words when they are followed by a block termination', function () {
-      expect(tokenization.online('alberta}')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('alberta')
-          this.produceBlockEnd()
-          this.success()
-        })
-      )
+      matchOnline('alberta}', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('alberta'))
+        expect(yield).toBeNext(flow.thenBlockEnd())
+        expect(yield).toBeSuccess()
+      })
     })
 
     /**
      * 
      */
     it('recognize words when they are followed by a block start', function () {
-      expect(tokenization.online('alberta{')).toMatchBuffer(
-        ofProduction(function () {
-          this.produceWord('alberta')
-          this.produceBlockStart()
-          this.success()
-        })
-      )
+      matchOnline('alberta{', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenWord('alberta'))
+        expect(yield).toBeNext(flow.thenBlockStart())
+        expect(yield).toBeSuccess()
+      })
     })
   })
 
@@ -437,13 +400,14 @@ describe('UnidocLexer', function () {
      * 
      */
     it('recognize newlines', function () {
-      expect(tokenization('\r\n\n\r\r')).toMatchBuffer(ofProduction(function () {
-        this.produceNewline('\r\n')
-        this.produceNewline('\n')
-        this.produceNewline('\r')
-        this.produceNewline('\r')
-        this.success()
-      }))
+      match('\r\n\n\r\r', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenNewline('\r\n'))
+        expect(yield).toBeNext(flow.thenNewline('\n'))
+        expect(yield).toBeNext(flow.thenNewline('\r'))
+        expect(yield).toBeNext(flow.thenNewline('\r'))
+        expect(yield).toBeSuccess()
+      })
     })
   })
 
@@ -455,10 +419,11 @@ describe('UnidocLexer', function () {
      * 
      */
     it('recognize spaces', function () {
-      expect(tokenization(' \t\t ')).toMatchBuffer(ofProduction(function () {
-        this.produceSpace(' \t\t ')
-        this.success()
-      }))
+      match(' \t\t ', function* (flow: UnidocTokenFlow) {
+        expect(yield).toBeStart()
+        expect(yield).toBeNext(flow.thenSpace(' \t\t '))
+        expect(yield).toBeSuccess()
+      })
     })
   })
 })
