@@ -3,7 +3,6 @@ import { UnidocSymbol } from '../symbol/UnidocSymbol'
 
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
-import { UnidocTokenBuilder } from '../token/UnidocTokenBuilder'
 
 import { UnidocFunction } from '../stream/UnidocFunction'
 import { UnidocSink } from '../stream/UnidocSink'
@@ -23,7 +22,7 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   /**
   * Token instance used to publish discovered tokens.
   */
-  private readonly _token: UnidocTokenBuilder
+  private readonly _token: UnidocToken
 
   /**
    * 
@@ -39,7 +38,7 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
     super()
 
     this._state = UnidocLexerState.START
-    this._token = new UnidocTokenBuilder(capacity)
+    this._token = new UnidocToken(capacity)
     this._first = true
   }
 
@@ -606,7 +605,7 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
    * 
    */
   private emit(type: UnidocTokenType): void {
-    const token: UnidocTokenBuilder = this._token
+    const token: UnidocToken = this._token
     const output: UnidocSink<UnidocToken> = this.output
 
     if (this._first) {
@@ -615,7 +614,7 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
     }
 
     token.setType(type)
-    output.next(token.get())
+    output.next(token)
     token.origin.clear()
     token.symbols.clear()
   }

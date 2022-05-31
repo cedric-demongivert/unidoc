@@ -1,11 +1,21 @@
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 
-import { UTF32CodeUnit, UTF32String } from '../symbol'
+import { UnidocSymbol, UTF32CodeUnit, UTF32String } from '../symbol'
 import { UnidocLayout } from '../origin'
 
 import { DataObject } from '../DataObject'
 
 import { UnidocTokenType } from './UnidocTokenType'
+
+/**
+ * 
+ */
+const BLOCK_START: string = '{'
+
+/**
+ * 
+ */
+const BLOCK_END: string = '}'
 
 /**
  * A sequence of symbols, an instance of a given class of words.
@@ -38,6 +48,43 @@ export class UnidocToken implements DataObject<UnidocToken> {
   }
 
   /**
+   * 
+   */
+  public appendUTF32String(symbols: UTF32String, origin: UnidocLayout): this {
+    this.symbols.concat(symbols)
+    this.origin.concat(origin)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public appendUTF32Unit(symbol: UTF32CodeUnit, origin: UnidocLayout): this {
+    this.symbols.push(symbol)
+    this.origin.concat(origin)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public appendSymbol(symbol: UnidocSymbol): this {
+    this.symbols.push(symbol.code)
+    this.origin.push(symbol.origin)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public appendString(symbol: string, origin: UnidocLayout): this {
+    this.symbols.concatString(symbol)
+    this.origin.concat(origin)
+    return this
+  }
+
+
+  /**
    *  
    */
   public setType(type: UnidocTokenType): this {
@@ -68,9 +115,10 @@ export class UnidocToken implements DataObject<UnidocToken> {
    * @param type - New type of this token.
    * @param value - New code points of this token.
    */
-  public as(type: UnidocTokenType, value: string): void {
+  public as(type: UnidocTokenType, value: string): this {
     this.type = type
     this.symbols.setString(value)
+    return this
   }
 
   /**
@@ -79,8 +127,9 @@ export class UnidocToken implements DataObject<UnidocToken> {
    *
    * @param value - New code points of this token.
    */
-  public asIdentifier(value: string): void {
+  public asIdentifier(value: string): this {
     this.as(UnidocTokenType.IDENTIFIER, value)
+    return this
   }
 
   /**
@@ -89,8 +138,9 @@ export class UnidocToken implements DataObject<UnidocToken> {
   *
   * @param value - New code points of this token.
   */
-  public asClass(value: string): void {
+  public asClass(value: string): this {
     this.as(UnidocTokenType.CLASS, value)
+    return this
   }
 
   /**
@@ -99,24 +149,27 @@ export class UnidocToken implements DataObject<UnidocToken> {
   *
   * @param value - New code points of this token.
   */
-  public asTag(value: string): void {
+  public asTag(value: string): this {
     this.as(UnidocTokenType.TAG, value)
+    return this
   }
 
   /**
   * Configure this token as a block start token that start at the given
   * location.
   */
-  public asBlockStart(): void {
-    this.as(UnidocTokenType.BLOCK_START, '{')
+  public asBlockStart(): this {
+    this.as(UnidocTokenType.BLOCK_START, BLOCK_START)
+    return this
   }
 
   /**
   * Configure this token as a block start token that start at the given
   * location.
   */
-  public asBlockEnd(): void {
-    this.as(UnidocTokenType.BLOCK_END, '}')
+  public asBlockEnd(): this {
+    this.as(UnidocTokenType.BLOCK_END, BLOCK_END)
+    return this
   }
 
   /**
@@ -125,8 +178,9 @@ export class UnidocToken implements DataObject<UnidocToken> {
   *
   * @param value - New code points of this token.
   */
-  public asSpace(value: string): void {
+  public asSpace(value: string): this {
     this.as(UnidocTokenType.SPACE, value)
+    return this
   }
 
   /**
@@ -135,8 +189,9 @@ export class UnidocToken implements DataObject<UnidocToken> {
   *
   * @param [type = '\r\n'] - Type of new line to configure.
   */
-  public asNewline(type: string = '\r\n'): void {
+  public asNewline(type: string = '\r\n'): this {
     this.as(UnidocTokenType.NEW_LINE, type)
+    return this
   }
 
   /**
@@ -145,8 +200,9 @@ export class UnidocToken implements DataObject<UnidocToken> {
   *
   * @param value - New code points of this token.
   */
-  public asWord(value: string): void {
+  public asWord(value: string): this {
     this.as(UnidocTokenType.WORD, value)
+    return this
   }
 
   /**
@@ -219,6 +275,9 @@ export class UnidocToken implements DataObject<UnidocToken> {
   }
 }
 
+/**
+ * 
+ */
 export namespace UnidocToken {
   /**
    * 

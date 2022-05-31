@@ -1,5 +1,3 @@
 export { UnidocToken } from './UnidocToken'
-export { UnidocTokenProducer } from './UnidocTokenProducer'
-export { UnidocTokenBuilder } from './UnidocTokenBuilder'
 export { UnidocTokenFlow } from './UnidocTokenFlow'
 export { UnidocTokenType } from './UnidocTokenType'

@@ -36,7 +36,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   public readonly symbols: UTF32String
 
   /**
-   * Ending location of the event into the parsed document.
+   * 
    */
   public readonly origin: UnidocLayout
 

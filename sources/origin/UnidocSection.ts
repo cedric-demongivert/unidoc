@@ -1,5 +1,5 @@
 import { Set, NativeSet, Group, Duplicator } from '@cedric-demongivert/gl-tool-collection'
-import { UTF32String } from 'sources/symbol'
+import { UTF32String } from '../symbol'
 import { DataObject } from "../DataObject"
 import { UnidocLayout } from "./UnidocLayout"
 

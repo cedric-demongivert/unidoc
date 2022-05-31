@@ -2,7 +2,6 @@ import { UnidocOrigin, UnidocTracker, UnidocURI, UnidocLocation } from '../origi
 import { UTF32CodeUnit } from '../symbol'
 
 import { UnidocToken } from './UnidocToken'
-import { UnidocTokenBuilder } from './UnidocTokenBuilder'
 
 const DEFAULT_OPENING_BLOCK_TEXT: string = '{'
 const DEFAULT_CLOSING_BLOCK_TEXT: string = '}'
@@ -32,13 +31,13 @@ function getState(unit: UTF32CodeUnit): number {
 }
 
 /**
-* An unidoc token builder.
+* An unidoc token token.
 */
 export class UnidocTokenFlow {
   /**
    * 
    */
-  private readonly _builder: UnidocTokenBuilder
+  private readonly _token: UnidocToken
 
   /**
    * 
@@ -54,11 +53,13 @@ export class UnidocTokenFlow {
    * 
    */
   public constructor(source: UnidocURI = UnidocTokenFlow.SOURCE, capacity: number = 16) {
-    this._builder = new UnidocTokenBuilder(capacity)
+    this._token = new UnidocToken(capacity)
     this._tracker = new UnidocTracker()
 
-    this._builder.origin.origins.push(UnidocOrigin.DEFAULT)
-    this._origin = this._builder.origin.origins.first
+    const token: UnidocToken = this._token
+
+    token.origin.origins.push(UnidocOrigin.DEFAULT)
+    this._origin = token.origin.origins.first
     this._origin.setSource(source)
   }
 
@@ -82,7 +83,7 @@ export class UnidocTokenFlow {
    * 
    */
   public thenIdentifier(value: string, representation: string = value): UnidocToken {
-    const builder: UnidocTokenBuilder = this._builder
+    const token: UnidocToken = this._token
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -90,16 +91,14 @@ export class UnidocTokenFlow {
     tracker.nextString(representation)
     origin.toLocation(tracker.location)
 
-    builder.asIdentifier(value)
-
-    return builder.get()
+    return token.asIdentifier(value)
   }
 
   /**
    * 
    */
   public thenClass(value: string, representation: string = value): UnidocToken {
-    const builder: UnidocTokenBuilder = this._builder
+    const token: UnidocToken = this._token
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -107,16 +106,14 @@ export class UnidocTokenFlow {
     tracker.nextString(representation)
     origin.toLocation(tracker.location)
 
-    builder.asClass(value)
-
-    return builder.get()
+    return token.asClass(value)
   }
 
   /**
    * 
    */
   public thenTag(value: string, representation: string = value): UnidocToken {
-    const builder: UnidocTokenBuilder = this._builder
+    const token: UnidocToken = this._token
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -124,16 +121,14 @@ export class UnidocTokenFlow {
     tracker.nextString(representation)
     origin.toLocation(tracker.location)
 
-    builder.asTag(value)
-
-    return builder.get()
+    return token.asTag(value)
   }
 
   /**
    * 
    */
   public thenBlockStart(text: string = DEFAULT_OPENING_BLOCK_TEXT): UnidocToken {
-    const builder: UnidocTokenBuilder = this._builder
+    const token: UnidocToken = this._token
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -141,16 +136,14 @@ export class UnidocTokenFlow {
     tracker.nextString(text)
     origin.toLocation(tracker.location)
 
-    builder.asBlockStart()
-
-    return builder.get()
+    return token.asBlockStart()
   }
 
   /**
    * 
    */
   public thenBlockEnd(text: string = DEFAULT_CLOSING_BLOCK_TEXT): UnidocToken {
-    const builder: UnidocTokenBuilder = this._builder
+    const token: UnidocToken = this._token
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -158,16 +151,14 @@ export class UnidocTokenFlow {
     tracker.nextString(text)
     origin.toLocation(tracker.location)
 
-    builder.asBlockEnd()
-
-    return builder.get()
+    return token.asBlockEnd()
   }
 
   /**
    * 
    */
   public thenSpace(value: string, text: string = value): UnidocToken {
-    const builder: UnidocTokenBuilder = this._builder
+    const token: UnidocToken = this._token
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -175,16 +166,14 @@ export class UnidocTokenFlow {
     tracker.nextString(text)
     origin.toLocation(tracker.location)
 
-    builder.asSpace(value)
-
-    return builder.get()
+    return token.asSpace(value)
   }
 
   /**
    * 
    */
   public thenNewline(type: string, text: string = type): UnidocToken {
-    const builder: UnidocTokenBuilder = this._builder
+    const token: UnidocToken = this._token
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -192,16 +181,14 @@ export class UnidocTokenFlow {
     tracker.nextString(text)
     origin.toLocation(tracker.location)
 
-    builder.asNewline(type)
-
-    return builder.get()
+    return token.asNewline(type)
   }
 
   /**
    * 
    */
   public thenWord(value: string, text: string = value): UnidocToken {
-    const builder: UnidocTokenBuilder = this._builder
+    const token: UnidocToken = this._token
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -209,9 +196,7 @@ export class UnidocTokenFlow {
     tracker.nextString(text)
     origin.toLocation(tracker.location)
 
-    builder.asWord(value)
-
-    return builder.get()
+    return token.asWord(value)
   }
 
   /**
