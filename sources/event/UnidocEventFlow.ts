@@ -1,0 +1,217 @@
+import { UnidocOrigin } from '../origin/UnidocOrigin'
+import { UnidocPath } from '../origin/UnidocPath'
+import { UnidocSection } from '../origin/UnidocSection'
+import { UnidocTracker } from '../origin/UnidocTracker'
+import { UnidocURI } from '../origin/UnidocURI'
+
+import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
+
+import { UnidocEvent } from './UnidocEvent'
+import { UnidocEventBuilder } from './UnidocEventBuilder'
+import { UnidocEventType } from './UnidocEventType'
+
+/**
+ * 
+ */
+const DEFAULT_BLOCK_ENDING: string = '}'
+
+const STATE_WORD: number = 0
+const STATE_SPACE: number = 1
+
+function getState(unit: UTF32CodeUnit): number {
+  switch (unit) {
+    case UTF32CodeUnit.VERTICAL_TABULATION:
+    case UTF32CodeUnit.FORM_FEED:
+    case UTF32CodeUnit.LINE_SEPARATOR:
+    case UTF32CodeUnit.PARAGRAPH_SEPARATOR:
+    case UTF32CodeUnit.NEXT_LINE:
+    case UTF32CodeUnit.CARRIAGE_RETURN:
+    case UTF32CodeUnit.SPACE:
+    case UTF32CodeUnit.HORIZONTAL_TABULATION:
+    case UTF32CodeUnit.FORM_FEED:
+      return STATE_SPACE
+    default:
+      return STATE_WORD
+  }
+}
+
+/**
+ * 
+ */
+export class UnidocEventFlow {
+  /**
+   * 
+   */
+  private readonly _tracker: UnidocTracker
+
+  /**
+   * 
+   */
+  private readonly _event: UnidocEventBuilder
+
+  /**
+   * 
+   */
+  private readonly _origin: UnidocOrigin
+
+  /**
+   * 
+   */
+  private readonly _path: UnidocPath
+
+  /**
+   * Instantiate a new unidoc event.
+   */
+  public constructor() {
+    this._event = new UnidocEventBuilder()
+    this._tracker = new UnidocTracker()
+    this._event.origin.origins.size = 1
+    this._origin = this._event.origin.origins.first
+    this._path = this._event.path
+  }
+
+  /**
+   * 
+   */
+  public setSource(source: UnidocURI): this {
+    this._origin.setSource(source)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public thenWord(content: string, line: string = content): UnidocEvent {
+    const event: UnidocEventBuilder = this._event
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
+
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
+
+    return event.asWord(content).get()
+  }
+
+  /**
+   * 
+   */
+  public * thenText(value: string): IterableIterator<UnidocEvent> {
+    if (value.length <= 0) return this
+
+    let offset: number = 0
+    let cursor: number = 1
+    let state: number | undefined = STATE_WORD
+
+    for (const unit of UTF32CodeUnit.fromString(value)) {
+      const nextState: number = getState(unit)
+
+      switch (state) {
+        case STATE_WORD:
+          if (nextState !== state) {
+            yield this.thenWord(value.substring(offset, cursor))
+            offset = cursor
+          }
+          break
+        case STATE_SPACE:
+          if (nextState !== state) {
+            yield this.thenWhitespace(value.substring(offset, cursor))
+            offset = cursor
+          }
+          break
+      }
+
+      cursor += 1
+      state = nextState
+    }
+
+    switch (state) {
+      case STATE_WORD:
+        yield this.thenWord(value.substring(offset, cursor))
+        break
+      case STATE_SPACE:
+        yield this.thenWhitespace(value.substring(offset, cursor))
+        break
+    }
+
+    return this
+  }
+
+  /**
+   * 
+   */
+  public thenWhitespace(content: string, line: string = content): UnidocEvent {
+    const event: UnidocEventBuilder = this._event
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
+
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
+
+    return event.asWhitespace(content).get()
+  }
+
+  /**
+   * 
+   */
+  public thenTagStart(configuration: string, line: string = '\\' + configuration + '{'): UnidocEvent {
+    const event: UnidocEventBuilder = this._event
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
+    const path: UnidocPath = this._path
+
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.toLocation(tracker.location)
+
+    event.asTagStart(configuration)
+
+    path.push(UnidocSection.DEFAULT)
+
+    const section: UnidocSection = path.last
+    section.setClasses(event.classes)
+    section.setIdentifier(event.identifier)
+    section.setName(event.symbols)
+    section.setOrigin(event.origin)
+
+    return event.asTagStart(configuration).get()
+  }
+
+  /**
+   * 
+   */
+  public thenTagEnd(line: string = DEFAULT_BLOCK_ENDING): UnidocEvent {
+    const event: UnidocEventBuilder = this._event
+    const origin: UnidocOrigin = this._origin
+    const tracker: UnidocTracker = this._tracker
+    const path: UnidocPath = this._path
+
+    origin.fromLocation(tracker.location)
+    tracker.nextString(line)
+    origin.fromLocation(tracker.location)
+
+    const section: UnidocSection = path.last
+
+    event.setType(UnidocEventType.END_TAG)
+    event.setIdentifier(section.identifier)
+    event.setSymbols(section.name)
+    event.setClasses(section.classes)
+
+    path.delete(path.size - 1)
+
+    return event.get()
+  }
+}
+
+/**
+ * 
+ */
+export namespace UnidocEventFlow {
+  /**
+   * 
+   */
+  export function create(): UnidocEventFlow {
+    return new UnidocEventFlow()
+  }
+}

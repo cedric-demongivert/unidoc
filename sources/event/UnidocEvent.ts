@@ -1,126 +1,160 @@
-import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator, Set, NativeSet, Group } from '@cedric-demongivert/gl-tool-collection'
+import { Empty } from '@cedric-demongivert/gl-tool-utils'
 
 import { UTF32String } from '../symbol/UTF32String'
-
 import { UnidocPath } from '../origin/UnidocPath'
 
 import { DataObject } from '../DataObject'
 
 import { UnidocEventType } from './UnidocEventType'
+import { UnidocLayout } from '../origin/UnidocLayout'
 
 const TAG_EVENT_CONFIGURATION: RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?((?:\.[a-zA-Z0-9\-]+)+)?$/i
-const EMPTY_STRING: string = ''
 
 /**
-* A unidoc event.
-*/
-export class UnidocEvent implements DataObject {
+ * An unidoc event.
+ */
+export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
-   * Index of this event in the sequence of event that form the underlying document.
+   * Type of this event.
    */
-  public index: number
-
-  /**
-  * Type of this event.
-  */
   public type: UnidocEventType
 
   /**
-  * The discovered tag, if any.
-  */
-  public readonly tag: UTF32String
-
-  /**
-  * Identifier associated to the block or the tag if any.
-  */
+   * Identifier associated to the block or the tag if any.
+   */
   public readonly identifier: UTF32String
 
   /**
-  * Classes associated to the block or the tag if any.
-  */
+   * Classes associated to the block or the tag if any.
+   */
   public readonly classes: Set<string>
 
   /**
-  * Content associated to this event.
-  */
+   * Content associated to this event.
+   */
   public readonly symbols: UTF32String
 
   /**
-  * Ending location of the event into the parsed document.
-  */
-  public readonly origin: UnidocPath
+   * Ending location of the event into the parsed document.
+   */
+  public readonly origin: UnidocLayout
 
   /**
-  * Instantiate a new unidoc event.
-  */
+   * 
+   */
+  public readonly path: UnidocPath
+
+  /**
+   * Instantiate a new unidoc event.
+   */
   public constructor() {
-    this.index = 0
     this.type = UnidocEventType.START_TAG
-    this.tag = UTF32String.allocate(64)
     this.identifier = UTF32String.allocate(64)
-    this.classes = new Set<string>()
+    this.classes = NativeSet.any()
     this.symbols = UTF32String.allocate(64)
-    this.origin = new UnidocPath()
+    this.origin = new UnidocLayout()
+    this.path = new UnidocPath()
   }
 
   /**
-  *
-  */
+   *
+   */
   public isStartOfAnyTag(): boolean {
     return this.type === UnidocEventType.START_TAG
   }
 
   /**
-  *
-  */
+   *
+   */
   public isStartOfTag(tag: string): boolean {
-    return this.type === UnidocEventType.START_TAG && this.tag.equalsToString(tag)
+    return this.type === UnidocEventType.START_TAG && this.symbols.equalsToString(tag)
   }
 
   /**
-  *
-  */
+   *
+   */
   public isEndOfAnyTag(): boolean {
     return this.type === UnidocEventType.END_TAG
   }
 
   /**
-  *
-  */
+   *
+   */
   public isEndOfTag(tag: string): boolean {
-    return this.type === UnidocEventType.END_TAG && this.tag.equalsToString(tag)
+    return this.type === UnidocEventType.END_TAG && this.symbols.equalsToString(tag)
   }
 
   /**
-  *
-  */
+   *
+   */
   public isWhitespace(): boolean {
     return this.type === UnidocEventType.WHITESPACE
   }
 
   /**
-  *
-  */
+   *
+   */
   public isWord(): boolean {
     return this.type === UnidocEventType.WORD
   }
 
   /**
-  *
-  */
-  public ofIndex(index: number): UnidocEvent {
-    this.index = index
+   * 
+   */
+  public setType(type: UnidocEventType): this {
+    this.type = type
     return this
   }
 
   /**
-  * Configure this event as a new word event.
-  *
-  * @param content - Content of the resulting event.
-  */
+   * 
+   */
+  public setIdentifier(identifier: UTF32String): this {
+    this.identifier.copy(identifier)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setClasses(classes: Group<string>): this {
+    this.classes.copy(classes)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setSymbols(symbols: UTF32String): this {
+    this.symbols.copy(symbols)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setOrigin(origin: UnidocLayout): this {
+    this.origin.copy(origin)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public setPath(path: UnidocPath): this {
+    this.path.copy(path)
+    return this
+  }
+
+  /**
+   * Configure this event as a new word event.
+   *
+   * @param content - Content of the resulting event.
+   */
   public asWord(content: string): void {
     this.identifier.clear()
-    this.tag.clear()
+    this.symbols.clear()
     this.classes.clear()
 
     this.type = UnidocEventType.WORD
@@ -128,13 +162,13 @@ export class UnidocEvent implements DataObject {
   }
 
   /**
-  * Configure this event as a new whitespace event.
-  *
-  * @param content - Content of the resulting event.
-  */
+   * Configure this event as a new whitespace event.
+   *
+   * @param content - Content of the resulting event.
+   */
   public asWhitespace(content: string): void {
     this.identifier.clear()
-    this.tag.clear()
+    this.symbols.clear()
     this.classes.clear()
 
     this.type = UnidocEventType.WHITESPACE
@@ -142,23 +176,22 @@ export class UnidocEvent implements DataObject {
   }
 
   /**
-  * Configure this event as a new starting tag event.
-  *
-  * @param configuration - Type, identifiers and classes of the resulting tag.
-  */
+   * Configure this event as a new starting tag event.
+   *
+   * @param configuration - Type, identifiers and classes of the resulting tag.
+   */
   public asTagStart(configuration: string): void {
     this.symbols.clear()
     this.classes.clear()
-    this.type = UnidocEventType.START_TAG
-
-    this.tag.clear()
     this.identifier.clear()
+
+    this.type = UnidocEventType.START_TAG
 
     const tokens: RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
 
     if (tokens != null) {
-      this.tag.setString(tokens[1])
-      this.identifier.setString(tokens[2] == null ? EMPTY_STRING : tokens[2].substring(1))
+      this.symbols.setString(tokens[1])
+      this.identifier.setString(tokens[2] == null ? Empty.STRING : tokens[2].substring(1))
 
       if (tokens[3] != null) {
         for (const token of tokens[3].substring(1).split('.')) {
@@ -169,23 +202,22 @@ export class UnidocEvent implements DataObject {
   }
 
   /**
-  * Configure this event as a new ending tag event.
-  *
-  * @param configuration - Type, identifiers and classes of the resulting tag.
-  */
+   * Configure this event as a new ending tag event.
+   *
+   * @param configuration - Type, identifiers and classes of the resulting tag.
+   */
   public asTagEnd(configuration: string): void {
     this.symbols.clear()
     this.classes.clear()
-    this.type = UnidocEventType.END_TAG
-
-    this.tag.clear()
     this.identifier.clear()
+
+    this.type = UnidocEventType.END_TAG
 
     const tokens: RegExpExecArray | null = TAG_EVENT_CONFIGURATION.exec(configuration)
 
     if (tokens != null) {
-      this.tag.setString(tokens[1])
-      this.identifier.setString(tokens[2] == null ? EMPTY_STRING : tokens[2].substring(1))
+      this.symbols.setString(tokens[1])
+      this.identifier.setString(tokens[2] == null ? Empty.STRING : tokens[2].substring(1))
 
       if (tokens[3] != null) {
         for (const token of tokens[3].substring(1).split('.')) {
@@ -196,10 +228,10 @@ export class UnidocEvent implements DataObject {
   }
 
   /**
-  * Add the given classes to this event set of classes.
-  *
-  * @param classes - An iterable of classes to add to this event set of classes.
-  */
+   * Add the given classes to this event set of classes.
+   *
+   * @param classes - An iterable of classes to add to this event set of classes.
+   */
   public addClasses(classes: Iterable<string>): void {
     for (const clazz of classes) {
       this.classes.add(clazz)
@@ -207,29 +239,21 @@ export class UnidocEvent implements DataObject {
   }
 
   /**
-  * @see DataObject.copy
-  */
+   * @see DataObject.copy
+   */
   public copy(toCopy: UnidocEvent): this {
-    this.index = toCopy.index
     this.type = toCopy.type
-    this.tag.copy(toCopy.tag)
     this.identifier.copy(toCopy.identifier)
-
     this.symbols.copy(toCopy.symbols)
     this.origin.copy(toCopy.origin)
-
-    this.classes.clear()
-
-    for (const clazz of toCopy.classes) {
-      this.classes.add(clazz)
-    }
+    this.classes.copy(toCopy.classes)
 
     return this
   }
 
   /**
-  * @see DataObject.clone
-  */
+   * @see DataObject.clone
+   */
   public clone(): UnidocEvent {
     const result: UnidocEvent = new UnidocEvent()
     result.copy(this)
@@ -237,12 +261,10 @@ export class UnidocEvent implements DataObject {
   }
 
   /**
-  * @see DataObject.clear
+    * @see DataObject.clear
   */
   public clear(): this {
-    this.index = 0
     this.type = UnidocEventType.START_TAG
-    this.tag.clear()
     this.identifier.clear()
     this.origin.clear()
     this.classes.clear()
@@ -252,40 +274,41 @@ export class UnidocEvent implements DataObject {
   }
 
   /**
-  * @see Object.toString
-  */
+   * @see Object.toString
+   */
   public toString(): string {
     let result: string = ''
 
-    result += this.index
+    result += this.constructor.name
     result += ' '
-    result += UnidocEventType.toString(this.type)
+    result += UnidocEventType.toSignature(this.type)
+
+    switch (this.type) {
+      case UnidocEventType.WORD:
+      case UnidocEventType.WHITESPACE:
+        result += ' "'
+        result += this.symbols.toDebugString()
+        result += '"'
+        break
+      default:
+        result += ' \\'
+        result += this.symbols.toString()
+
+        if (this.identifier.size > 0) {
+          result += '#'
+          result += this.identifier.toString()
+        }
+
+        if (this.classes.size > 0) {
+          for (const clazz of this.classes) {
+            result += '.'
+            result += clazz
+          }
+        }
+    }
+
     result += ' '
     result += this.origin.toString()
-
-    if (this.tag.size > 0) {
-      result += ' \\'
-      result += this.tag.toString()
-    }
-
-    if (this.identifier.size > 0) {
-      result += ' #'
-      result += this.identifier.toString()
-    }
-
-    if (this.classes.size > 0) {
-      result += ' '
-      for (const clazz of this.classes) {
-        result += '.'
-        result += clazz
-      }
-    }
-
-    if (this.symbols.size > 0) {
-      result += ' "'
-      result += this.symbols.toDebugString()
-      result += '"'
-    }
 
     return result
   }
@@ -298,22 +321,23 @@ export class UnidocEvent implements DataObject {
     if (other === this) return true
 
     if (other instanceof UnidocEvent) {
-      if (
-        other.index !== this.index ||
-        other.type !== this.type ||
-        other.classes.size !== this.classes.size ||
-        !other.identifier.equals(this.identifier) ||
-        !other.tag.equals(this.tag) ||
-        !other.origin.equals(this.origin)
-      ) { return false }
-
-      for (const clazz of other.classes) {
-        if (!this.classes.has(clazz)) {
-          return false
-        }
+      switch (other.type) {
+        case UnidocEventType.WORD:
+        case UnidocEventType.WHITESPACE:
+          return (
+            other.type === this.type &&
+            this.symbols.equals(other.symbols) &&
+            other.origin.equals(this.origin)
+          )
+        default:
+          return (
+            other.type === this.type &&
+            other.classes.equals(this.classes) &&
+            other.identifier.equals(this.identifier) &&
+            this.symbols.equals(other.symbols) &&
+            other.origin.equals(this.origin)
+          )
       }
-
-      return this.symbols.equals(other.symbols)
     }
 
     return false

@@ -1,4 +1,6 @@
 export { UnidocRuntimeEventProducer } from './UnidocRuntimeEventProducer'
 export { UnidocEvent } from './UnidocEvent'
+export { UnidocEventBuilder } from './UnidocEventBuilder'
+export { UnidocEventFlow } from './UnidocEventFlow'
 export { UnidocEventProducer } from './UnidocEventProducer'
 export { UnidocEventType } from './UnidocEventType'

@@ -68,6 +68,19 @@ export namespace UnidocEventType {
   }
 
   /**
+   * 
+   */
+  export function toSignature(value: UnidocEventType): string | undefined {
+    switch (value) {
+      case START_TAG: return 'ST'
+      case END_TAG: return 'ET'
+      case WHITESPACE: return 'WC'
+      case WORD: return 'WD'
+      default: return undefined
+    }
+  }
+
+  /**
   *
   */
   export function toDebugString(value: UnidocEventType): string | undefined {

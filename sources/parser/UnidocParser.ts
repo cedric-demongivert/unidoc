@@ -7,8 +7,6 @@ import { UnidocEventBuilder } from '../event/UnidocEventBuilder'
 import { UnidocFunction } from '../stream/UnidocFunction'
 import { UnidocSink } from '../stream/UnidocSink'
 
-import { UnidocObject } from '../UnidocObject'
-
 import { UnidocParserStateType } from './UnidocParserStateType'
 import { UnidocParserState } from './UnidocParserState'
 import { UnidocParserStateBuffer } from './UnidocParserStateBuffer'

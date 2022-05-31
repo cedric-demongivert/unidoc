@@ -1,11 +1,8 @@
-import { Clonable } from '@cedric-demongivert/gl-tool-utils'
-
-import { UnidocOrigin, UnidocLayout, UnidocTracker, UnidocURI, UnidocLocation } from '../origin'
-import { UnidocSymbol, UTF32CodeUnit, UTF32String } from '../symbol'
+import { UnidocOrigin, UnidocTracker, UnidocURI, UnidocLocation } from '../origin'
+import { UTF32CodeUnit } from '../symbol'
 
 import { UnidocToken } from './UnidocToken'
 import { UnidocTokenBuilder } from './UnidocTokenBuilder'
-import { UnidocTokenType } from './UnidocTokenType'
 
 const DEFAULT_OPENING_BLOCK_TEXT: string = '{'
 const DEFAULT_CLOSING_BLOCK_TEXT: string = '}'

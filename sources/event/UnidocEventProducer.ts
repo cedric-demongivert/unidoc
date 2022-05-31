@@ -7,6 +7,7 @@ import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
 import { UnidocEventBuilder } from './UnidocEventBuilder'
+import { UnidocLayout } from '../origin/UnidocLayout'
 
 export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
@@ -15,17 +16,11 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   private readonly _event: UnidocEventBuilder
 
   /**
-   * 
-   */
-  private _index: number
-
-  /**
   * Instantiate a new unidoc event.
   */
   public constructor() {
     super()
     this._event = new UnidocEventBuilder()
-    this._index = 0
   }
 
   /**
@@ -45,7 +40,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
    * 
    */
-  public event(): UnidocEventProducer {
+  public event(): this {
     this._event.clear()
     return this
   }
@@ -53,7 +48,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
    * 
    */
-  public setType(type: UnidocEventType): UnidocEventProducer {
+  public setType(type: UnidocEventType): this {
     this._event.setType(type)
     return this
   }
@@ -61,7 +56,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
    * 
    */
-  public setSymbols(symbols: UTF32String): UnidocEventProducer {
+  public setSymbols(symbols: UTF32String): this {
     this._event.setSymbols(symbols)
     return this
   }
@@ -69,15 +64,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
    * 
    */
-  public setTag(tag: string): UnidocEventProducer {
-    this._event.setTag(tag)
-    return this
-  }
-
-  /**
-   * 
-   */
-  public setIdentifier(identifier: string): UnidocEventProducer {
+  public setIdentifier(identifier: UTF32String): this {
     this._event.setIdentifier(identifier)
     return this
   }
@@ -85,7 +72,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
    * 
    */
-  public setClasses(classes: Iterable<string>): UnidocEventProducer {
+  public setClasses(classes: Iterable<string>): this {
     this._event.setClasses(classes)
     return this
   }
@@ -94,9 +81,6 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
    * 
    */
   public produce(event: UnidocEvent = this._event.get()): void {
-    event.index = this._index
-    this._index += 1
-
     this.output.next(event)
   }
 
@@ -110,26 +94,11 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
    * 
    */
-  public setOrigin(from: UnidocOrigin, to: UnidocOrigin = from): UnidocEventProducer {
-    this._event.setOrigin(from, to)
+  public setOrigin(origin: UnidocLayout): this {
+    this._event.setOrigin(origin)
     return this
   }
 
-  /**
-   * 
-   */
-  public setFrom(from: UnidocOrigin): UnidocEventProducer {
-    this._event.setFrom(from)
-    return this
-  }
-
-  /**
-   * 
-   */
-  public setTo(to: UnidocOrigin): UnidocEventProducer {
-    this._event.setTo(to)
-    return this
-  }
 
   /**
    * Produce a new word event.
@@ -138,7 +107,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
    *
    * @return This producer for chaining purposes.
    */
-  public produceWord(content: string): UnidocEventProducer {
+  public produceWord(content: string): this {
     this._event.asWord(content)
     this.produce()
 
@@ -152,7 +121,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   *
   * @return This producer for chaining purposes.
   */
-  public produceWhitespace(content: string): UnidocEventProducer {
+  public produceWhitespace(content: string): this {
     this._event.asWhitespace(content)
     this.produce()
 
@@ -166,7 +135,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   *
   * @return This producer for chaining purposes.
   */
-  public produceTagStart(configuration: string): UnidocEventProducer {
+  public produceTagStart(configuration: string): this {
     this._event.asTagStart(configuration)
     this.produce()
 
@@ -180,7 +149,7 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
   *
   * @return This producer for chaining purposes.
   */
-  public produceTagEnd(configuration: string): UnidocEventProducer {
+  public produceTagEnd(configuration: string): this {
     this._event.asTagEnd(configuration)
     this.produce()
 
@@ -202,7 +171,6 @@ export class UnidocEventProducer extends UnidocPublisher<UnidocEvent> {
    */
   public clear(): void {
     this._event.clear()
-    this._index = 0
     this.off()
   }
 }

@@ -1,5 +1,5 @@
 import { UnidocPublisher } from '../stream/UnidocPublisher'
-import { UnidocLocationTracker } from '../location/UnidocLocationTracker'
+import { UnidocTracker } from '../origin/UnidocTracker'
 
 import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 
@@ -18,7 +18,7 @@ export class UnidocRuntimeEventProducer extends UnidocPublisher<UnidocEvent> {
   /**
    * 
    */
-  private readonly _tracker: UnidocLocationTracker
+  private readonly _tracker: UnidocTracker
 
   /**
    * 
@@ -31,7 +31,7 @@ export class UnidocRuntimeEventProducer extends UnidocPublisher<UnidocEvent> {
   public constructor() {
     super()
     this._event = new UnidocEventBuilder()
-    this._tracker = new UnidocLocationTracker()
+    this._tracker = new UnidocTracker()
   }
 
   /**

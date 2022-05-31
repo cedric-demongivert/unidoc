@@ -1,12 +1,14 @@
+import { Set } from '@cedric-demongivert/gl-tool-collection'
+
 import { UTF32String } from '../symbol/UTF32String'
 
-import { UnidocOrigin } from '../origin/UnidocOrigin'
-import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
+import { UnidocLayout } from '../origin/UnidocLayout'
 
 import { UnidocBuilder } from '../UnidocBuilder'
 
 import { UnidocEvent } from './UnidocEvent'
 import { UnidocEventType } from './UnidocEventType'
+import { UnidocPath } from '../origin/UnidocPath'
 
 /**
  * 
@@ -16,20 +18,6 @@ export class UnidocEventBuilder implements UnidocBuilder<UnidocEvent, UnidocEven
   *
   */
   private readonly _event: UnidocEvent
-
-  /**
-   * 
-   */
-  public get index(): number {
-    return this._event.index
-  }
-
-  /**
-   * 
-   */
-  public set index(value: number) {
-    this._event.index = value
-  }
 
   /**
    * 
@@ -48,43 +36,29 @@ export class UnidocEventBuilder implements UnidocBuilder<UnidocEvent, UnidocEven
   /**
    * 
    */
-  public get origin(): UnidocRangeOrigin {
+  public get origin(): UnidocLayout {
     return this._event.origin
   }
 
   /**
    * 
    */
-  public set origin(value: UnidocRangeOrigin) {
+  public set origin(value: UnidocLayout) {
     this._event.origin.copy(value)
   }
 
   /**
    * 
    */
-  public get from(): UnidocOrigin {
-    return this._event.origin.from
+  public get path(): UnidocPath {
+    return this._event.path
   }
 
   /**
    * 
    */
-  public set from(value: UnidocOrigin) {
-    this._event.origin.from.copy(value)
-  }
-
-  /**
-   * 
-   */
-  public get to(): UnidocOrigin {
-    return this._event.origin.to
-  }
-
-  /**
-   * 
-   */
-  public set to(value: UnidocOrigin) {
-    this._event.origin.to.copy(value)
+  public set path(path: UnidocPath) {
+    this._event.path.copy(path)
   }
 
   /**
@@ -104,29 +78,15 @@ export class UnidocEventBuilder implements UnidocBuilder<UnidocEvent, UnidocEven
   /**
    * 
    */
-  public get tag(): string {
-    return this._event.tag
-  }
-
-  /**
-   * 
-   */
-  public set tag(value: string) {
-    this._event.tag = value
-  }
-
-  /**
-   * 
-   */
-  public get identifier(): string {
+  public get identifier(): UTF32String {
     return this._event.identifier
   }
 
   /**
    * 
    */
-  public set identifier(value: string) {
-    this._event.identifier = value
+  public set identifier(value: UTF32String) {
+    this._event.identifier.copy(value)
   }
 
   /**
@@ -140,8 +100,7 @@ export class UnidocEventBuilder implements UnidocBuilder<UnidocEvent, UnidocEven
    * 
    */
   public set classes(value: Set<string>) {
-    this._event.classes.clear()
-    this._event.addClasses(value)
+    this._event.classes.copy(value)
   }
 
   /**
@@ -170,40 +129,8 @@ export class UnidocEventBuilder implements UnidocBuilder<UnidocEvent, UnidocEven
   /**
    * 
    */
-  public setTag(tag: string): this {
-    this._event.tag = tag
-    return this
-  }
-
-  /**
-   * 
-   */
-  public setIdentifier(identifier: string): this {
-    this._event.identifier = identifier
-    return this
-  }
-
-  /**
-   * 
-   */
-  public decrementIndex(): this {
-    this._event.index -= 1
-    return this
-  }
-
-  /**
-   * 
-   */
-  public incrementIndex(): this {
-    this._event.index += 1
-    return this
-  }
-
-  /**
-   * 
-   */
-  public setIndex(index: number): this {
-    this._event.index = index
+  public setIdentifier(identifier: UTF32String): this {
+    this._event.identifier.copy(identifier)
     return this
   }
 
@@ -219,27 +146,19 @@ export class UnidocEventBuilder implements UnidocBuilder<UnidocEvent, UnidocEven
   /**
    * 
    */
-  public setOrigin(from: UnidocOrigin, to: UnidocOrigin = from): this {
-    this._event.origin.from.copy(from)
-    this._event.origin.to.copy(to)
+  public setOrigin(origin: UnidocLayout): this {
+    this._event.origin.copy(origin)
     return this
   }
 
   /**
    * 
    */
-  public setTo(origin: UnidocOrigin): this {
-    this._event.origin.to.copy(origin)
+  public setPath(path: UnidocPath): this {
+    this._event.path.copy(path)
     return this
   }
 
-  /**
-   * 
-   */
-  public setFrom(origin: UnidocOrigin): this {
-    this._event.origin.from.copy(origin)
-    return this
-  }
 
   /**
    * 
