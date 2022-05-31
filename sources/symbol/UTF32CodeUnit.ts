@@ -586,6 +586,20 @@ export namespace UTF32CodeUnit {
   /**
    * 
    */
+  export function get(value: string): UTF32CodeUnit {
+    const highSurrogate: number = value.charCodeAt(0)
+
+    if (highSurrogate > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && highSurrogate < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
+      const lowSurrogate: number = value.charCodeAt(1)
+      return (highSurrogate - UTF16CodeUnit.HighSurrogate.MINIMUM << 10) + (lowSurrogate - UTF16CodeUnit.LowSurrogate.MINIMUM) + 0x10000
+    } else {
+      return highSurrogate
+    }
+  }
+
+  /**
+   * 
+   */
   export function* fromString(value: string): Generator<UTF32CodeUnit> {
     const size: number = value.length
 

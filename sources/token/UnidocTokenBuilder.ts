@@ -1,6 +1,6 @@
 import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 import { UnidocOrigin } from '../origin/UnidocOrigin'
-import { UnidocSequenceOrigin } from '../origin/UnidocSequenceOrigin'
+import { UnidocLayout } from '../origin/UnidocLayout'
 
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
 
@@ -52,14 +52,14 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
   /**
    * 
    */
-  public get origin(): UnidocSequenceOrigin {
+  public get origin(): UnidocLayout {
     return this._token.origin
   }
 
   /**
    * 
    */
-  public set origin(value: UnidocSequenceOrigin) {
+  public set origin(value: UnidocLayout) {
     this._token.origin.copy(value)
   }
 
@@ -87,7 +87,7 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
   /**
    * 
    */
-  public setOrigin(origin: UnidocSequenceOrigin): this {
+  public setOrigin(origin: UnidocLayout): this {
     this._token.origin.copy(origin)
     return this
   }
@@ -103,7 +103,7 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
   /**
    * 
    */
-  public appendUTF32String(symbols: UTF32String, origin: UnidocSequenceOrigin): this {
+  public appendUTF32String(symbols: UTF32String, origin: UnidocLayout): this {
     this._token.symbols.concat(symbols)
     this._token.origin.concat(origin)
     return this
@@ -130,7 +130,7 @@ export class UnidocTokenBuilder implements UnidocBuilder<UnidocToken, UnidocToke
   /**
    * 
    */
-  public appendString(symbol: string, origin: UnidocSequenceOrigin): this {
+  public appendString(symbol: string, origin: UnidocLayout): this {
     this._token.symbols.concatString(symbol)
     this._token.origin.concat(origin)
     return this

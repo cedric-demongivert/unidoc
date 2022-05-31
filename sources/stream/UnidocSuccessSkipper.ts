@@ -3,7 +3,7 @@ import { UnidocFunction } from "./UnidocFunction"
 /**
  * 
  */
-export class UnidocSuccessSkipper<Input> extends UnidocFunction<Input> {
+export class UnidocSuccessSkipper<Product> extends UnidocFunction<Product> {
   /**
    * 
    */
@@ -14,7 +14,7 @@ export class UnidocSuccessSkipper<Input> extends UnidocFunction<Input> {
   /**
    * 
    */
-  public next(value: Input): void {
+  public next(value: Product): void {
     this.output.next(value)
   }
 

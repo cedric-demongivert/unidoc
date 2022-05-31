@@ -3,16 +3,16 @@ import { UnidocProducer } from './UnidocProducer'
 /**
  * 
  */
-export interface UnidocConsumer<Input> {
+export interface UnidocConsumer<Product> {
   /**
    * 
    */
-  subscribe(producer: UnidocProducer<Input>): void
+  subscribe(producer: UnidocProducer<Product>): void
 
   /**
    * 
    */
-  unsubscribe(producer: UnidocProducer<Input>): void
+  unsubscribe(producer: UnidocProducer<Product>): void
 
   /**
    * 
@@ -22,7 +22,7 @@ export interface UnidocConsumer<Input> {
   /**
    * 
    */
-  next(value: Input): void
+  next(value: Readonly<Product>): void
 
   /**
    * 
@@ -33,4 +33,34 @@ export interface UnidocConsumer<Input> {
    * 
    */
   failure(error: Error): void
+}
+
+/**
+ * 
+ */
+export namespace UnidocConsumer {
+  /**
+   * 
+   */
+  export type Listener<Product> = Next<Product> | Start | Success | Failure
+
+  /**
+   * 
+   */
+  export type Next<Product> = (value: Readonly<Product>) => void
+
+  /**
+   * 
+   */
+  export type Start = () => void
+
+  /**
+   * 
+   */
+  export type Success = () => void
+
+  /**
+   * 
+   */
+  export type Failure = (error: Error) => void
 }

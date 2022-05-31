@@ -64,7 +64,7 @@ export namespace UnidocSymbols {
     /**
      * 
      */
-    export const URI: Readonly<UnidocURI> = Object.freeze(new UnidocURI('memory').setAuthority(UnidocAuthority.LOOPBACK).pushPath('UnidocSymbols.fromString'))
+    export const URI: Readonly<UnidocURI> = Object.freeze(UnidocURI.runtime(fromString).setAuthority(UnidocAuthority.LOOPBACK))
 
     /**
      * 
@@ -118,7 +118,7 @@ export namespace UnidocSymbols {
     /**
      * 
      */
-    export const URI: Readonly<UnidocURI> = Object.freeze(new UnidocURI('memory').setAuthority(UnidocAuthority.LOOPBACK).pushPath('UnidocSymbols.fromUTF16String'))
+    export const URI: Readonly<UnidocURI> = Object.freeze(UnidocURI.runtime(fromUTF16String).setAuthority(UnidocAuthority.LOOPBACK))
 
     /**
      * 
@@ -159,7 +159,7 @@ export namespace UnidocSymbols {
     /**
      * 
      */
-    export const URI: Readonly<UnidocURI> = Object.freeze(new UnidocURI('memory').setAuthority(UnidocAuthority.LOOPBACK).pushPath('UnidocSymbols.fromUTF32String'))
+    export const URI: Readonly<UnidocURI> = Object.freeze(UnidocURI.runtime(fromUTF32String).setAuthority(UnidocAuthority.LOOPBACK))
 
     /**
      * 

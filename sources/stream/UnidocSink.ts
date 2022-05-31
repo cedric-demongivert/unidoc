@@ -1,30 +1,29 @@
 import { UnidocProducer } from "./UnidocProducer"
-import { UnidocProducerEvent } from "./UnidocProducerEvent"
-import { UnidocProducerListener } from "./UnidocProducerListener"
+import { UnidocConsumer } from "./UnidocConsumer"
 
 /**
  * 
  */
-export class UnidocSink<Output> implements UnidocProducer<Output> {
+export class UnidocSink<Product> implements UnidocProducer<Product> {
   /**
    * 
    */
-  private readonly _startListeners: Set<UnidocProducerListener.Start>
+  private readonly _startListeners: Set<UnidocConsumer.Start>
 
   /**
    * 
    */
-  private readonly _nextListeners: Set<UnidocProducerListener.Next<Output>>
+  private readonly _nextListeners: Set<UnidocConsumer.Next<Product>>
 
   /**
    * 
    */
-  private readonly _successListeners: Set<UnidocProducerListener.Success>
+  private readonly _successListeners: Set<UnidocConsumer.Success>
 
   /**
    * 
    */
-  private readonly _failureListeners: Set<UnidocProducerListener.Failure>
+  private readonly _failureListeners: Set<UnidocConsumer.Failure>
 
   /**
    * Instantiate a new sink.
@@ -57,7 +56,7 @@ export class UnidocSink<Output> implements UnidocProducer<Output> {
   /**
    * Notify the production of an element.
    */
-  public next(produce: Output): void {
+  public next(produce: Product): void {
     for (const listener of this._nextListeners) {
       listener(produce)
     }
@@ -73,84 +72,94 @@ export class UnidocSink<Output> implements UnidocProducer<Output> {
   }
 
   /**
-   * @see UnidocProducer.on
+   * @see UnidocProducer.prototype.on
    */
-  public on(event: UnidocProducerEvent.START, listener: UnidocProducerListener.Start): void
+  public on(event: UnidocProducer.START, listener: UnidocConsumer.Start): void
 
   /**
-   * @see UnidocProducer.on
+   * @see UnidocProducer.prototype.on
    */
-  public on(event: UnidocProducerEvent.NEXT, listener: UnidocProducerListener.Next<Output>): void
+  public on(event: UnidocProducer.NEXT, listener: UnidocConsumer.Next<Product>): void
 
   /**
-   * @see UnidocProducer.on
+   * @see UnidocProducer.prototype.on
    */
-  public on(event: UnidocProducerEvent.SUCCESS, listener: UnidocProducerListener.Success): void
+  public on(event: UnidocProducer.SUCCESS, listener: UnidocConsumer.Success): void
 
   /**
-   * @see UnidocProducer.on
+   * @see UnidocProducer.prototype.on
    */
-  public on(event: UnidocProducerEvent.FAILURE, listener: UnidocProducerListener.Failure): void
+  public on(event: UnidocProducer.FAILURE, listener: UnidocConsumer.Failure): void
+
+  /**
+   * @see UnidocProducer.prototype.on
+   */
+  public on(event: UnidocProducer.FAILURE, listener: UnidocConsumer.Listener<Product>): void
 
   /**
    *
    */
-  public on(event: UnidocProducerEvent, listener: any): void {
+  public on(event: UnidocProducer.Event, listener: UnidocConsumer.Listener<Product>): void {
     switch (event) {
-      case UnidocProducerEvent.SUCCESS:
-        this._successListeners.add(listener)
+      case UnidocProducer.SUCCESS:
+        this._successListeners.add(listener as UnidocConsumer.Success)
         return
-      case UnidocProducerEvent.NEXT:
-        this._nextListeners.add(listener)
+      case UnidocProducer.NEXT:
+        this._nextListeners.add(listener as UnidocConsumer.Next<Product>)
         return
-      case UnidocProducerEvent.FAILURE:
-        this._failureListeners.add(listener)
+      case UnidocProducer.FAILURE:
+        this._failureListeners.add(listener as UnidocConsumer.Failure)
         return
-      case UnidocProducerEvent.START:
-        this._startListeners.add(listener)
+      case UnidocProducer.START:
+        this._startListeners.add(listener as UnidocConsumer.Start)
         return
       default:
         throw new Error(
-          'Unable to register the given listener for event type "' + event +
-          '" because the given event type does not exists or is not supported.'
+          `Unable to register the given listener for event type "${event}" ` +
+          'because the given event type does not exists or is not supported.'
         )
     }
   }
 
   /**
-   * @see UnidocProducer.off
+   * @see UnidocProducer.prototype.off
    */
-  public off(event: UnidocProducerEvent.START, listener: UnidocProducerListener.Start): void
+  public off(event: UnidocProducer.START, listener: UnidocConsumer.Start): void
 
   /**
-   * @see UnidocProducer.off
+   * @see UnidocProducer.prototype.off
    */
-  public off(event: UnidocProducerEvent.NEXT, listener: UnidocProducerListener.Next<Output>): void
+  public off(event: UnidocProducer.NEXT, listener: UnidocConsumer.Next<Product>): void
 
   /**
-   * @see UnidocProducer.off
+   * @see UnidocProducer.prototype.off
    */
-  public off(event: UnidocProducerEvent.SUCCESS, listener: UnidocProducerListener.Success): void
+  public off(event: UnidocProducer.SUCCESS, listener: UnidocConsumer.Success): void
 
   /**
-   * @see UnidocProducer.off
+   * @see UnidocProducer.prototype.off
    */
-  public off(event: UnidocProducerEvent.FAILURE, listener: UnidocProducerListener.Failure): void
+  public off(event: UnidocProducer.FAILURE, listener: UnidocConsumer.Failure): void
 
   /**
-   * @see UnidocProducer.off
+   * @see UnidocProducer.prototype.off
    */
-  public off(event: UnidocProducerEvent): void
+  public off(event: UnidocProducer.Event, listener: UnidocConsumer.Listener<Product>): void
 
   /**
-   * @see UnidocProducer.off
+   * @see UnidocProducer.prototype.off
+   */
+  public off(event: UnidocProducer.Event): void
+
+  /**
+   * @see UnidocProducer.prototype.off
    */
   public off(): void
 
   /**
    * 
    */
-  public off(event?: UnidocProducerEvent | undefined, listener?: any): void {
+  public off(event?: UnidocProducer.Event | undefined, listener?: UnidocConsumer.Listener<Product> | undefined): void {
     if (event === undefined) {
       this._startListeners.clear()
       this._nextListeners.clear()
@@ -158,38 +167,38 @@ export class UnidocSink<Output> implements UnidocProducer<Output> {
       this._failureListeners.clear()
     } else if (listener === undefined) {
       switch (event) {
-        case UnidocProducerEvent.SUCCESS:
+        case UnidocProducer.SUCCESS:
           return this._successListeners.clear()
-        case UnidocProducerEvent.NEXT:
+        case UnidocProducer.NEXT:
           return this._nextListeners.clear()
-        case UnidocProducerEvent.FAILURE:
+        case UnidocProducer.FAILURE:
           return this._failureListeners.clear()
-        case UnidocProducerEvent.START:
+        case UnidocProducer.START:
           return this._startListeners.clear()
         default:
           throw new Error(
-            'Unable to remove all event listener of event type "' + event +
-            '" because the given event type does not exists or is not supported.'
+            `Unable to remove all event listener of event type "${event}" ` +
+            'because the given event type does not exists or is not supported.'
           )
       }
     } else {
       switch (event) {
-        case UnidocProducerEvent.SUCCESS:
-          this._successListeners.delete(listener)
+        case UnidocProducer.SUCCESS:
+          this._successListeners.delete(listener as UnidocConsumer.Success)
           return
-        case UnidocProducerEvent.NEXT:
-          this._nextListeners.delete(listener)
+        case UnidocProducer.NEXT:
+          this._nextListeners.delete(listener as UnidocConsumer.Next<Product>)
           return
-        case UnidocProducerEvent.FAILURE:
-          this._failureListeners.delete(listener)
+        case UnidocProducer.FAILURE:
+          this._failureListeners.delete(listener as UnidocConsumer.Failure)
           return
-        case UnidocProducerEvent.START:
-          this._startListeners.delete(listener)
+        case UnidocProducer.START:
+          this._startListeners.delete(listener as UnidocConsumer.Start)
           return
         default:
           throw new Error(
-            'Unable to remove the given listener for event type "' + event +
-            '" because the given event type does not exists or is not supported.'
+            `Unable to remove the given listener for event type "${event}" ` +
+            'because the given event type does not exists or is not supported.'
           )
       }
     }

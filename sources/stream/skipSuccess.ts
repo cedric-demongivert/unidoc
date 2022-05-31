@@ -4,8 +4,8 @@ import { UnidocSuccessSkipper } from "./UnidocSuccessSkipper"
 /**
  * 
  */
-export function skipSuccess<Produce>(producer: UnidocProducer<Produce>): UnidocProducer<Produce> {
-  const skipper: UnidocSuccessSkipper<Produce> = UnidocSuccessSkipper.create()
+export function skipSuccess<Product>(producer: UnidocProducer<Product>): UnidocProducer<Product> {
+  const skipper: UnidocSuccessSkipper<Product> = UnidocSuccessSkipper.create()
 
   skipper.subscribe(producer)
 

@@ -6,7 +6,7 @@ import { UnidocOrigin } from "./UnidocOrigin"
 /**
  * The identification of a sequence of symbol from one or more sources.
  */
-export class UnidocSequenceOrigin implements DataObject {
+export class UnidocLayout implements DataObject<UnidocLayout> {
   /**
    * 
    */
@@ -37,7 +37,7 @@ export class UnidocSequenceOrigin implements DataObject {
   /**
    * 
    */
-  public concat(other: UnidocSequenceOrigin): this {
+  public concat(other: UnidocLayout): this {
     if (other.origins.size > 0) {
       const origins: Pack<UnidocOrigin> = this.origins
       const otherOrigins: Pack<UnidocOrigin> = other.origins
@@ -74,14 +74,14 @@ export class UnidocSequenceOrigin implements DataObject {
   /**
    * @see DataObject.clone
    */
-  public clone(): UnidocSequenceOrigin {
-    return new UnidocSequenceOrigin().copy(this)
+  public clone(): UnidocLayout {
+    return new UnidocLayout().copy(this)
   }
 
   /**
    * @see DataObject.copy
    */
-  public copy(toCopy: UnidocSequenceOrigin): this {
+  public copy(toCopy: UnidocLayout): this {
     this.origins.copy(toCopy.origins)
     return this
   }
@@ -112,7 +112,7 @@ export class UnidocSequenceOrigin implements DataObject {
     if (other == null) return false
     if (other == this) return true
 
-    if (other instanceof UnidocSequenceOrigin) {
+    if (other instanceof UnidocLayout) {
       return other.origins.equals(this.origins)
     }
 
@@ -123,22 +123,22 @@ export class UnidocSequenceOrigin implements DataObject {
 /**
  * 
  */
-export namespace UnidocSequenceOrigin {
+export namespace UnidocLayout {
   /**
    * 
    */
-  export const DEFAULT: Readonly<UnidocSequenceOrigin> = new UnidocSequenceOrigin()
+  export const DEFAULT: Readonly<UnidocLayout> = new UnidocLayout()
 
   /**
-   * A factory that allows to instantiate UnidocSequenceOrigin instances
+   * A factory that allows to instantiate UnidocLayout instances
    */
-  export function create(): UnidocSequenceOrigin {
-    return new UnidocSequenceOrigin()
+  export function create(): UnidocLayout {
+    return new UnidocLayout()
   }
 
 
   /**
-   * An allocator of UnidocSequenceOrigin instances.
+   * An allocator of UnidocLayout instances.
    */
-  export const ALLOCATOR: Duplicator<UnidocSequenceOrigin> = Duplicator.fromFactory(create)
+  export const ALLOCATOR: Duplicator<UnidocLayout> = Duplicator.fromFactory(create)
 }

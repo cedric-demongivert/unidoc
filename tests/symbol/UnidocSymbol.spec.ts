@@ -1,116 +1,164 @@
 /** eslint-env jest */
 
-import { UnidocRange } from '../../sources/origin/UnidocRange'
+import { UnidocOrigin } from '../../sources/origin/UnidocOrigin'
 import { UnidocSymbol } from '../../sources/symbol/UnidocSymbol'
 import { UTF32CodeUnit } from '../../sources/symbol/UTF32CodeUnit'
-import { Random } from '../../sources/Random'
-import { UnidocOrigin } from '../../sources/origin/UnidocOrigin'
-import { UnidocURI } from '../../sources/origin/UnidocURI'
-import { UnidocLocation } from '../../sources/origin/UnidocLocation'
+
+import '../matchers'
 
 /**
  * 
  */
-function givenAnySymbol(seed: number = Random.getSeed()): UnidocSymbol {
-  Random.setSeed(seed)
-  const column: number = Random.nextPositiveInteger(50)
-  const row: number = Random.nextPositiveInteger(100)
-
-  const location: UnidocLocation = new UnidocLocation(
-    column, row, column + row * 2 + Random.nextPositiveInteger(25 * row)
-  )
-
-  return UnidocSymbol.create(
-    Random.nextElement(UTF32CodeUnit.LATIN_SMALL_LETTER_A_Z),
-    UnidocOrigin.create(
-      UnidocURI.create('file').pushPath('index.unidoc'),
-      UnidocRange.fromLocation(location).toLocation(location.next())
-    )
-  )
-}
-
-/**
- * 
- */
-function givenAnySymbolTwice(seed: number = Random.getSeed()): [UnidocSymbol, UnidocSymbol] {
-  return [givenAnySymbol(seed), givenAnySymbol(seed)]
-}
-
 describe('UnidocSymbol', function () {
-  describe('#constructor', function () {
-    it('instantiate an empty symbol by default', function () {
-      const symbol: UnidocSymbol = new UnidocSymbol()
-
-      expect(symbol.code).toBe(0)
-      expect(symbol.origin.equals(new UnidocOrigin())).toBeTruthy()
-    })
+  /**
+   * 
+   */
+  it('instantiate an empty symbol by default', function () {
+    expect(new UnidocSymbol()).toBeSymbol(UTF32CodeUnit.NULL)
   })
 
-  describe('#copy', function () {
-    it('copy an existing symbol', function () {
-      const source: UnidocSymbol = givenAnySymbol()
+  /**
+   * 
+   */
+  describe('prototype.copy', function () {
+    /**
+     * 
+     */
+    it('copy an instance', function copyAnInstance() {
+      const source: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(copyAnInstance).atCoordinates(0, 5, 145)
+      )
+
       const destination: UnidocSymbol = new UnidocSymbol()
 
-      expect(destination.equals(source)).toBeFalsy()
+      expect(destination).not.toBeSymbol(source)
 
       destination.copy(source)
 
-      expect(destination.equals(source)).toBeTruthy()
+      expect(destination).toBeSymbol(source)
     })
   })
 
-  describe('#clone', function () {
-    it('return a clone of an existing symbol', function () {
-      const source: UnidocSymbol = givenAnySymbol()
+  /**
+   * 
+   */
+  describe('prototype.clone', function () {
+    /**
+     * 
+     */
+    it('returns a copy', function returnsACopy() {
+      const source: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsACopy).atCoordinates(0, 5, 145)
+      )
 
-      expect(source.equals(source.clone())).toBeTruthy()
-      expect(source === source.clone()).toBeFalsy()
+      expect(source).toBeSymbol(source.clone())
+      expect(source).not.toBe(source.clone())
     })
   })
 
-  describe('#clear', function () {
-    it('reset a symbol instance', function () {
-      const instance: UnidocSymbol = givenAnySymbol()
-      const origin: UnidocSymbol = new UnidocSymbol()
+  /**
+   * 
+   */
+  describe('prototype.clear', function () {
+    /**
+     * 
+     */
+    it('reset an instance', function resetsAnInstance() {
+      const source: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(resetsAnInstance).atCoordinates(0, 5, 145)
+      )
 
-      expect(instance.equals(origin)).toBeFalsy()
+      expect(source).not.toBeSymbol(UnidocSymbol.DEFAULT)
 
-      instance.clear()
+      source.clear()
 
-      expect(instance.equals(origin)).toBeTruthy()
+      expect(source).toBeSymbol(UnidocSymbol.DEFAULT)
     })
   })
 
-  describe('#equals', function () {
-    it('return false if compared to another type of value', function () {
-      const instance: UnidocSymbol = givenAnySymbol()
+  /**
+   * 
+   */
+  describe('prototype.equals', function () {
+    /**
+     * 
+     */
+    it('returns false if compared to value of another type', function returnsFalseIfComparedToValueOfAnotherType() {
+      const instance: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsFalseIfComparedToValueOfAnotherType).atCoordinates(0, 5, 145)
+      )
 
       expect(instance.equals('pwet')).toBeFalsy()
       expect(instance.equals(5)).toBeFalsy()
       expect(instance.equals(Symbol())).toBeFalsy()
     })
 
-    it('return true if compared to itself', function () {
-      const instance: UnidocSymbol = givenAnySymbol()
+    /**
+     * 
+     */
+    it('returns true if compared to itself', function returnsTrueIfComparedToItself() {
+      const instance: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsTrueIfComparedToItself).atCoordinates(0, 5, 145)
+      )
 
       expect(instance.equals(instance)).toBeTruthy()
     })
 
-    it('return true if both symbols are equals', function () {
-      const [instance, copy] = givenAnySymbolTwice()
+    /**
+     * 
+     */
+    it('returns true if both symbols are equals', function returnsTrueIfBothSymbolsAreEquals() {
+      const instance: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsTrueIfBothSymbolsAreEquals).atCoordinates(0, 5, 145)
+      )
+
+      const copy: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsTrueIfBothSymbolsAreEquals).atCoordinates(0, 5, 145)
+      )
 
       expect(instance.equals(copy)).toBeTruthy()
     })
 
-    it('return false if the symbol change', function () {
-      const [instance, other] = givenAnySymbolTwice()
+    /**
+     * 
+     */
+    it('returns false if the symbol change', function returnsFalseIfTheSymbolChange() {
+      const instance: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsFalseIfTheSymbolChange).atCoordinates(0, 5, 145)
+      )
+
+      const other: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsFalseIfTheSymbolChange).atCoordinates(0, 5, 145)
+      )
+
       other.code += 1
 
       expect(instance.equals(other)).toBeFalsy()
     })
 
-    it('return false if the location change', function () {
-      const [instance, other] = givenAnySymbolTwice()
+    /**
+     * 
+     */
+    it('returns false if the location change', function returnsFalseIfTheLocationChange() {
+      const instance: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsFalseIfTheLocationChange).atCoordinates(0, 5, 145)
+      )
+
+      const other: UnidocSymbol = new UnidocSymbol(
+        UTF32CodeUnit.LATIN_CAPITAL_LETTER_R,
+        UnidocOrigin.fromRuntime(returnsFalseIfTheLocationChange).atCoordinates(0, 5, 145)
+      )
+
       other.origin.range.end.next()
 
       expect(instance.equals(other)).toBeFalsy()

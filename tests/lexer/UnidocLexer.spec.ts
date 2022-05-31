@@ -2,6 +2,8 @@
 
 import '../jest/buffer-extension'
 
+import { UnidocStream } from '../../sources/UnidocStream'
+
 import { UnidocBuffer } from '../../sources/buffer/UnidocBuffer'
 
 import { UnidocSymbols } from '../../sources/symbol/UnidocSymbols'
@@ -58,16 +60,43 @@ function ofProduction(configurator: (this: UnidocRuntimeTokenProducer) => void):
   return expectation
 }
 
+/**
+ * 
+ */
 describe('UnidocLexer', function () {
+  /**
+   * 
+   */
   describe('#constructor', function () {
+    /**
+     * 
+     */
     it('instantiate a new lexer', function () {
       const lexer: UnidocLexer = new UnidocLexer()
       expect(lexer.state).toBe(UnidocLexerState.START)
     })
   })
 
+  /**
+   * 
+   */
   describe('block opening recognition', function () {
+    /**
+     * 
+     */
     it('recognize block opening', function () {
+      const lexer: UnidocLexer = new UnidocLexer()
+
+      UnidocStream.feed(
+        UnidocSymbols.fromString('{{{'),
+        UnidocStream.pipe(
+          lexer,
+          UnidocStream.coroutine(function* () {
+
+          })
+        )
+      )
+
       expect(tokenization('{{{')).toMatchBuffer(ofProduction(function () {
         this.produceBlockStart()
         this.produceBlockStart()
@@ -77,7 +106,13 @@ describe('UnidocLexer', function () {
     })
   })
 
+  /**
+   * 
+   */
   describe('block termination recognition', function () {
+    /**
+     * 
+     */
     it('recognize block termination', function () {
       expect(tokenization('}}}')).toMatchBuffer(ofProduction(function () {
         this.produceBlockEnd()
@@ -88,7 +123,13 @@ describe('UnidocLexer', function () {
     })
   })
 
+  /**
+   * 
+   */
   describe('tag recognition', function () {
+    /**
+     * 
+     */
     it('recognize tags', function () {
       expect(tokenization('\\alberta\\Chicago\\3d\\--meow-w')).toMatchBuffer(
         ofProduction(function () {
@@ -101,6 +142,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize tags when they are followed by a class', function () {
       expect(tokenization.online('\\alberta.')).toMatchBuffer(
         ofProduction(function () {
@@ -110,6 +154,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize tags when they are followed by a space', function () {
       expect(tokenization.online('\\alberta ')).toMatchBuffer(
         ofProduction(function () {
@@ -119,6 +166,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize tags when they are followed by an identifier', function () {
       expect(tokenization.online('\\alberta#')).toMatchBuffer(
         ofProduction(function () {
@@ -129,7 +179,13 @@ describe('UnidocLexer', function () {
     })
   })
 
+  /**
+   * 
+   */
   describe('class recognition', function () {
+    /**
+     * 
+     */
     it('recognize classes', function () {
       expect(tokenization('.alberta.Chicago.3d.--meow-w')).toMatchBuffer(
         ofProduction(function () {
@@ -142,6 +198,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize classes when they are followed by a space', function () {
       expect(tokenization.online('.alberta ')).toMatchBuffer(
         ofProduction(function () {
@@ -151,6 +210,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize classes when they are followed by a tag', function () {
       expect(tokenization.online('.alberta\\')).toMatchBuffer(
         ofProduction(function () {
@@ -161,7 +223,13 @@ describe('UnidocLexer', function () {
     })
   })
 
+  /**
+   * 
+   */
   describe('identifier recognition', function () {
+    /**
+     * 
+     */
     it('recognize identifiers', function () {
       expect(tokenization('#alberta#Chicago#3d#--meow-w')).toMatchBuffer(
         ofProduction(function () {
@@ -174,6 +242,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize identifiers when they are followed by a space', function () {
       expect(tokenization.online('#alberta ')).toMatchBuffer(
         ofProduction(function () {
@@ -183,6 +254,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize identifiers when they are followed by a tag', function () {
       expect(tokenization.online('#alberta\\')).toMatchBuffer(
         ofProduction(function () {
@@ -193,7 +267,13 @@ describe('UnidocLexer', function () {
     })
   })
 
+  /**
+   * 
+   */
   describe('word recognition', function () {
+    /**
+     * 
+     */
     it('recognize words', function () {
       expect(tokenization('only 1 test on this str#ing')).toMatchBuffer(
         ofProduction(function () {
@@ -213,7 +293,13 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize degenerated classes as words', function () {
+      /**
+       * 
+       */
       expect(tokenization.online('..acuriousclass ')).toMatchBuffer(
         ofProduction(function () {
           this.produceWord('..acuriousclass')
@@ -222,6 +308,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize degenerated identifiers as words', function () {
       expect(tokenization.online('##acuriousidentifier ')).toMatchBuffer(
         ofProduction(function () {
@@ -231,6 +320,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize degenerated tags as words', function () {
       expect(tokenization.online('\\\\acurioustag ')).toMatchBuffer(
         ofProduction(function () {
@@ -240,6 +332,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize dot as words', function () {
       expect(tokenization.online('. ')).toMatchBuffer(
         ofProduction(function () {
@@ -249,6 +344,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize sharp as words', function () {
       expect(tokenization.online('# ')).toMatchBuffer(ofProduction(function () {
         this.produceWord('#')
@@ -256,6 +354,9 @@ describe('UnidocLexer', function () {
       }))
     })
 
+    /**
+     * 
+     */
     it('recognize antislash as words', function () {
       expect(tokenization.online('\\ ')).toMatchBuffer(
         ofProduction(function () {
@@ -265,6 +366,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize words that contains dots', function () {
       expect(tokenization.online('alberta.test. ')).toMatchBuffer(
         ofProduction(function () {
@@ -274,6 +378,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize words when they are followed by a space', function () {
       expect(tokenization.online('alberta ')).toMatchBuffer(
         ofProduction(function () {
@@ -283,6 +390,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize words when they are followed by a tag', function () {
       expect(tokenization.online('alberta\\')).toMatchBuffer(
         ofProduction(function () {
@@ -292,6 +402,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize words when they are followed by a block termination', function () {
       expect(tokenization.online('alberta}')).toMatchBuffer(
         ofProduction(function () {
@@ -302,6 +415,9 @@ describe('UnidocLexer', function () {
       )
     })
 
+    /**
+     * 
+     */
     it('recognize words when they are followed by a block start', function () {
       expect(tokenization.online('alberta{')).toMatchBuffer(
         ofProduction(function () {
@@ -313,7 +429,13 @@ describe('UnidocLexer', function () {
     })
   })
 
+  /**
+   * 
+   */
   describe('newline recognition', function () {
+    /**
+     * 
+     */
     it('recognize newlines', function () {
       expect(tokenization('\r\n\n\r\r')).toMatchBuffer(ofProduction(function () {
         this.produceNewline('\r\n')
@@ -325,7 +447,13 @@ describe('UnidocLexer', function () {
     })
   })
 
+  /**
+   * 
+   */
   describe('space recognition', function () {
+    /**
+     * 
+     */
     it('recognize spaces', function () {
       expect(tokenization(' \t\t ')).toMatchBuffer(ofProduction(function () {
         this.produceSpace(' \t\t ')

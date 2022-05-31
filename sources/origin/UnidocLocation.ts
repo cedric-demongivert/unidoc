@@ -5,7 +5,7 @@ import { DataObject } from '../DataObject'
 /**
  * A set of coordinates that identify a symbol in a document.
  */
-export class UnidocLocation implements DataObject {
+export class UnidocLocation implements DataObject<UnidocLocation> {
   /**
    * The number of symbols to skip from the begining of the current row in order to get to the identified symbol.
    */
@@ -148,6 +148,26 @@ export class UnidocLocation implements DataObject {
   }
 
   /**
+   * 
+   */
+  public parse(coordinates: string): this {
+    const result: RegExpExecArray | null = UnidocLocation.REGEXP.exec(coordinates)
+
+    if (result == null) {
+      throw new Error(
+        `Unable to parse the string "${coordinates}" as it does not ` +
+        `match the location regular expression ${UnidocLocation.REGEXP}.`
+      )
+    }
+
+    this.column = parseInt(result[1])
+    this.row = parseInt(result[2])
+    this.symbol = parseInt(result[3])
+
+    return this
+  }
+
+  /**
    * @see DataObject.prototype.clone
    */
   public clone(): UnidocLocation {
@@ -240,6 +260,18 @@ export namespace UnidocLocation {
    */
   export function create(column: number = 0, row: number = 0, symbol: number = 0): UnidocLocation {
     return new UnidocLocation(column, row, symbol)
+  }
+
+  /**
+   * 
+   */
+  export const REGEXP: RegExp = /^\s*(\d+)\s*\:\s*(\d+)\s*\[\s*(\d+)\s*\]\s*$/i
+
+  /**
+   * 
+   */
+  export function parse(coordinates: string): UnidocLocation {
+    return new UnidocLocation().parse(coordinates)
   }
 
   /**

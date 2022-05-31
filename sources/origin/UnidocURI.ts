@@ -1,6 +1,8 @@
 import { Duplicator, Pack } from "@cedric-demongivert/gl-tool-collection"
+import { Empty } from "@cedric-demongivert/gl-tool-utils"
 
 import { DataObject } from "../DataObject"
+import { Optional } from "../Optional"
 
 import { UnidocAuthority } from "./UnidocAuthority"
 
@@ -9,7 +11,7 @@ import { UnidocAuthority } from "./UnidocAuthority"
  * 
  * @see https://datatracker.ietf.org/doc/html/rfc3986
  */
-export class UnidocURI implements DataObject {
+export class UnidocURI implements DataObject<UnidocURI> {
   /**
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.1
    */
@@ -18,7 +20,7 @@ export class UnidocURI implements DataObject {
   /**
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2
    */
-  public authority: UnidocAuthority | undefined
+  public readonly authority: Optional<UnidocAuthority>
 
   /**
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.3
@@ -40,10 +42,30 @@ export class UnidocURI implements DataObject {
    */
   public constructor(scheme: string = UnidocURI.DEFAULT_SCHEME) {
     this.scheme = scheme
-    this.authority = undefined
-    this.path = Pack.any(4)
+    this.authority = new Optional(new UnidocAuthority(), false)
+    this.path = Pack.any(4, Empty.string)
     this.query = new Map()
     this.fragment = undefined
+  }
+
+  /**
+   * 
+   */
+  public asFile(path: string): this {
+    this.clear()
+    this.scheme = UnidocURI.FILE_SCHEME
+    this.path.concatArray(path.split(/(\/|\\)/))
+    return this
+  }
+
+  /**
+   * 
+   */
+  public asRuntime(origin: Function | string): this {
+    this.clear()
+    this.scheme = UnidocURI.RUNTIME_SCHEME
+    this.path.set(0, typeof origin === 'string' ? origin : origin.name || 'function')
+    return this
   }
 
   /**
@@ -58,7 +80,7 @@ export class UnidocURI implements DataObject {
    * 
    */
   public setAuthority(authority: UnidocAuthority | undefined): this {
-    this.authority = authority
+    this.authority.set(authority)
     return this
   }
 
@@ -66,7 +88,7 @@ export class UnidocURI implements DataObject {
    * 
    */
   public deleteAuthority(): this {
-    this.authority = undefined
+    this.authority.delete()
     return this
   }
 
@@ -171,7 +193,7 @@ export class UnidocURI implements DataObject {
    */
   public clear(): this {
     this.scheme = UnidocURI.DEFAULT_SCHEME
-    this.authority = undefined
+    this.authority.delete()
     this.path.clear()
     this.query.clear()
     this.fragment = undefined
@@ -190,7 +212,7 @@ export class UnidocURI implements DataObject {
    */
   public copy(toCopy: this): this {
     this.scheme = toCopy.scheme
-    this.authority = toCopy.authority
+    this.authority.copy(toCopy.authority)
     this.path.copy(toCopy.path)
     this.setQuery(toCopy.query)
     this.fragment = toCopy.fragment
@@ -203,8 +225,8 @@ export class UnidocURI implements DataObject {
   public toString(): string {
     let result: string = this.scheme + '://'
 
-    if (this.authority) {
-      result += this.authority.toString() + '/'
+    if (this.authority.isDefined()) {
+      result += this.authority.get().toString() + '/'
     }
 
     const path: Pack<string> = this.path
@@ -265,7 +287,7 @@ export class UnidocURI implements DataObject {
 
       return (
         this.scheme === other.scheme &&
-        Comparable.equals(this.authority, other.authority) &&
+        this.authority.equals(other.authority) &&
         this.path.equals(other.path) &&
         this.fragment === other.fragment
       )
@@ -280,9 +302,24 @@ export class UnidocURI implements DataObject {
  */
 export namespace UnidocURI {
   /**
+   * 
+   */
+  export const DEFAULT: Readonly<UnidocURI> = Object.freeze(new UnidocURI())
+
+  /**
    *
    */
   export const DEFAULT_SCHEME: string = 'memory'
+
+  /**
+   *
+   */
+  export const RUNTIME_SCHEME: string = 'runtime'
+
+  /**
+   *
+   */
+  export const FILE_SCHEME: string = 'file'
 
   /**
    * 
@@ -291,6 +328,19 @@ export namespace UnidocURI {
     return new UnidocURI(scheme)
   }
 
+  /**
+   * 
+   */
+  export function runtime(origin: Function | string): UnidocURI {
+    return new UnidocURI().asRuntime(origin)
+  }
+
+  /**
+   * 
+   */
+  export function file(path: string): UnidocURI {
+    return new UnidocURI().asFile(path)
+  }
 
   /**
    * An allocator of UnidocOrigin instances.

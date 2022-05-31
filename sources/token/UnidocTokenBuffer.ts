@@ -3,11 +3,20 @@ import { Sequence } from '@cedric-demongivert/gl-tool-collection'
 
 import { UnidocListener } from '../stream/UnidocListener'
 
-import { UnidocOrigin } from '../origin/UnidocOrigin'
 import { UnidocToken } from './UnidocToken'
 
+/**
+ * 
+ */
 export class UnidocTokenBuffer extends UnidocListener<UnidocToken> {
+  /**
+   * 
+   */
   private readonly _tokens: Pack<UnidocToken>
+
+  /**
+   * 
+   */
   public readonly tokens: Sequence<UnidocToken>
 
   /**

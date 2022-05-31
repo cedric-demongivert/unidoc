@@ -7,7 +7,7 @@ import { DataObject } from "../DataObject"
  * 
  * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2
  */
-export class UnidocAuthority implements DataObject {
+export class UnidocAuthority implements DataObject<UnidocAuthority> {
   /**
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.1
    */
@@ -143,7 +143,7 @@ export namespace UnidocAuthority {
   /**
    * 
    */
-  export const LOOPBACK: Readonly<UnidocAuthority> = new UnidocAuthority('127.0.0.1')
+  export const LOOPBACK: Readonly<UnidocAuthority> = Object.freeze(new UnidocAuthority(undefined, DEFAULT_HOST))
 
   /**
    * 
@@ -151,7 +151,6 @@ export namespace UnidocAuthority {
   export function create(userInfo?: string | undefined, host: string = DEFAULT_HOST, port?: number | undefined): UnidocAuthority {
     return new UnidocAuthority(userInfo, host, port)
   }
-
 
   /**
    * 

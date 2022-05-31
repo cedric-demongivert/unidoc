@@ -1,25 +1,17 @@
-import { Clearable, Clonable, Comparable } from "@cedric-demongivert/gl-tool-utils"
+import { Assignable, Clearable, Clonable, Comparable } from "@cedric-demongivert/gl-tool-utils"
 import { DefaultConstructible } from "./DefaultConstructible"
 
 /**
  * A class of objects designed for representing and manipulating data.
  */
-export interface DataObject extends Clearable, Clonable, Comparable, DefaultConstructible {
-  /**
-   * @see Clonable.prototype.clone
-   */
-  clone(): DataObject
+export interface DataObject<Value> extends Clearable, Clonable<Value>, Comparable, Assignable<Value>, DefaultConstructible {
+
 }
 
 /**
  * 
  */
 export namespace DataObject {
-  /**
-   * 
-   */
-  export type Constructor<Target extends DataObject> = new () => Target
-
   /**
    * @see Clearable.clear
    */

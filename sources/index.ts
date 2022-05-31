@@ -7,7 +7,6 @@
 export * from './origin'
 //export * from './parser'
 //export * from './predicate'
-export * from './source'
 export * from './stream'
 export * from './symbol'
 //export * from './token'
@@ -17,3 +16,5 @@ export * from './symbol'
 //export { fullyParse } from './fullyParse'
 //export { parse } from './parse'
 //export { tokenize } from './tokenize'
+
+export { UnidocStream } from './UnidocStream'

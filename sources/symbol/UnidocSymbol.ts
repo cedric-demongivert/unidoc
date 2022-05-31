@@ -10,7 +10,7 @@ import { UTF32CodeUnit } from './UTF32CodeUnit'
 /**
  * A symbol of an unidoc document.
  */
-export class UnidocSymbol implements DataObject {
+export class UnidocSymbol implements DataObject<UnidocSymbol> {
   /**
    * UTF-32 code unit of the symbol.
    */
@@ -31,7 +31,7 @@ export class UnidocSymbol implements DataObject {
    * @see UnidocOrigin.DEFAULT
    */
   public constructor(code: UTF32CodeUnit = UTF32CodeUnit.NULL, origin: UnidocOrigin = UnidocOrigin.DEFAULT) {
-    this.code = UTF32CodeUnit.NULL
+    this.code = code
     this.origin = origin.clone()
   }
 
@@ -135,7 +135,21 @@ export namespace UnidocSymbol {
   }
 
   /**
+   * 
+   */
+  export function fromString(symbol: string, origin: UnidocOrigin = UnidocOrigin.DEFAULT): UnidocSymbol {
+    return new UnidocSymbol().setSymbol(UTF32CodeUnit.get(symbol)).setOrigin(origin)
+  }
+
+  /**
    * An allocator of unidoc symbol instances.
    */
   export const ALLOCATOR: Duplicator<UnidocSymbol> = Duplicator.fromFactory(create)
+
+  /**
+   * 
+   */
+  export function is(value: unknown): value is UnidocSymbol {
+    return value instanceof UnidocSymbol
+  }
 }

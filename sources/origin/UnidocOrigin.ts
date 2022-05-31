@@ -9,7 +9,7 @@ import { UnidocURI } from "./UnidocURI"
 /**
  * The identification of a range of symbol from one source.
  */
-export class UnidocOrigin implements DataObject {
+export class UnidocOrigin implements DataObject<UnidocOrigin> {
   /**
    * The source that contains the identified range of symbol.
    */
@@ -57,6 +57,22 @@ export class UnidocOrigin implements DataObject {
    */
   public setSource(source: UnidocURI): this {
     this.source.copy(source)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public fromFile(path: string): this {
+    this.source.asFile(path)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public fromRuntime(value: Function): this {
+    this.source.asRuntime(value)
     return this
   }
 
@@ -117,6 +133,14 @@ export class UnidocOrigin implements DataObject {
    */
   public toLocation(location: UnidocLocation): this {
     this.range.toLocation(location)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public parseRange(coordinates: string): this {
+    this.range.parse(coordinates)
     return this
   }
 
@@ -188,6 +212,54 @@ export namespace UnidocOrigin {
     return new UnidocOrigin(source, range)
   }
 
+  /**
+   * 
+   */
+  export function atLocation(location: UnidocLocation): UnidocOrigin {
+    return new UnidocOrigin().atLocation(location)
+  }
+
+  /**
+   * 
+   */
+  export function atCoordinates(column: number, row: number, symbol: number): UnidocOrigin {
+    return new UnidocOrigin().atCoordinates(column, row, symbol)
+  }
+
+  /**
+   * 
+   */
+  export function fromLocation(location: UnidocLocation): UnidocOrigin {
+    return new UnidocOrigin().fromLocation(location)
+  }
+
+  /**
+   * 
+   */
+  export function fromCoordinates(column: number, row: number, symbol: number): UnidocOrigin {
+    return new UnidocOrigin().fromCoordinates(column, row, symbol)
+  }
+
+  /**
+   * 
+   */
+  export function parseRange(coordinates: string): UnidocOrigin {
+    return new UnidocOrigin().parseRange(coordinates)
+  }
+
+  /**
+   * 
+   */
+  export function fromFile(path: string): UnidocOrigin {
+    return new UnidocOrigin().fromFile(path)
+  }
+
+  /**
+   * 
+   */
+  export function fromRuntime(origin: Function): UnidocOrigin {
+    return new UnidocOrigin().fromRuntime(origin)
+  }
 
   /**
    * An allocator of UnidocOrigin instances.

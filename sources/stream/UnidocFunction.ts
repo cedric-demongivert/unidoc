@@ -1,7 +1,6 @@
 import { UnidocConsumer } from "./UnidocConsumer"
 import { UnidocPublisher } from "./UnidocPublisher"
 import { UnidocProducer } from "./UnidocProducer"
-import { UnidocProducerEvent } from "./UnidocProducerEvent"
 
 /**
  * 
@@ -19,48 +18,48 @@ export class UnidocFunction<Input, Output = Input> extends UnidocPublisher<Outpu
   }
 
   /**
-   * @see UnidocConsumer.subscribe
+   * @see UnidocConsumer.prototype.subscribe
    */
   public subscribe(producer: UnidocProducer<Input>): void {
-    producer.on(UnidocProducerEvent.START, this.start)
-    producer.on(UnidocProducerEvent.NEXT, this.next)
-    producer.on(UnidocProducerEvent.SUCCESS, this.success)
-    producer.on(UnidocProducerEvent.FAILURE, this.failure)
+    producer.on(UnidocProducer.START, this.start)
+    producer.on(UnidocProducer.NEXT, this.next)
+    producer.on(UnidocProducer.SUCCESS, this.success)
+    producer.on(UnidocProducer.FAILURE, this.failure)
   }
 
   /**
-   * @see UnidocConsumer.unsubscribe
+   * @see UnidocConsumer.prototype.unsubscribe
    */
   public unsubscribe(producer: UnidocProducer<Input>): void {
-    producer.off(UnidocProducerEvent.START, this.start)
-    producer.off(UnidocProducerEvent.NEXT, this.next)
-    producer.off(UnidocProducerEvent.SUCCESS, this.success)
-    producer.off(UnidocProducerEvent.FAILURE, this.failure)
+    producer.off(UnidocProducer.START, this.start)
+    producer.off(UnidocProducer.NEXT, this.next)
+    producer.off(UnidocProducer.SUCCESS, this.success)
+    producer.off(UnidocProducer.FAILURE, this.failure)
   }
 
   /**
-   * @see UnidocConsumer.start
+   * @see UnidocConsumer.prototype.start
    */
   public start(): void {
 
   }
 
   /**
-   * @see UnidocConsumer.next
+   * @see UnidocConsumer.prototype.next
    */
   public next(value: Input): void {
     console.warn('Unhandled production of value %o. To suppress this warning, override the next method.', value)
   }
 
   /**
-   * @see UnidocConsumer.success
+   * @see UnidocConsumer.prototype.success
    */
   public success(): void {
 
   }
 
   /**
-   * @see UnidocConsumer.failure
+   * @see UnidocConsumer.prototype.failure
    */
   public failure(error: Error): void {
     console.warn('Unhandled failure %o. To suppress this warning, override the failure method.', error)

@@ -3,39 +3,39 @@ import { UnidocGenerator } from "./UnidocGenerator"
 /**
  * 
  */
-export class UnidocNullGenerator<T> implements UnidocGenerator<T> {
+export class UnidocNullGenerator<Product> implements UnidocGenerator<Product> {
   /**
-   * @see UnidocGenerator.current
+   * @see UnidocGenerator.prototype.current
    */
   public get current(): undefined {
     return undefined
   }
 
   /**
-   * @see UnidocGenerator.running
+   * @see UnidocGenerator.prototype.running
    */
   public get running(): boolean {
     return false
   }
 
   /**
-   * @see UnidocGenerator.skip
+   * @see UnidocGenerator.prototype.skip
    */
   public skip(elements: number = 1): this {
     return this
   }
 
   /**
-   * @see UnidocGenerator.next
+   * @see UnidocGenerator.prototype.next
    */
   public next(): undefined {
     return undefined
   }
 
   /**
-   * @see UnidocGenerator.generator
+   * @see UnidocGenerator.prototype.generator
    */
-  public * generator(): Generator<T, void, unknown> {
+  public * generator(): Generator<Product, void, unknown> {
 
   }
 }
@@ -52,7 +52,7 @@ export namespace UnidocNullGenerator {
   /**
    * 
    */
-  export function create<T>(): UnidocNullGenerator<T> {
+  export function create<Product>(): UnidocNullGenerator<Product> {
     return INSTANCE
   }
 }

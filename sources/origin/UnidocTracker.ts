@@ -1,4 +1,5 @@
 import { Allocator, Duplicator } from '@cedric-demongivert/gl-tool-collection'
+import { UTF16String, UTF32String } from 'sources/symbol'
 import { DataObject } from '../DataObject'
 
 import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
@@ -8,7 +9,7 @@ import { UnidocLocation } from './UnidocLocation'
 /**
  * Track the position of a cursor in a given UTF32 text.
  */
-export class UnidocTracker implements DataObject {
+export class UnidocTracker implements DataObject<UnidocTracker> {
   /**
    * The current location of the cursor.
    */
@@ -49,6 +50,28 @@ export class UnidocTracker implements DataObject {
    */
   public nextString(value: string): this {
     for (const symbol of UTF32CodeUnit.fromString(value)) {
+      this.next(symbol)
+    }
+
+    return this
+  }
+
+  /**
+   * 
+   */
+  public nextUTF32String(value: UTF32String): this {
+    for (const symbol of value) {
+      this.next(symbol)
+    }
+
+    return this
+  }
+
+  /**
+   * 
+   */
+  public nextUTF16String(value: UTF16String): this {
+    for (const symbol of value.utf32Values()) {
       this.next(symbol)
     }
 

@@ -1,7 +1,9 @@
-
+export { UnidocAuthority } from './UnidocAuthority'
+export { UnidocLayout } from './UnidocLayout'
 export { UnidocLocation } from './UnidocLocation'
-export { UnidocTracker } from './UnidocTracker'
 export { UnidocOrigin } from './UnidocOrigin'
-export { UnidocSequenceOrigin } from './UnidocSequenceOrigin'
-export { UnidocPath } from './UnidocPath'
 export { UnidocRange } from './UnidocRange'
+export { UnidocTracker } from './UnidocTracker'
+export { UnidocTrackerFunction } from './UnidocTrackerFunction'
+export { UnidocTrackerGenerator } from './UnidocTrackerGenerator'
+export { UnidocURI } from './UnidocURI'

@@ -5,7 +5,7 @@ import { UnidocLocation } from "./UnidocLocation"
 /**
  * The identification of a range of symbols in an unidoc document.
  */
-export class UnidocRange implements DataObject {
+export class UnidocRange implements DataObject<UnidocRange> {
   /**
    * Coordinates of the first symbol of the range (inclusive). 
    */
@@ -152,6 +152,49 @@ export class UnidocRange implements DataObject {
   }
 
   /**
+   * 
+   */
+  public parse(coordinates: string): this {
+    const rangeResult: RegExpExecArray | null = UnidocRange.RANGE_REGEXP.exec(coordinates)
+
+    if (rangeResult != null) {
+      this.start.set(
+        parseInt(rangeResult[1]),
+        parseInt(rangeResult[2]),
+        parseInt(rangeResult[3])
+      )
+
+      this.end.set(
+        parseInt(rangeResult[4]),
+        parseInt(rangeResult[5]),
+        parseInt(rangeResult[6])
+      )
+
+      return this
+    }
+
+    const atResult: RegExpExecArray | null = UnidocRange.AT_REGEXP.exec(coordinates)
+
+    if (atResult == null) {
+      throw new Error(
+        `Unable to parse the string "${coordinates}" as it does not ` +
+        `match the range regular expression ${UnidocRange.RANGE_REGEXP} ` +
+        `or the location regular expression ${UnidocRange.AT_REGEXP}.`
+      )
+    }
+
+    this.start.set(
+      parseInt(atResult[1]),
+      parseInt(atResult[2]),
+      parseInt(atResult[3])
+    )
+
+    this.end.copy(this.start)
+
+    return this
+  }
+
+  /**
    * @see Clonable.prototype.clone
    */
   public clone(): UnidocRange {
@@ -219,6 +262,16 @@ export namespace UnidocRange {
   /**
    * 
    */
+  export const AT_REGEXP: RegExp = /^\s*at\s*(\d+)\s*:\s*(\d+)\s*\[\s*(\d+)\s*\]\s*$/
+
+  /**
+   * 
+   */
+  export const RANGE_REGEXP: RegExp = /^\s*from\s*(\d+)\s*:\s*(\d+)\s*\[\s*(\d+)\s*\]\s*to\s*(\d+)\s*:\s*(\d+)\s*\[\s*(\d+)\s*\]\s*$/
+
+  /**
+   * 
+   */
   export function create(start?: UnidocLocation | undefined | null, end?: UnidocLocation | undefined | null): UnidocRange {
     return new UnidocRange(start, end)
   }
@@ -249,6 +302,13 @@ export namespace UnidocRange {
    */
   export function fromLocation(location: UnidocLocation): UnidocRange {
     return new UnidocRange().fromLocation(location)
+  }
+
+  /**
+   * 
+   */
+  export function parse(coordinates: string): UnidocRange {
+    return new UnidocRange().parse(coordinates)
   }
 
   /**

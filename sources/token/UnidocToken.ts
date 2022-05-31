@@ -3,7 +3,7 @@ import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 import { UTF32String } from '../symbol/UTF32String'
 
-import { UnidocSequenceOrigin } from '../origin/UnidocSequenceOrigin'
+import { UnidocLayout } from '../origin/UnidocLayout'
 
 import { DataObject } from '../DataObject'
 
@@ -12,7 +12,7 @@ import { UnidocTokenType } from './UnidocTokenType'
 /**
  * A sequence of symbols, an instance of a given class of words.
  */
-export class UnidocToken implements DataObject {
+export class UnidocToken implements DataObject<UnidocToken> {
   /**
    * Index of this token in the sequence of tokens that form the underlying document.
    */
@@ -26,7 +26,7 @@ export class UnidocToken implements DataObject {
   /**
    * The location of this token in the underlying source of symbols.
    */
-  public readonly origin: UnidocSequenceOrigin
+  public readonly origin: UnidocLayout
 
   /**
    * Symbols that compose this unidoc token.
@@ -41,8 +41,40 @@ export class UnidocToken implements DataObject {
   public constructor(capacity: number = 16) {
     this.index = 0
     this.type = UnidocTokenType.DEFAULT_TYPE
+    this.origin = new UnidocLayout()
     this.symbols = UTF32String.allocate(capacity)
-    this.origin = new UnidocSequenceOrigin()
+  }
+
+  /**
+   *  
+   */
+  public setIndex(index: number): this {
+    this.index = index
+    return this
+  }
+
+  /**
+   *  
+   */
+  public setType(type: UnidocTokenType): this {
+    this.type = type
+    return this
+  }
+
+  /**
+   *  
+   */
+  public setSymbols(symbols: UTF32String): this {
+    this.symbols.copy(symbols)
+    return this
+  }
+
+  /**
+   *  
+   */
+  public setOrigin(origin: UnidocLayout): this {
+    this.origin.copy(origin)
+    return this
   }
 
   /**

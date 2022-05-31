@@ -1,6 +1,7 @@
 import { Pack, BufferPack } from "@cedric-demongivert/gl-tool-collection"
 
 import { UTF16CodeUnit } from "./UTF16CodeUnit"
+import { UTF32CodeUnit } from "./UTF32CodeUnit"
 import { UTF32String } from "./UTF32String"
 
 /**
@@ -230,6 +231,28 @@ export class UTF16String extends BufferPack<Uint16Array> implements Pack<UTF16Co
       return true
     } else {
       return false
+    }
+  }
+
+  /**
+   * 
+   */
+  * utf32Values(): IterableIterator<UTF32CodeUnit> {
+    const utf16Array: Uint16Array = this.array
+
+    const size: number = this.size
+    let offset: number = 0
+
+    for (let index = 0; index < size; ++index) {
+      const highSurrogate: number = utf16Array[index + offset]
+
+      if (highSurrogate > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && highSurrogate < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
+        offset += 1
+        const lowSurrogate: number = utf16Array[index + offset]
+        yield (highSurrogate - UTF16CodeUnit.HighSurrogate.MINIMUM << 10) + (lowSurrogate - UTF16CodeUnit.LowSurrogate.MINIMUM) + 0x10000
+      } else {
+        yield highSurrogate
+      }
     }
   }
 }

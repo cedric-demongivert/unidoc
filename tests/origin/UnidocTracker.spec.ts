@@ -6,24 +6,42 @@ import { UTF32CodeUnit } from "../../sources/symbol/UTF32CodeUnit"
  * @dependsOn UnidocLocation
  */
 describe('UnidocTracker', function () {
+  /**
+   * 
+   */
   describe('#constructor', function () {
+    /**
+     * 
+     */
     it('return a tracker initialized to the zero location by default', function () {
       const tracker: UnidocTracker = new UnidocTracker()
       expect(tracker.location.equals(UnidocLocation.ZERO)).toBeTruthy()
     })
 
+    /**
+     * 
+     */
     it('return a tracker initialized to the given coordinates otherwise', function () {
       const tracker: UnidocTracker = new UnidocTracker(5, 8, 3)
       expect(tracker.location.equals(UnidocLocation.create(5, 8, 3))).toBeTruthy()
     })
   })
 
+  /**
+   * 
+   */
   describe('#create', function () {
+    /**
+     * 
+     */
     it('return a tracker initialized to the zero location by default', function () {
       const tracker: UnidocTracker = UnidocTracker.create()
       expect(tracker.location.equals(UnidocLocation.ZERO)).toBeTruthy()
     })
 
+    /**
+     * 
+     */
     it('return a tracker initialized to the given coordinates otherwise', function () {
       const tracker: UnidocTracker = UnidocTracker.create(5, 8, 3)
       expect(tracker.location.equals(UnidocLocation.create(5, 8, 3))).toBeTruthy()
@@ -34,6 +52,9 @@ describe('UnidocTracker', function () {
    * @dependsOn UnidocTracker#constructor
    */
   describe('#nextString', function () {
+    /**
+     * 
+     */
     it('feed the tracker with the symbols of the given string and update it\'s location', function () {
       const tracker: UnidocTracker = new UnidocTracker()
 
@@ -54,6 +75,9 @@ describe('UnidocTracker', function () {
       ).toBeTruthy()
     })
 
+    /**
+     * 
+     */
     it('allows to track carriage returns', function () {
       const tracker: UnidocTracker = new UnidocTracker(5, 8, 3)
 
@@ -73,6 +97,9 @@ describe('UnidocTracker', function () {
       expect(tracker.location.equals(UnidocLocation.create(0, 8 + 1, 3 + 2))).toBeTruthy()
     })
 
+    /**
+     * 
+     */
     it('supports code points encoded with multiple code units', function () {
       const tracker: UnidocTracker = new UnidocTracker()
 
@@ -90,6 +117,9 @@ describe('UnidocTracker', function () {
    * @dependsOn UnidocTracker#constructor
    */
   describe('#next', function () {
+    /**
+     * 
+     */
     it('feed the tracker with the given code unit update it\'s location', function () {
       const tracker: UnidocTracker = new UnidocTracker()
 
@@ -106,6 +136,9 @@ describe('UnidocTracker', function () {
       expect(tracker.location.equals(UnidocLocation.create(3, 0, 3))).toBeTruthy()
     })
 
+    /**
+     * 
+     */
     it('allows to track carriage returns', function () {
       const tracker: UnidocTracker = new UnidocTracker(5, 8, 3)
 
@@ -132,6 +165,9 @@ describe('UnidocTracker', function () {
    * @dependsOn UnidocTracker#next
    */
   describe('#equals', function () {
+    /**
+     * 
+     */
     it('return false if the instance is compared to an undefined value', function () {
       const tracker: UnidocTracker = new UnidocTracker()
 
@@ -139,12 +175,18 @@ describe('UnidocTracker', function () {
       expect(tracker.equals(null)).toBeFalsy()
     })
 
+    /**
+     * 
+     */
     it('return true if the instance is compared with itself', function () {
       const tracker: UnidocTracker = new UnidocTracker()
 
       expect(tracker.equals(tracker)).toBeTruthy()
     })
 
+    /**
+     * 
+     */
     it('return false if the instance is not compared with a tracker', function () {
       const tracker: UnidocTracker = new UnidocTracker()
 
@@ -153,6 +195,9 @@ describe('UnidocTracker', function () {
       expect(tracker.equals(new Date())).toBeFalsy()
     })
 
+    /**
+     * 
+     */
     it('return false if the instance is compared to a tracker with different coordinates', function () {
       const tracker: UnidocTracker = new UnidocTracker(8, 12, 5)
 
@@ -161,6 +206,9 @@ describe('UnidocTracker', function () {
       expect(tracker.equals(new UnidocTracker(8, 12, 2))).toBeFalsy()
     })
 
+    /**
+     * 
+     */
     it('return false if the instance is compared to a tracker with a different inner state', function () {
       const tracker: UnidocTracker = new UnidocTracker()
       tracker.next(UTF32CodeUnit.CARRIAGE_RETURN)
@@ -169,6 +217,9 @@ describe('UnidocTracker', function () {
       expect(tracker.equals(new UnidocTracker(8, 12, 5))).toBeFalsy()
     })
 
+    /**
+     * 
+     */
     it('return true if the instance is compared to an equivalent one', function () {
       const tracker: UnidocTracker = new UnidocTracker(8, 12, 5)
 
@@ -191,6 +242,9 @@ describe('UnidocTracker', function () {
    * @dependsOn UnidocTracker#equals
    */
   describe('#clear', function () {
+    /**
+     * 
+     */
     it('reset the tracker internal state', function () {
       const tracker: UnidocTracker = new UnidocTracker()
       tracker.next(UTF32CodeUnit.CARRIAGE_RETURN)
@@ -203,6 +257,9 @@ describe('UnidocTracker', function () {
       expect(tracker.equals(new UnidocTracker())).toBeTruthy()
     })
 
+    /**
+     * 
+     */
     it('reset the location of the tracker to zero', function () {
       const tracker: UnidocTracker = new UnidocTracker(8, 5, 2)
 
@@ -220,6 +277,9 @@ describe('UnidocTracker', function () {
    * @dependsOn UnidocTracker#equals
    */
   describe('#copy', function () {
+    /**
+     * 
+     */
     it('return a copy of the given tracker', function () {
       const tracker: UnidocTracker = new UnidocTracker()
       tracker.next(UTF32CodeUnit.CARRIAGE_RETURN)
@@ -241,6 +301,9 @@ describe('UnidocTracker', function () {
    * @dependsOn UnidocTracker#equals
    */
   describe('#clone', function () {
+    /**
+     * 
+     */
     it('return a clone of the given tracker', function () {
       const tracker: UnidocTracker = new UnidocTracker()
       tracker.next(UTF32CodeUnit.CARRIAGE_RETURN)

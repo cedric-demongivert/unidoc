@@ -1,4 +1,4 @@
-import { Constructor } from '../Constructor'
+import { Constructor } from '@cedric-demongivert/gl-tool-utils'
 
 /**
  * 
@@ -33,15 +33,15 @@ export interface UnidocGenerator<Output> {
 /**
  * 
  */
-export function UnidocGenerator<Produce, BaseConstructor extends Constructor>(ProduceClass: Constructor<Produce>, BaseClass: BaseConstructor) {
+export function UnidocGenerator<Product, BaseConstructor extends Constructor>(ProduceClass: Constructor<Product>, BaseClass: BaseConstructor) {
   /**
    * 
    */
-  return class UnidocGeneratorMixin extends BaseClass implements UnidocGenerator<Produce> {
+  return class UnidocGeneratorMixin extends BaseClass implements UnidocGenerator<Product> {
     /**
      * 
      */
-    public get current(): Produce | undefined {
+    public get current(): Product | undefined {
       return undefined
     }
 
@@ -55,7 +55,7 @@ export function UnidocGenerator<Produce, BaseConstructor extends Constructor>(Pr
     /**
      * 
      */
-    public next(): Produce | undefined {
+    public next(): Product | undefined {
       return undefined
     }
 
@@ -73,7 +73,7 @@ export function UnidocGenerator<Produce, BaseConstructor extends Constructor>(Pr
     /**
      * 
      */
-    public * generator(): Generator<Produce, undefined, unknown> {
+    public * generator(): Generator<Product, undefined, unknown> {
       while (this.running) {
         yield this.next()!
       }
