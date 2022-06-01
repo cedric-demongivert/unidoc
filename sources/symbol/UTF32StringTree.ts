@@ -59,7 +59,7 @@ export class UTF32StringTree implements DataObject<UTF32StringTree> {
   /**
    * 
    */
-  public addString(value: string, offset: number): this {
+  public addString(value: string, offset: number = 0): this {
     this._root.addString(value, offset)
     return this
   }

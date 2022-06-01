@@ -61,12 +61,14 @@ export class UnidocEventFlow {
   /**
    * Instantiate a new unidoc event.
    */
-  public constructor() {
+  public constructor(source: UnidocURI = UnidocEventFlow.SOURCE) {
     this._event = new UnidocEvent()
     this._tracker = new UnidocTracker()
     this._event.origin.origins.size = 1
     this._origin = this._event.origin.origins.first
     this._path = this._event.path
+
+    this._origin.setSource(source)
   }
 
   /**
@@ -188,7 +190,7 @@ export class UnidocEventFlow {
 
     origin.fromLocation(tracker.location)
     tracker.nextString(line)
-    origin.fromLocation(tracker.location)
+    origin.toLocation(tracker.location)
 
     const section: UnidocSection = path.last
 
@@ -207,6 +209,19 @@ export class UnidocEventFlow {
  * 
  */
 export namespace UnidocEventFlow {
+  /**
+   * 
+   */
+  export const SOURCE: Readonly<UnidocURI> = Object.freeze(UnidocURI.runtime('UnidocEventFlow'))
+
+  /**
+   * 
+   */
+  export function origin(): UnidocOrigin {
+    return UnidocOrigin.create().setSource(SOURCE)
+  }
+
+
   /**
    * 
    */

@@ -180,29 +180,17 @@ export class UTF32String extends BufferPack<Uint32Array> implements Pack<UTF32Co
   /**
    * 
    */
-  public subEquals(other: UTF32String, from: number = 0, to: number = this.size): boolean {
-    const thisSize: number = this.size
+  public subEquals(thisFrom: number, other: UTF32String, otherFrom: number = 0, otherTo: number = other.size): boolean {
+    const array: Uint32Array = this.array
+    const otherArray: Uint32Array = other.array
 
-    let start: number = from < to ? from : to
-    let end: number = from < to ? to : from
-
-    start = start < 0 ? 0 : (start > thisSize ? thisSize : start)
-    end = end < 0 ? 0 : (end > thisSize ? thisSize : end)
-
-    if (end - start === thisSize) {
-      const array: Uint32Array = this.array
-      const otherArray: Uint32Array = other.array
-
-      for (let index = start; index < end; ++index) {
-        if (array[index] !== otherArray[index - start]) {
-          return false
-        }
+    for (let index = 0, size = otherTo - otherFrom; index < size; ++index) {
+      if (array[thisFrom + index] !== otherArray[otherFrom + index]) {
+        return false
       }
-
-      return true
-    } else {
-      return false
     }
+
+    return true
   }
 
   /**

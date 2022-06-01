@@ -38,6 +38,11 @@ export class UnidocLayout implements DataObject<UnidocLayout> {
    * 
    */
   public startOf(origin: UnidocLayout): this {
+    if (origin.origins.size < 1) {
+      this.origins.clear()
+      return this
+    }
+
     const origins: Pack<UnidocOrigin> = this.origins
 
     origins.clear()
@@ -53,6 +58,11 @@ export class UnidocLayout implements DataObject<UnidocLayout> {
    * 
    */
   public endOf(origin: UnidocLayout): this {
+    if (origin.origins.size < 1) {
+      this.origins.clear()
+      return this
+    }
+
     const origins: Pack<UnidocOrigin> = this.origins
 
     origins.clear()
@@ -60,6 +70,43 @@ export class UnidocLayout implements DataObject<UnidocLayout> {
 
     const first: UnidocOrigin = origins.first
     first.atLocation(first.range.end)
+
+    return this
+  }
+
+  /**
+   * 
+   */
+  public reduceToStart(): this {
+    const origins: Pack<UnidocOrigin> = this.origins
+
+    if (origins.size < 1) {
+      return this
+    }
+
+    const first: UnidocOrigin = origins.first
+
+    first.range.end.copy(first.range.start)
+    origins.size = 1
+
+    return this
+  }
+
+  /**
+   * 
+   */
+  public reduceToEnd(): this {
+    const origins: Pack<UnidocOrigin> = this.origins
+
+    if (origins.size < 1) {
+      return this
+    }
+
+    const first: UnidocOrigin = origins.first
+
+    first.copy(origins.last)
+    first.range.start.copy(first.range.end)
+    origins.size = 1
 
     return this
   }
@@ -157,7 +204,7 @@ export namespace UnidocLayout {
   /**
    * 
    */
-  export const DEFAULT: Readonly<UnidocLayout> = new UnidocLayout()
+  export const EMPTY: Readonly<UnidocLayout> = new UnidocLayout()
 
   /**
    * A factory that allows to instantiate UnidocLayout instances

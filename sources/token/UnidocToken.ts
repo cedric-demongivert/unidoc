@@ -206,6 +206,70 @@ export class UnidocToken implements DataObject<UnidocToken> {
   }
 
   /**
+   * 
+   */
+  public isWord(): boolean {
+    return this.type === UnidocTokenType.WORD
+  }
+
+  /**
+   * 
+   */
+  public isNewline(): boolean {
+    return this.type === UnidocTokenType.NEW_LINE
+  }
+
+  /**
+   * 
+   */
+  public isSpace(): boolean {
+    return this.type === UnidocTokenType.SPACE
+  }
+
+  /**
+   * 
+   */
+  public isIdentifier(): boolean {
+    return this.type === UnidocTokenType.IDENTIFIER
+  }
+
+  /**
+   * 
+   */
+  public isClass(): boolean {
+    return this.type === UnidocTokenType.CLASS
+  }
+
+  /**
+   * 
+   */
+  public isBlockStart(): boolean {
+    return this.type === UnidocTokenType.BLOCK_START
+  }
+
+  /**
+   * 
+   */
+  public isBlockEnd(): boolean {
+    return this.type === UnidocTokenType.BLOCK_END
+  }
+
+  /**
+   * 
+   */
+  public isWhitespace(): boolean {
+    const type: UnidocTokenType = this.type
+    return type === UnidocTokenType.SPACE || type === UnidocTokenType.NEW_LINE
+  }
+
+  /**
+   * 
+   */
+  public isAnyTag(): boolean {
+    return this.type === UnidocTokenType.TAG
+  }
+
+  /**
    * Assess if this token is a tag of the given type.
    *
    * @param tag - Type of tag to check.
@@ -228,10 +292,12 @@ export class UnidocToken implements DataObject<UnidocToken> {
    * @return True if this token is a tag of the given type.
    */
   public isTag(tag: UTF32String): boolean {
+    console.log(this.symbols.get(0) === UTF32CodeUnit.REVERSE_SOLIDUS)
+
     return (
       this.type === UnidocTokenType.TAG &&
       this.symbols.get(0) === UTF32CodeUnit.REVERSE_SOLIDUS &&
-      this.symbols.subEquals(tag, 1)
+      this.symbols.subEquals(1, tag)
     )
   }
 
