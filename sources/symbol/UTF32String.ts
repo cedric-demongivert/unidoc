@@ -1,8 +1,9 @@
-import { Pack, BufferPack } from "@cedric-demongivert/gl-tool-collection"
+import { Pack, BufferPack, Duplicator, Sequence } from "@cedric-demongivert/gl-tool-collection"
 
 import { UTF32CodeUnit } from "./UTF32CodeUnit"
 import { UTF16String } from "./UTF16String"
 import { UTF16CodeUnit } from "./UTF16CodeUnit"
+import { Assignable } from "@cedric-demongivert/gl-tool-utils"
 
 /**
  * A buffer used by UTF32String instances.
@@ -12,7 +13,7 @@ const TEMPORARY_BUFFER: UTF16String = UTF16String.allocate(256)
 /**
  * An UTF-32 code unit string.
  */
-export class UTF32String extends BufferPack<Uint32Array> implements Pack<UTF32CodeUnit> {
+export class UTF32String extends BufferPack<Uint32Array> implements Pack<UTF32CodeUnit>, Assignable<UTF32String> {
   /**
    * Return the number of UTF-16 coding unit required to encode this UTF-32 string.
    */
@@ -177,6 +178,34 @@ export class UTF32String extends BufferPack<Uint32Array> implements Pack<UTF32Co
   }
 
   /**
+   * 
+   */
+  public subEquals(other: UTF32String, from: number = 0, to: number = this.size): boolean {
+    const thisSize: number = this.size
+
+    let start: number = from < to ? from : to
+    let end: number = from < to ? to : from
+
+    start = start < 0 ? 0 : (start > thisSize ? thisSize : start)
+    end = end < 0 ? 0 : (end > thisSize ? thisSize : end)
+
+    if (end - start === thisSize) {
+      const array: Uint32Array = this.array
+      const otherArray: Uint32Array = other.array
+
+      for (let index = start; index < end; ++index) {
+        if (array[index] !== otherArray[index - start]) {
+          return false
+        }
+      }
+
+      return true
+    } else {
+      return false
+    }
+  }
+
+  /**
    * @see string.substring
    * 
    * @return This instance for chaining purposes.
@@ -207,6 +236,44 @@ export class UTF32String extends BufferPack<Uint32Array> implements Pack<UTF32Co
   }
 
   /**
+   * @see Assignable.prototype.copy
+   */
+  public copy(sequence: Sequence<number>): this {
+    super.copy(sequence)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public subCopyString(value: string, offset: number = 0, size: number = value.length - offset): this {
+    this.size = UTF32String.sizeOfSubString(value, offset, size)
+
+    const array: Uint32Array = this.array
+    const valueEnd: number = offset + size
+
+    let index: number = 0
+    let valueIndex: number = offset
+
+    while (valueIndex < valueEnd) {
+      const highSurrogate: number = value.charCodeAt(valueIndex)
+
+      if (highSurrogate > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && highSurrogate < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
+        valueIndex += 1
+        const lowSurrogate: number = value.charCodeAt(valueIndex)
+        array[index] = (highSurrogate - UTF16CodeUnit.HighSurrogate.MINIMUM << 10) + (lowSurrogate - UTF16CodeUnit.LowSurrogate.MINIMUM) + 0x10000
+      } else {
+        array[index] = highSurrogate
+      }
+
+      valueIndex += 1
+      index += 1
+    }
+
+    return this
+  }
+
+  /**
    * @return This UTF-32 string as a javascript string.
    */
   public toString(): string {
@@ -226,6 +293,11 @@ export class UTF32String extends BufferPack<Uint32Array> implements Pack<UTF32Co
  */
 export namespace UTF32String {
   /**
+   * 
+   */
+  export const EMPTY: UTF32String = Object.freeze(new UTF32String(new Uint32Array(0), 0)) as UTF32String
+
+  /**
    * Allocate an empty UTF-32 string of the given capacity.
    * 
    * @param capacity - The number of coding unit to pre-allocate.
@@ -237,6 +309,18 @@ export namespace UTF32String {
   }
 
   /**
+   * 
+   */
+  export namespace allocate {
+    /**
+     * 
+     */
+    export function withDefaultCapacity(): UTF32String {
+      return new UTF32String(new Uint32Array(32), 0)
+    }
+  }
+
+  /**
    * Return the size in UTF32 coding unit of the given javascript string.
    * 
    * @param value - A javascript string to evaluate.
@@ -245,7 +329,6 @@ export namespace UTF32String {
    */
   export function sizeOfString(value: string): number {
     let result: number = value.length
-
     const size: number = value.length
 
     for (let index = 0; index < size; ++index) {
@@ -253,6 +336,28 @@ export namespace UTF32String {
 
       if (utf16Unit > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && utf16Unit < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
         result -= 1
+        index += 1
+      }
+    }
+
+    return result
+  }
+
+  /**
+   * 
+   */
+  export function sizeOfSubString(value: string, offset: number = 0, size: number = value.length - offset): number {
+    let result: number = 0
+    let index: number = offset
+    const end: number = offset + size
+
+    while (index < end) {
+      const utf16Unit: number = value.charCodeAt(index)
+      result += 1
+
+      if (utf16Unit > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && utf16Unit < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
+        index += 2
+      } else {
         index += 1
       }
     }
@@ -294,4 +399,9 @@ export namespace UTF32String {
 
     return result
   }
+
+  /**
+   * 
+   */
+  export const DUPLICATOR: Duplicator<UTF32String> = Duplicator.fromFactory(allocate.withDefaultCapacity)
 }

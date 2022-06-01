@@ -138,7 +138,7 @@ export namespace UnidocSymbol {
    * 
    */
   export function fromString(symbol: string, origin: UnidocOrigin = UnidocOrigin.DEFAULT): UnidocSymbol {
-    return new UnidocSymbol().setSymbol(UTF32CodeUnit.get(symbol)).setOrigin(origin)
+    return new UnidocSymbol().setSymbol(UTF32CodeUnit.getAt(symbol, 0)).setOrigin(origin)
   }
 
   /**

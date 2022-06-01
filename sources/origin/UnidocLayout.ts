@@ -37,6 +37,36 @@ export class UnidocLayout implements DataObject<UnidocLayout> {
   /**
    * 
    */
+  public startOf(origin: UnidocLayout): this {
+    const origins: Pack<UnidocOrigin> = this.origins
+
+    origins.clear()
+    origins.push(origin.origins.first)
+
+    const first: UnidocOrigin = origins.first
+    first.atLocation(first.range.start)
+
+    return this
+  }
+
+  /**
+   * 
+   */
+  public endOf(origin: UnidocLayout): this {
+    const origins: Pack<UnidocOrigin> = this.origins
+
+    origins.clear()
+    origins.push(origin.origins.last)
+
+    const first: UnidocOrigin = origins.first
+    first.atLocation(first.range.end)
+
+    return this
+  }
+
+  /**
+   * 
+   */
   public concat(other: UnidocLayout): this {
     if (other.origins.size > 0) {
       const origins: Pack<UnidocOrigin> = this.origins

@@ -1,7 +1,8 @@
-import { Set, NativeSet, Group, Duplicator } from '@cedric-demongivert/gl-tool-collection'
-import { UTF32String } from '../symbol'
-import { DataObject } from "../DataObject"
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
+import { UTF32String, UTF32StringTree } from '../symbol'
 import { UnidocLayout } from "./UnidocLayout"
+
+import { DataObject } from "../DataObject"
 
 /**
  * 
@@ -15,7 +16,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
   /**
    * 
    */
-  public readonly classes: Set<string>
+  public readonly classes: UTF32StringTree
 
   /**
    * 
@@ -32,7 +33,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
    */
   public constructor() {
     this.name = UTF32String.allocate(32)
-    this.classes = NativeSet.any()
+    this.classes = new UTF32StringTree()
     this.identifier = UTF32String.allocate(32)
     this.origin = UnidocLayout.create()
   }
@@ -48,7 +49,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
   /**
    * 
    */
-  public setClasses(classes: Group<string>): this {
+  public setClasses(classes: UTF32StringTree): this {
     this.classes.copy(classes)
     return this
   }
@@ -56,7 +57,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
   /**
    * 
    */
-  public addClass(value: string): this {
+  public addClass(value: UTF32String): this {
     this.classes.add(value)
     return this
   }
@@ -64,7 +65,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
   /**
    * 
    */
-  public addClasses(classes: Iterable<string>): void {
+  public addClasses(classes: Iterable<UTF32String>): void {
     for (const clazz of classes) {
       this.classes.add(clazz)
     }
@@ -73,7 +74,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
   /**
    * 
    */
-  public deleteClass(value: string): this {
+  public deleteClass(value: UTF32String): this {
     this.classes.delete(value)
     return this
   }
@@ -81,7 +82,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
   /**
    * 
    */
-  public clearClasses(value: string): this {
+  public clearClasses(): this {
     this.classes.clear()
     return this
   }

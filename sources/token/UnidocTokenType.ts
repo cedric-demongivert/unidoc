@@ -130,6 +130,13 @@ export namespace UnidocTokenType {
   }
 
   /**
+   * 
+   */
+  export function toDebugString(value: UnidocTokenType): string | undefined {
+    return `UnidocTokenType #${value} (${toString(value) || 'undefined'})`
+  }
+
+  /**
   * Return a 2-character string representation of a given unidoc token type.
   *
   * @param value - Unidoc token type to stringify.

@@ -586,11 +586,41 @@ export namespace UTF32CodeUnit {
   /**
    * 
    */
-  export function get(value: string): UTF32CodeUnit {
-    const highSurrogate: number = value.charCodeAt(0)
+  export function get(value: string, index: number): UTF32CodeUnit {
+    let offset: number = 0
+
+    for (let cursor = 0; cursor < index && offset < value.length; ++cursor) {
+      const highSurrogate: number = value.charCodeAt(offset)
+
+      if (highSurrogate > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && highSurrogate < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
+        offset += 2
+      } else {
+        offset += 1
+      }
+    }
+
+    if (offset >= value.length) {
+      return UTF32CodeUnit.NULL
+    }
+
+    const highSurrogate: number = value.charCodeAt(offset)
 
     if (highSurrogate > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && highSurrogate < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
-      const lowSurrogate: number = value.charCodeAt(1)
+      const lowSurrogate: number = value.charCodeAt(offset + 1)
+      return (highSurrogate - UTF16CodeUnit.HighSurrogate.MINIMUM << 10) + (lowSurrogate - UTF16CodeUnit.LowSurrogate.MINIMUM) + 0x10000
+    } else {
+      return highSurrogate
+    }
+  }
+
+  /**
+   * 
+   */
+  export function getAt(value: string, offset: number): UTF32CodeUnit {
+    const highSurrogate: number = value.charCodeAt(offset)
+
+    if (highSurrogate > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && highSurrogate < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
+      const lowSurrogate: number = value.charCodeAt(offset + 1)
       return (highSurrogate - UTF16CodeUnit.HighSurrogate.MINIMUM << 10) + (lowSurrogate - UTF16CodeUnit.LowSurrogate.MINIMUM) + 0x10000
     } else {
       return highSurrogate

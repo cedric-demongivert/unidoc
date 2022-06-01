@@ -1,155 +1,184 @@
-import { Duplicator, Pack } from '@cedric-demongivert/gl-tool-collection'
-
-import { CodePoint } from '../symbol/CodePoint'
-
-import { UnidocRangeOrigin } from '../origin/UnidocRangeOrigin'
-import { UnidocOrigin } from '../origin/UnidocOrigin'
-import { UnidocToken } from '../token/UnidocToken'
-import { UnidocTokenType } from '../token/UnidocTokenType'
-
-import { UnidocParserStateType } from './UnidocParserStateType'
-
-const EMPTY_STRING: string = ''
-
-export class UnidocParserState {
-  public type: UnidocParserStateType
-  public tag: string
-  public identifier: string
-  public readonly content: Pack<CodePoint>
-  public readonly origin: UnidocRangeOrigin
-  public readonly classes: Set<string>
-
-  /**
-  * Instantiate a new empty state.
-  */
-  public constructor() {
-    this.type = UnidocParserStateType.START
-    this.tag = EMPTY_STRING
-    this.identifier = EMPTY_STRING
-    this.content = Pack.uint32(128)
-    this.classes = new Set()
-    this.origin = new UnidocRangeOrigin()
-    this.origin.from.text(0, 0, 0).runtime()
-    this.origin.to.text(0, 0, 0).runtime()
-  }
-
-  public begin(type: UnidocParserStateType, token: UnidocToken): void
-  public begin(type: UnidocParserStateType, start: UnidocOrigin): void
-  public begin(type: UnidocParserStateType, start: UnidocToken | UnidocOrigin): void {
-    this.clear()
-    this.type = type
-
-    if (start instanceof UnidocToken) {
-      switch (start.type) {
-        case UnidocTokenType.CLASS:
-          this.classes.add(start.substring(1))
-          break
-        case UnidocTokenType.IDENTIFIER:
-          this.identifier = start.substring(1)
-          break
-        case UnidocTokenType.TAG:
-          this.tag = start.substring(1)
-          break
-        case UnidocTokenType.NEW_LINE:
-        case UnidocTokenType.SPACE:
-        case UnidocTokenType.WORD:
-          this.content.concat(start.symbols)
-          break
-      }
-
-      this.origin.copy(start.origin)
-    } else {
-      this.origin.at(start)
-    }
-  }
-
-  public append(token: UnidocToken): void {
-    switch (token.type) {
-      case UnidocTokenType.CLASS:
-        this.classes.add(token.substring(1))
-        break
-      case UnidocTokenType.IDENTIFIER:
-        this.identifier = token.substring(1)
-        break
-      case UnidocTokenType.TAG:
-        this.tag = token.substring(1)
-        break
-      case UnidocTokenType.NEW_LINE:
-      case UnidocTokenType.SPACE:
-      case UnidocTokenType.WORD:
-        this.content.concat(token.symbols)
-        break
-    }
-
-    this.origin.to.copy(token.origin.to)
-  }
-
-  /**
-  * Reset this instance in order to reuse it.
-  */
-  public clear(): void {
-    this.type = UnidocParserStateType.START
-    this.tag = EMPTY_STRING
-    this.identifier = EMPTY_STRING
-    this.content.clear()
-    this.classes.clear()
-    this.origin.clear()
-    this.origin.from.text(0, 0, 0).runtime()
-    this.origin.to.text(0, 0, 0).runtime()
-  }
-
-  /**
-  * Copy an existing parser state instance.
-  *
-  * @param toCopy - A parser state to copy.
-  */
-  public copy(toCopy: UnidocParserState): void {
-    this.type = toCopy.type
-    this.tag = toCopy.tag
-    this.identifier = toCopy.identifier
-    this.content.copy(toCopy.content)
-    this.origin.copy(toCopy.origin)
-    this.classes.clear()
-
-    for (const element of toCopy.classes) {
-      this.classes.add(element)
-    }
-  }
-
-  /**
-  * @see Object.equals
-  */
-  public equals(other: any): boolean {
-    if (other == null) return false
-    if (other === this) return true
-
-    if (other instanceof UnidocParserState) {
-      if (
-        other.type !== this.type ||
-        other.tag !== this.tag ||
-        other.identifier !== this.identifier ||
-        !other.content.equals(this.content) ||
-        !other.origin.equals(this.origin) ||
-        other.classes.size !== this.classes.size
-      ) { return false }
-
-      for (const element of other.classes) {
-        if (!this.classes.has(element)) {
-          return false
-        }
-      }
-
-      return true
-    }
-
-    return false
-  }
-}
+export type UnidocParserState = number
 
 export namespace UnidocParserState {
-  export function create(): UnidocParserState {
-    return new UnidocParserState()
+  /**
+  * State of the parser after it's initialization. In other words, this is the
+  * state of the parser before it discover the first token of the document.
+  */
+  export const START: UnidocParserState = 0
+
+  /**
+  * State of the parser after the discovering an arbitrary number of leading
+  * spaces at the begining of the document. In this particular state the parser
+  * await for more tokens for clarifing if theses spaces are inner document
+  * content or if they just leading a stream tag declaration.
+  */
+  export const LEADING_WHITESPACE: UnidocParserState = 1
+
+  /**
+  * State of the parser when it has discovered a stream tag with an arbitrary
+  * number of classes. In this state the parser expect to receive another stream
+  * tag classes, a stream tag identifier, spaces, or any document content.
+  */
+  export const CLASS_OF_STREAM_WITHOUT_IDENTIFIER: UnidocParserState = 2
+
+  /**
+  * State of the parser when it has discovered an arbitrary number of
+  * whitespaces after a stream tag followed by an arbitrary number of classes.
+  * In this state the parser expect to receive another stream tag classes, a
+  * stream tag identifier, more spaces, or any document content.
+  */
+  export const WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER: UnidocParserState = 3
+
+  /**
+  * State of the parser when it has discovered a stream tag followed by an
+  * arbitrary number of classes, an identifier and another arbitrary number of
+  * classes. In this state the parser expect to receive another stream
+  * tag classes, spaces, or any document content.
+  */
+  export const CLASS_OF_STREAM_WITH_IDENTIFIER: UnidocParserState = 4
+
+  /**
+  * State of the parser when it has discovered an arbitrary number of
+  * whitespaces after a stream tag followed by an arbitrary number of classes,
+  * an identifier and another arbitrary number of classes. In this state the
+  * parser expect to receive another stream tag classes, spaces, or any document
+  * content.
+  */
+  export const WHITESPACE_AFTER_CLASS_OF_STREAM_WITH_IDENTIFIER: UnidocParserState = 5
+
+  /**
+  * State of the parser when it await any document stream content. More
+  * precisely any new spaces, tag or word.
+  */
+  export const STREAM_CONTENT: UnidocParserState = 6
+
+  /**
+  * State of the parser when it await any tag content. More precisely any new
+  * spaces, tag, word or tag block termination.
+  */
+  export const BLOCK_CONTENT: UnidocParserState = 7
+
+  /**
+  * State of the parser when it fail in an unrecoverable error.
+  */
+  export const ERROR: UnidocParserState = 8
+
+  /**
+  * State of the parser when it has discovered an arbitrary number of
+  * whitespaces that are a content of a tag or a document. In this state the
+  * parser await for more whitespaces or any new content.
+  */
+  export const WHITESPACE: UnidocParserState = 9
+
+  /**
+  * State of the parser when it has discovered an arbitrary number of words
+  * that are a content of a tag or a document. In this state the parser await
+  * for more words or any new content.
+  */
+  export const WORD: UnidocParserState = 10
+
+  /**
+  * State of the parser when it has discovered a tag with an arbitrary number of
+  * classes. In this state the parser expect to receive another tag classes, a
+  * tag identifier, spaces, at tag block begining or any following content.
+  */
+  export const CLASS_OF_TAG_WITHOUT_IDENTIFIER: UnidocParserState = 11
+
+  /**
+  * State of the parser when it has discovered an arbitrary number of
+  * whitespaces after a tag followed by an arbitrary number of classes.
+  * In this state the parser expect to receive another tag classes, a tag
+  * identifier, more spaces, a tag block begining or any following content.
+  */
+  export const WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER: UnidocParserState = 12
+
+  /**
+  * State of the parser when it has discovered a tag followed by an arbitrary
+  * number of classes, an identifier and another arbitrary number of classes. In
+  * this state the parser expect to receive another tag classes, spaces, a tag
+  * block begining or any following content.
+  */
+  export const CLASS_OF_TAG_WITH_IDENTIFIER: UnidocParserState = 13
+
+  /**
+  * State of the parser when it has discovered an arbitrary number of
+  * whitespaces after a tag followed by an arbitrary number of classes, an
+  * identifier and another arbitrary number of classes. In this state the parser
+  * expect to receive another tag classes, spaces, a tag block begining or any
+  * following content.
+  */
+  export const WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER: UnidocParserState = 14
+
+  /**
+  * State of the parser at the end of the stream.
+  */
+  export const TERMINATION: UnidocParserState = 15
+
+  /**
+  * State of the parser by default.
+  */
+  export const DEFAULT: UnidocParserState = START
+
+  /**
+  * A list of all possible states of a parser.
+  */
+  export const ALL: UnidocParserState[] = [
+    START,
+    LEADING_WHITESPACE,
+    CLASS_OF_STREAM_WITHOUT_IDENTIFIER,
+    WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER,
+    CLASS_OF_STREAM_WITH_IDENTIFIER,
+    WHITESPACE_AFTER_CLASS_OF_STREAM_WITH_IDENTIFIER,
+    STREAM_CONTENT,
+    BLOCK_CONTENT,
+    ERROR,
+    WHITESPACE,
+    WORD,
+    CLASS_OF_TAG_WITHOUT_IDENTIFIER,
+    WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER,
+    CLASS_OF_TAG_WITH_IDENTIFIER,
+    WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER,
+    TERMINATION
+  ]
+
+  /**
+  * Stringify the given state.
+  *
+  * @param state - A state to stringify.
+  *
+  * @return A string representation of the given state.
+  */
+  export function toString(state: UnidocParserState): string | undefined {
+    switch (state) {
+      case START: return 'START'
+      case LEADING_WHITESPACE: return 'LEADING_WHITESPACE'
+      case CLASS_OF_STREAM_WITHOUT_IDENTIFIER: return 'CLASS_OF_STREAM_WITHOUT_IDENTIFIER'
+      case WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER: return 'WHITESPACE_AFTER_CLASS_OF_STREAM_WITHOUT_IDENTIFIER'
+      case CLASS_OF_STREAM_WITH_IDENTIFIER: return 'CLASS_OF_STREAM_WITH_IDENTIFIER'
+      case WHITESPACE_AFTER_CLASS_OF_STREAM_WITH_IDENTIFIER: return 'WHITESPACE_AFTER_CLASS_OF_STREAM_WITH_IDENTIFIER'
+      case STREAM_CONTENT: return 'STREAM_CONTENT'
+      case BLOCK_CONTENT: return 'BLOCK_CONTENT'
+      case ERROR: return 'ERROR'
+      case WHITESPACE: return 'WHITESPACE'
+      case WORD: return 'WORD'
+      case CLASS_OF_TAG_WITHOUT_IDENTIFIER: return 'CLASS_OF_TAG_WITHOUT_IDENTIFIER'
+      case WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER: return 'WHITESPACE_AFTER_CLASS_OF_TAG_WITHOUT_IDENTIFIER'
+      case CLASS_OF_TAG_WITH_IDENTIFIER: return 'CLASS_OF_TAG_WITH_IDENTIFIER'
+      case WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER: return 'WHITESPACE_AFTER_CLASS_OF_TAG_WITH_IDENTIFIER'
+      case TERMINATION: return 'TERMINATION'
+      default: return undefined
+    }
   }
 
-  export const ALLOCATOR: Duplicator<UnidocParserState> = Duplicator.fromFactory(create)
+  /**
+  * Stringify the given state.
+  *
+  * @param state - A state to stringify.
+  *
+  * @return A string representation of the given state.
+  */
+  export function toDebugString(state: UnidocParserState): string | undefined {
+    return `UnidocParserStarte #${state} (${toString(state) || 'undefined'})`
+  }
 }

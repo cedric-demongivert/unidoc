@@ -1,13 +1,14 @@
-import { Duplicator, Set, NativeSet, Group } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator, Group } from '@cedric-demongivert/gl-tool-collection'
 import { Empty } from '@cedric-demongivert/gl-tool-utils'
 
-import { UTF32String } from '../symbol/UTF32String'
-import { UnidocPath } from '../origin/UnidocPath'
+import { UTF32StringTree, UTF32String } from '../symbol'
+import { UnidocPath, UnidocLayout } from '../origin'
 
 import { DataObject } from '../DataObject'
 
 import { UnidocEventType } from './UnidocEventType'
-import { UnidocLayout } from '../origin/UnidocLayout'
+import { UnidocToken } from '../token/UnidocToken'
+import { UnidocTokenType } from '../token/UnidocTokenType'
 
 const TAG_EVENT_CONFIGURATION: RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?((?:\.[a-zA-Z0-9\-]+)+)?$/i
 
@@ -28,7 +29,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    * Classes associated to the block or the tag if any.
    */
-  public readonly classes: Set<string>
+  public readonly classes: UTF32StringTree
 
   /**
    * Content associated to this event.
@@ -51,7 +52,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   public constructor() {
     this.type = UnidocEventType.START_TAG
     this.identifier = UTF32String.allocate(64)
-    this.classes = NativeSet.any()
+    this.classes = new UTF32StringTree()
     this.symbols = UTF32String.allocate(64)
     this.origin = new UnidocLayout()
     this.path = new UnidocPath()
@@ -118,7 +119,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    * 
    */
-  public setClasses(classes: Group<string>): this {
+  public setClasses(classes: UTF32StringTree): this {
     this.classes.copy(classes)
     return this
   }
@@ -152,13 +153,15 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
    *
    * @param content - Content of the resulting event.
    */
-  public asWord(content: string): void {
+  public asWord(content: string): this {
     this.identifier.clear()
     this.symbols.clear()
     this.classes.clear()
 
     this.type = UnidocEventType.WORD
     this.symbols.setString(content)
+
+    return this
   }
 
   /**
@@ -166,13 +169,15 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
    *
    * @param content - Content of the resulting event.
    */
-  public asWhitespace(content: string): void {
+  public asWhitespace(content: string): this {
     this.identifier.clear()
     this.symbols.clear()
     this.classes.clear()
 
     this.type = UnidocEventType.WHITESPACE
     this.symbols.setString(content)
+
+    return this
   }
 
   /**
@@ -180,7 +185,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
    *
    * @param configuration - Type, identifiers and classes of the resulting tag.
    */
-  public asTagStart(configuration: string): void {
+  public asTagStart(configuration: string): this {
     this.symbols.clear()
     this.classes.clear()
     this.identifier.clear()
@@ -195,10 +200,12 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
 
       if (tokens[3] != null) {
         for (const token of tokens[3].substring(1).split('.')) {
-          this.classes.add(token)
+          this.classes.addString(token)
         }
       }
     }
+
+    return this
   }
 
   /**
@@ -206,7 +213,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
    *
    * @param configuration - Type, identifiers and classes of the resulting tag.
    */
-  public asTagEnd(configuration: string): void {
+  public asTagEnd(configuration: string): this {
     this.symbols.clear()
     this.classes.clear()
     this.identifier.clear()
@@ -221,10 +228,12 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
 
       if (tokens[3] != null) {
         for (const token of tokens[3].substring(1).split('.')) {
-          this.classes.add(token)
+          this.classes.addString(token)
         }
       }
     }
+
+    return this
   }
 
   /**
@@ -232,10 +241,33 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
    *
    * @param classes - An iterable of classes to add to this event set of classes.
    */
-  public addClasses(classes: Iterable<string>): void {
-    for (const clazz of classes) {
-      this.classes.add(clazz)
+  public addClasses(classes: Iterable<UTF32String>): this {
+    this.classes.addMany(classes)
+    return this
+  }
+
+  /**
+   * 
+   */
+  public append(token: UnidocToken): void {
+    switch (token.type) {
+      case UnidocTokenType.CLASS:
+        this.classes.add(token.symbols, 1)
+        break
+      case UnidocTokenType.IDENTIFIER:
+        this.identifier.subCopy(token.symbols, 1)
+        break
+      case UnidocTokenType.TAG:
+        this.symbols.subCopy(token.symbols, 1)
+        break
+      case UnidocTokenType.NEW_LINE:
+      case UnidocTokenType.SPACE:
+      case UnidocTokenType.WORD:
+        this.symbols.concat(token.symbols)
+        break
     }
+
+    this.origin.concat(token.origin)
   }
 
   /**

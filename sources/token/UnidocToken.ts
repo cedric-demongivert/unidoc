@@ -206,17 +206,32 @@ export class UnidocToken implements DataObject<UnidocToken> {
   }
 
   /**
-  * Assess if this token is a tag of the given type.
-  *
-  * @param tag - Type of tag to check.
-  *
-  * @return True if this token is a tag of the given type.
-  */
-  public isTag(tag: string): boolean {
+   * Assess if this token is a tag of the given type.
+   *
+   * @param tag - Type of tag to check.
+   *
+   * @return True if this token is a tag of the given type.
+   */
+  public isStringTag(tag: string): boolean {
     return (
       this.type === UnidocTokenType.TAG &&
       this.symbols.get(0) === UTF32CodeUnit.REVERSE_SOLIDUS &&
       this.symbols.equalsToString(tag, 1)
+    )
+  }
+
+  /**
+   * Assess if this token is a tag of the given type.
+   *
+   * @param tag - Type of tag to check.
+   *
+   * @return True if this token is a tag of the given type.
+   */
+  public isTag(tag: UTF32String): boolean {
+    return (
+      this.type === UnidocTokenType.TAG &&
+      this.symbols.get(0) === UTF32CodeUnit.REVERSE_SOLIDUS &&
+      this.symbols.subEquals(tag, 1)
     )
   }
 

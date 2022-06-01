@@ -430,6 +430,21 @@ export namespace UTF16CodeUnit {
   export const LATIN_CAPITAL_LETTER_Z: NonSurrogate = 0x005A
 
   /**
+   * 
+   */
+  export function offset(unit: UTF16CodeUnit): number {
+    return unit > HighSurrogate.LOWER_BOUNDARY && unit < HighSurrogate.UPPER_BOUNDARY ? 2 : 1
+  }
+
+  /**
+   * 
+   */
+  export function next(value: string, current: number): number {
+    const code: UTF16CodeUnit = value.charCodeAt(current)
+    return code > HighSurrogate.LOWER_BOUNDARY && code < HighSurrogate.UPPER_BOUNDARY ? current + 2 : current + 1
+  }
+
+  /**
    * Return true if the given UTF-16 code unit is the first element of an UTF-16 surrogate pair.
    * 
    * @param unit - An UTF-16 code unit.

@@ -7,7 +7,6 @@ import { UnidocURI } from '../origin/UnidocURI'
 import { UTF32CodeUnit } from '../symbol/UTF32CodeUnit'
 
 import { UnidocEvent } from './UnidocEvent'
-import { UnidocEventBuilder } from './UnidocEventBuilder'
 import { UnidocEventType } from './UnidocEventType'
 
 /**
@@ -47,7 +46,7 @@ export class UnidocEventFlow {
   /**
    * 
    */
-  private readonly _event: UnidocEventBuilder
+  private readonly _event: UnidocEvent
 
   /**
    * 
@@ -63,7 +62,7 @@ export class UnidocEventFlow {
    * Instantiate a new unidoc event.
    */
   public constructor() {
-    this._event = new UnidocEventBuilder()
+    this._event = new UnidocEvent()
     this._tracker = new UnidocTracker()
     this._event.origin.origins.size = 1
     this._origin = this._event.origin.origins.first
@@ -82,7 +81,7 @@ export class UnidocEventFlow {
    * 
    */
   public thenWord(content: string, line: string = content): UnidocEvent {
-    const event: UnidocEventBuilder = this._event
+    const event: UnidocEvent = this._event
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -90,7 +89,7 @@ export class UnidocEventFlow {
     tracker.nextString(line)
     origin.toLocation(tracker.location)
 
-    return event.asWord(content).get()
+    return event.asWord(content)
   }
 
   /**
@@ -141,7 +140,7 @@ export class UnidocEventFlow {
    * 
    */
   public thenWhitespace(content: string, line: string = content): UnidocEvent {
-    const event: UnidocEventBuilder = this._event
+    const event: UnidocEvent = this._event
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
 
@@ -149,14 +148,14 @@ export class UnidocEventFlow {
     tracker.nextString(line)
     origin.toLocation(tracker.location)
 
-    return event.asWhitespace(content).get()
+    return event.asWhitespace(content)
   }
 
   /**
    * 
    */
   public thenTagStart(configuration: string, line: string = '\\' + configuration + '{'): UnidocEvent {
-    const event: UnidocEventBuilder = this._event
+    const event: UnidocEvent = this._event
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
     const path: UnidocPath = this._path
@@ -175,14 +174,14 @@ export class UnidocEventFlow {
     section.setName(event.symbols)
     section.setOrigin(event.origin)
 
-    return event.asTagStart(configuration).get()
+    return event.asTagStart(configuration)
   }
 
   /**
    * 
    */
   public thenTagEnd(line: string = DEFAULT_BLOCK_ENDING): UnidocEvent {
-    const event: UnidocEventBuilder = this._event
+    const event: UnidocEvent = this._event
     const origin: UnidocOrigin = this._origin
     const tracker: UnidocTracker = this._tracker
     const path: UnidocPath = this._path
@@ -200,7 +199,7 @@ export class UnidocEventFlow {
 
     path.delete(path.size - 1)
 
-    return event.get()
+    return event
   }
 }
 
