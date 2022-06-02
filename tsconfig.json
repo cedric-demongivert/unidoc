@@ -16,6 +16,12 @@
     "baseUrl": ".",
     "esModuleInterop": true
   },
+  "typedocOptions": {
+    "entryPoints": [ "./sources" ],
+    "out": "./distribution/documentation",
+    "readme": "none",
+    "excludePrivate": true
+  },
   "include": [
     "sources/index.ts"
   ],
