@@ -8,16 +8,15 @@
   "author": "Cédric DEMONGIVERT <cedric.demongivert@gmail.com>",
   "private": false,
   "scripts": {
-    "development": "npx mix",
-    "watch": "npx mix watch",
-    "hot": "npx mix watch --hot",
-    "production": "npx mix --production",
-    "benchmark": "npx mix --mix-config=webpack-benchmark.mix.js",
-    "preversion": "npm install && npm test",
-    "version": "npm run production && git add --all",
-    "postversion": "git push && git push --tags",
     "test": "jest --coverage",
-    "push": "npm publish ./distribution --access public"
+    "build": "typedoc && npx mix",
+    "preversion": "yarn install",
+    "version": "yarn build && yarn test && git add --all",
+    "postversion": "git push && git push --tags",
+    "push": "yarn build && yarn publish ./distribution --access public",
+    "patch": "yarn version --patch && yarn run push",
+    "minor": "yarn version --minor && yarn run push",
+    "major": "yarn version --major && yarn run push"
   },
   "devDependencies": {
     "@types/benchmark": "^2.1.0",

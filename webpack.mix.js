@@ -1,11 +1,9 @@
 const mix = require('laravel-mix')
-const TypedocWebpackPlugin = require('typedoc-webpack-plugin')
-const package = require('./package.json')
+const pckg = require('./package.json')
 
-const fileSystem = require('fs')
-const externals = ['fs']
+const externals = []
 
-for (const name in package.dependencies) {
+for (const name in pckg.dependencies) {
   externals.push(new RegExp(`^${name}(\\/.+)?$`))
 }
 
@@ -21,19 +19,8 @@ mix.ts('./sources/index.ts', 'distribution')
     		'minimize': false
      },
      'output': {
-       'library': package.name,
+       'library': pckg.name,
        'libraryTarget': 'umd',
        'globalObject': 'this' // webpack bug
-     },
-     'module': {
-       'rules': [
-         { 'test': /\.unidoc$/i, 'use': 'raw-loader' },
-       ]
      }
-     // 'plugins': [
-     //   new TypedocWebpackPlugin(
-     //     { 'target': 'es6', 'mode': 'file' },
-     //     './sources'
-     //   )
-     // ]
    })
