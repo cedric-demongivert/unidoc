@@ -1,5 +1,0 @@
-export { UnidocAnyPredicate } from './UnidocAnyPredicate'
-export { UnidocAnythingPredicate } from './UnidocAnythingPredicate'
-export { UnidocMatchPredicate } from './UnidocMatchPredicate'
-export { UnidocOnlyPredicate } from './UnidocOnlyPredicate'
-export { UnidocPredicate } from './UnidocPredicate'

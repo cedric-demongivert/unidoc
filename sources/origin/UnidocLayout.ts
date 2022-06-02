@@ -1,6 +1,7 @@
 import { Duplicator, Pack } from "@cedric-demongivert/gl-tool-collection"
 
 import { DataObject } from "../DataObject"
+import { UnidocLocation } from "./UnidocLocation"
 import { UnidocOrigin } from "./UnidocOrigin"
 
 /**
@@ -17,6 +18,34 @@ export class UnidocLayout implements DataObject<UnidocLayout> {
    */
   public constructor(capacity: number = 2) {
     this.origins = Pack.instance(UnidocOrigin.ALLOCATOR, capacity)
+  }
+
+  /**
+   * 
+   */
+  public get first(): UnidocOrigin {
+    return this.origins.first
+  }
+
+  /**
+   * 
+   */
+  public get firstLocation(): UnidocLocation {
+    return this.origins.first.range.start
+  }
+
+  /**
+   * 
+   */
+  public get last(): UnidocOrigin {
+    return this.origins.last
+  }
+
+  /**
+   * 
+   */
+  public get lastLocation(): UnidocLocation {
+    return this.origins.last.range.end
   }
 
   /**

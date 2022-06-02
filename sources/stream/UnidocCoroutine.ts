@@ -22,14 +22,14 @@ export class UnidocCoroutine<Product> implements UnidocConsumer<Product> {
   /**
    * 
    */
-  private _parent: UnidocProducer<Product> | undefined
+  private _producer: UnidocProducer<Product> | undefined
 
   /**
    * 
    */
   public constructor(iterator: UnidocCoroutine.Definition<Product>) {
     this._element = new UnidocElement()
-    this._parent = undefined
+    this._producer = undefined
     this._iterator = iterator()
     this._iterator.next()
 
@@ -43,33 +43,30 @@ export class UnidocCoroutine<Product> implements UnidocConsumer<Product> {
    * @see UnidocConsumer.prototype.subscribe
    */
   public subscribe(producer: UnidocProducer<Product>): void {
-    if (this._parent === producer) {
-      return
-    }
-
-    if (this._parent) {
-      this.unsubscribe(this._parent)
-    }
+    if (this._producer === producer) return
+    if (this._producer) this.unsubscribe()
 
     producer.on(UnidocProducer.START, this.start)
     producer.on(UnidocProducer.NEXT, this.next)
     producer.on(UnidocProducer.FAILURE, this.failure)
     producer.on(UnidocProducer.SUCCESS, this.success)
 
-    this._parent = producer
+    this._producer = producer
   }
 
   /**
    * @see UnidocConsumer.prototype.unsubscribe
    */
-  public unsubscribe(producer: UnidocProducer<Product>): void {
-    if (this._parent === producer) {
+  public unsubscribe(): void {
+    if (this._producer) {
+      const producer: UnidocProducer<Product> = this._producer
+
       producer.off(UnidocProducer.START, this.start)
       producer.off(UnidocProducer.NEXT, this.next)
       producer.off(UnidocProducer.FAILURE, this.failure)
       producer.off(UnidocProducer.SUCCESS, this.success)
 
-      this._parent = undefined
+      this._producer = undefined
     }
   }
 

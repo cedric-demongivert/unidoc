@@ -9,32 +9,54 @@ export class UnidocFunction<Input, Output = Input> extends UnidocPublisher<Outpu
   /**
    * 
    */
+  private _producer: UnidocProducer<Input> | undefined
+
+  /**
+   * 
+   */
   public constructor() {
     super()
+
     this.start = this.start.bind(this)
     this.next = this.next.bind(this)
     this.success = this.success.bind(this)
     this.failure = this.failure.bind(this)
+
+    this._producer = undefined
   }
 
   /**
    * @see UnidocConsumer.prototype.subscribe
    */
   public subscribe(producer: UnidocProducer<Input>): void {
-    producer.on(UnidocProducer.START, this.start)
-    producer.on(UnidocProducer.NEXT, this.next)
-    producer.on(UnidocProducer.SUCCESS, this.success)
-    producer.on(UnidocProducer.FAILURE, this.failure)
+    if (this._producer === producer) return
+
+    if (this._producer) {
+      this.unsubscribe()
+    }
+
+    if (producer) {
+      producer.on(UnidocProducer.START, this.start)
+      producer.on(UnidocProducer.NEXT, this.next)
+      producer.on(UnidocProducer.SUCCESS, this.success)
+      producer.on(UnidocProducer.FAILURE, this.failure)
+      this._producer = producer
+    }
   }
 
   /**
    * @see UnidocConsumer.prototype.unsubscribe
    */
-  public unsubscribe(producer: UnidocProducer<Input>): void {
-    producer.off(UnidocProducer.START, this.start)
-    producer.off(UnidocProducer.NEXT, this.next)
-    producer.off(UnidocProducer.SUCCESS, this.success)
-    producer.off(UnidocProducer.FAILURE, this.failure)
+  public unsubscribe(): void {
+    if (this._producer) {
+      const producer: UnidocProducer<Input> = this._producer
+      this._producer = undefined
+
+      producer.off(UnidocProducer.START, this.start)
+      producer.off(UnidocProducer.NEXT, this.next)
+      producer.off(UnidocProducer.SUCCESS, this.success)
+      producer.off(UnidocProducer.FAILURE, this.failure)
+    }
   }
 
   /**

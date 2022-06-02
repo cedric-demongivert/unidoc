@@ -12,7 +12,7 @@ export interface UnidocConsumer<Product> {
   /**
    * 
    */
-  unsubscribe(producer: UnidocProducer<Product>): void
+  unsubscribe(): void
 
   /**
    * 

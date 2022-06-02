@@ -7,8 +7,6 @@ import { UnidocPath, UnidocLayout } from '../origin'
 import { DataObject } from '../DataObject'
 
 import { UnidocEventType } from './UnidocEventType'
-import { UnidocToken } from '../token/UnidocToken'
-import { UnidocTokenType } from '../token/UnidocTokenType'
 
 const TAG_EVENT_CONFIGURATION: RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?((?:\.[a-zA-Z0-9\-]+)+)?$/i
 
@@ -244,30 +242,6 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   public addClasses(classes: Iterable<UTF32String>): this {
     this.classes.addMany(classes)
     return this
-  }
-
-  /**
-   * 
-   */
-  public append(token: UnidocToken): void {
-    switch (token.type) {
-      case UnidocTokenType.CLASS:
-        this.classes.add(token.symbols, 1)
-        break
-      case UnidocTokenType.IDENTIFIER:
-        this.identifier.subCopy(token.symbols, 1)
-        break
-      case UnidocTokenType.TAG:
-        this.symbols.subCopy(token.symbols, 1)
-        break
-      case UnidocTokenType.NEW_LINE:
-      case UnidocTokenType.SPACE:
-      case UnidocTokenType.WORD:
-        this.symbols.concat(token.symbols)
-        break
-    }
-
-    this.origin.concat(token.origin)
   }
 
   /**

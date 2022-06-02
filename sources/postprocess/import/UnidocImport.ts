@@ -1,7 +1,7 @@
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
-import { Empty } from 'sources/Empty'
+import { Empty } from '@cedric-demongivert/gl-tool-utils'
 
-import { UnidocRangeOrigin } from '../../origin/UnidocRangeOrigin'
+import { UnidocLayout, UnidocURI } from '../../origin'
 
 /**
  * 
@@ -10,42 +10,12 @@ export class UnidocImport {
   /**
    * 
    */
-  public readonly origin: UnidocRangeOrigin
+  public readonly origin: UnidocLayout
 
   /**
    * 
    */
-  public protocol: string
-
-  /**
-   * 
-   */
-  public auth: string | undefined
-
-  /**
-   * 
-   */
-  public host: string | undefined
-
-  /**
-   * 
-   */
-  public port: string | undefined
-
-  /**
-   * 
-   */
-  public path: string
-
-  /**
-   * 
-   */
-  public query: string | undefined
-
-  /**
-   * 
-   */
-  public fragment: string | undefined
+  public readonly uri: UnidocURI
 
   /**
    * 
@@ -56,30 +26,19 @@ export class UnidocImport {
    * 
    */
   public constructor() {
-    this.origin = new UnidocRangeOrigin(8)
-    this.protocol = 'file'
-    this.auth = undefined
-    this.host = undefined
-    this.port = undefined
-    this.path = Empty.STRING
-    this.query = undefined
-    this.fragment = undefined
+    this.origin = new UnidocLayout()
+    this.uri = new UnidocURI()
     this.mime = 'application/octet-stream'
   }
 
   /**
    * 
    */
-  public copy(toCopy: UnidocImport): void {
+  public copy(toCopy: UnidocImport): this {
     this.origin.copy(toCopy.origin)
-    this.protocol = toCopy.protocol
-    this.auth = toCopy.auth
-    this.host = toCopy.host
-    this.port = toCopy.port
-    this.path = toCopy.path
-    this.query = toCopy.query
-    this.fragment = toCopy.fragment
+    this.uri.copy(toCopy.uri)
     this.mime = toCopy.mime
+    return this
   }
 
   /**
@@ -96,13 +55,7 @@ export class UnidocImport {
    */
   public clear(): void {
     this.origin.clear()
-    this.protocol = 'file'
-    this.auth = undefined
-    this.host = undefined
-    this.port = undefined
-    this.path = Empty.STRING
-    this.query = undefined
-    this.fragment = undefined
+    this.uri.clear()
     this.mime = 'application/octet-stream'
   }
 
@@ -116,13 +69,7 @@ export class UnidocImport {
     if (other instanceof UnidocImport) {
       return (
         other.origin.equals(this.origin) &&
-        other.protocol == this.protocol &&
-        other.auth == this.auth &&
-        other.host == this.host &&
-        other.port == this.port &&
-        other.path == this.path &&
-        other.query == this.query &&
-        other.fragment == this.fragment &&
+        other.uri.equals(this.uri) &&
         other.mime == this.mime
       )
     }

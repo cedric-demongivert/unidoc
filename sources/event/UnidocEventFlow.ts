@@ -203,6 +203,14 @@ export class UnidocEventFlow {
 
     return event
   }
+
+  /**
+   * 
+   */
+  public skip(line: string): this {
+    this._tracker.nextString(line)
+    return this
+  }
 }
 
 /**

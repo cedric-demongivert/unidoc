@@ -262,6 +262,32 @@ export class UTF32String extends BufferPack<Uint32Array> implements Pack<UTF32Co
   }
 
   /**
+   * 
+   */
+  public countLines(): number {
+    let result: number = 0
+    let wasCarriageReturn: boolean = false
+
+    const array: Uint32Array = this.array
+
+    for (let index = 0, size = this.size; index < size; ++index) {
+      const code: UTF32CodeUnit = array[index]
+
+      if (code === UTF32CodeUnit.CARRIAGE_RETURN) {
+        wasCarriageReturn = true
+        result += 1
+      } else if (code === UTF32CodeUnit.NEW_LINE) {
+        result += wasCarriageReturn ? 0 : 1
+        wasCarriageReturn = false
+      } else {
+        wasCarriageReturn = false
+      }
+    }
+
+    return result
+  }
+
+  /**
    * @return This UTF-32 string as a javascript string.
    */
   public toString(): string {

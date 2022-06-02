@@ -36,6 +36,8 @@
     "webpack": "^5.15.0"
   },
   "dependencies": {
+    "@babel/generator": "^7.18.2",
+    "@babel/types": "^7.18.4",
     "@cedric-demongivert/gl-tool-collection": "^0.29.5",
     "@cedric-demongivert/gl-tool-utils": "^0.2.4",
     "@types/chance": "^1.1.3",

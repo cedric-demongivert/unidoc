@@ -12,6 +12,7 @@
     "declaration": true,
     "declarationDir": "./distribution/types",
     "outDir": "./distribution/sources",
+    "experimentalDecorators": true,
     "baseUrl": ".",
     "esModuleInterop": true
   },
