@@ -1,7 +1,7 @@
 export { UnidocFragmentResolver } from './UnidocFragmentResolver'
 export { UnidocImport } from './UnidocImport'
 export { UnidocImportScheme } from './UnidocImportScheme'
-export { UnidocImportationResolver } from './UnidocImportationResolver'
+export { UnidocImportResolver } from './UnidocImportResolver'
 export { UnidocNullResolver } from './UnidocNullResolver'
 export { UnidocResource } from './UnidocResource'
 export { UnidocContext } from './UnidocContext'
