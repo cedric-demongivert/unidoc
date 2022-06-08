@@ -290,8 +290,8 @@ export class UTF32String extends BufferPack<Uint32Array> implements Pack<UTF32Co
   /**
    * @return This UTF-32 string as a javascript string.
    */
-  public toString(): string {
-    return TEMPORARY_BUFFER.setUTF32String(this).toString()
+  public toString(from: number = 0, to: number = this.size): string {
+    return TEMPORARY_BUFFER.setUTF32String(this).toString(TEMPORARY_BUFFER.indexOfSymbol(from), TEMPORARY_BUFFER.indexOfSymbol(to))
   }
 
   /**

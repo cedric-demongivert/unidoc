@@ -143,10 +143,36 @@ export class UTF16String extends BufferPack<Uint16Array> implements Pack<UTF16Co
   }
 
   /**
+   * 
+   */
+  public indexOfSymbol(symbol: number): number {
+    let utf32Cursor: number = 0
+    let utf16Cursor: number = 0
+    const array: Uint16Array = this.array
+    const size: number = this.size
+
+    while (utf16Cursor < size) {
+      if (utf32Cursor === symbol) return utf16Cursor
+
+      const utf16Unit: UTF16CodeUnit = array[utf16Cursor]
+
+      if (utf16Unit > UTF16CodeUnit.AnySurrogate.LOWER_BOUNDARY && utf16Unit < UTF16CodeUnit.AnySurrogate.UPPER_BOUNDARY) {
+        utf16Cursor += 2
+      } else {
+        utf16Cursor += 1
+      }
+
+      utf32Cursor += 1
+    }
+
+    return size
+  }
+
+  /**
    * @return This UTF-16 string as a javascript string.
    */
-  public toString(): string {
-    return String.fromCharCode(...this)
+  public toString(from: number = 0, to: number = this.size): string {
+    return String.fromCharCode(...this.subValues(from, to))
   }
 
   /**
@@ -237,7 +263,18 @@ export class UTF16String extends BufferPack<Uint16Array> implements Pack<UTF16Co
   /**
    * 
    */
-  * utf32Values(): IterableIterator<UTF32CodeUnit> {
+  public * subValues(from: number, to: number): IterableIterator<UTF16CodeUnit> {
+    const utf16Array: Uint16Array = this.array
+
+    for (let index = from; index < to; ++index) {
+      yield utf16Array[index]
+    }
+  }
+
+  /**
+   * 
+   */
+  public * utf32Values(): IterableIterator<UTF32CodeUnit> {
     const utf16Array: Uint16Array = this.array
 
     const size: number = this.size

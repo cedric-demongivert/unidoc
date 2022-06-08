@@ -1,180 +1,183 @@
-import { Pack } from '@cedric-demongivert/gl-tool-collection'
+import { nothing } from '@cedric-demongivert/gl-tool-utils'
 
+import { UnidocConsumer } from '../stream'
 import { UnidocSymbol } from '../symbol/UnidocSymbol'
-import { UnidocOrigin } from '../origin/UnidocOrigin'
 
-import { UnidocPublisher } from '../stream/UnidocPublisher'
-
-import { UnidocImportationResolver } from './UnidocImportationResolver'
-import { UnidocContextState } from './UnidocContextState'
-
+import { UnidocImportResolver } from './UnidocImportResolver'
 import { UnidocResource } from './UnidocResource'
-import { UnidocImportation } from './UnidocImportation'
+import { UnidocImport } from './UnidocImport'
+import { UnidocImportPromise } from './UnidocImportPromise'
 
 /**
  * 
  */
-export class UnidocContext extends UnidocPublisher<UnidocSymbol> {
+export class UnidocContext {
   /**
    *
    */
-  private readonly _resources: Pack<UnidocResource>
+  private readonly _stack: Array<UnidocResource>
 
   /**
    *
    */
-  private readonly _symbol: UnidocSymbol
+  private readonly _resolver: UnidocImportResolver
 
   /**
    *
    */
-  private readonly _import: UnidocImportation
+  private _importing: UnidocImportPromise | null
 
   /**
    *
    */
-  private readonly _resolver: UnidocImportationResolver
+  private _consumer: UnidocConsumer<UnidocSymbol> | null
 
   /**
    *
    */
-  private _state: UnidocContextState
-
-  /**
-   * 
-   */
-  private _oldState: UnidocContextState
+  private _feeding: Promise<void> | null
 
   /**
    * 
    * @param resolver 
    */
-  public constructor(resolver: UnidocImportationResolver) {
-    super()
-
-    this._resources = Pack.any(16)
-    this._import = new UnidocImportation()
-    this._symbol = new UnidocSymbol()
+  public constructor(resolver: UnidocImportResolver) {
+    this._stack = []
     this._resolver = resolver
-    this._state = UnidocContextState.CREATED
-    this._oldState = UnidocContextState.CREATED
+    this._importing = null
+    this._feeding = null
+    this._consumer = null
 
-    this.executeImport = this.executeImport.bind(this)
-    this.fail = this.fail.bind(this)
-  }
-
-  /**
-   * 
-   */
-  protected startIfNecessary(): void {
-    if (this._state === UnidocContextState.CREATED) {
-      this.output.start()
-      this._state = UnidocContextState.RUNNING
-    }
-  }
-
-  /**
-   * 
-   */
-  public import(resource: string): void
-  /**
-   * 
-   */
-  public import(importation: UnidocImportation): void
-  /**
-   * 
-   */
-  public import(parameter: string | UnidocImportation): void {
-    if (typeof parameter === 'string') {
-      this._import.resource = parameter
-      this._import.origin.at(UnidocOrigin.runtime())
-      this.resolveImport(this._import)
-    } else {
-      this.resolveImport(parameter)
-    }
-  }
-
-  /**
-   * 
-   */
-  private resolveImport(importation: UnidocImportation): void {
-    this._oldState = this._state
-    this._state = UnidocContextState.IMPORTING
-    this._resolver
-      .resolve(importation)
-      .then(this.executeImport)
-      .catch(this.fail)
-  }
-
-  /**
-   * 
-   */
-  private executeImport(resource: UnidocResource): void {
-    this._state = this._oldState
-    this.stream(resource)
-  }
-
-  /**
-   * 
-   */
-  public stream(resource: UnidocResource): void {
-    this.assertThatThereIsNoCircularDependency(resource)
-    this.startIfNecessary()
-
-    this._resources.push(resource)
-
-    while (this.running && this._state === UnidocContextState.RUNNING) {
-      this.next()
-    }
-
-    if (this._state === UnidocContextState.RUNNING) {
-      this._state = UnidocContextState.COMPLETED
-      this.output.success()
-    }
-  }
-
-  /**
-   * 
-   */
-  private assertThatThereIsNoCircularDependency(resource: UnidocResource): void {
-    for (const existingResource of this._resources) {
-      if (existingResource.resource === resource.resource) {
-        throw new Error(
-          'Unable to stream resource ' + resource.resource + ' imported from ' +
-          resource.origin.origin.toString() + ' because there is a circular ' +
-          'dependency : ' +
-          [...this._resources].map(x => x.resource).join(' > ') +
-          ' > ' + resource.resource + '.'
-        )
-      }
-    }
-  }
-
-  /**
-   * 
-   */
-  public fail(error: Error): void {
-    this.output.fail(error)
+    this.handleImportSuccess.bind(this)
+    this.handleImportFailure.bind(this)
   }
 
   /**
    * 
    */
   public get running(): boolean {
-    return this._resources.size > 0
+    return this._importing == null
   }
 
   /**
    * 
    */
-  private next(): void {
-    const next: UnidocSymbol = this._resources.last.reader.next()!
-    this._symbol.code = next.code
-
-    while (this._resources.size > 0 && !this._resources.last.reader.running) {
-      this._resources.pop()
+  public import(resource: UnidocImport): Promise<UnidocResource> {
+    if (this._consumer == null) {
+      throw new Error(
+        `Illegal import call. Trying to import resource ${resource.toString()} before or after a ` +
+        'feeding attempt. Use the feed method instead.'
+      )
     }
 
-    this.output.next(next)
+    try {
+      const result: Promise<UnidocResource> | UnidocResource = this._resolver.resolve(resource)
+
+      if (result instanceof Promise) {
+        this._importing = new UnidocImportPromise(this._importing, result)
+      } else if (this._importing == null) {
+        this.assertThatThereIsNoCircularDependency(result)
+        return Promise.resolve(result)
+      } else {
+        this._importing = new UnidocImportPromise(this._importing, Promise.resolve(result))
+      }
+
+      this._importing.then(this.handleImportSuccess, this.handleImportFailure)
+      return this._importing.asPromise()
+    } catch (error) {
+      throw error
+    }
+  }
+
+  /**
+   * 
+   */
+  private handleImportSuccess(resource: UnidocResource): void {
+    this.assertThatThereIsNoCircularDependency(resource)
+    this._stack.push(resource)
+
+    if (this._importing.resolved) {
+      this._importing = null
+      this.execute()
+    }
+  }
+
+  /**
+   * 
+   */
+  private handleImportFailure(error: Error): void {
+    throw error
+  }
+
+  /**
+   * 
+   */
+  private execute(): void {
+    const stack: Array<UnidocResource> = this._stack
+    const consumer: UnidocConsumer<UnidocSymbol> = this._consumer!
+
+    while (stack.length > 0 && this._importing == null) {
+      const resource: UnidocResource = stack[stack.length - 1]
+
+      while (resource.hasNext() && this._importing == null) {
+        consumer.next(resource.next())
+      }
+    }
+
+    if (stack.length === 0) {
+      this.handleFeedingSuccess()
+    }
+  }
+
+  /**
+   * 
+   */
+  public feed(resource: UnidocImport, consumer: UnidocConsumer<UnidocSymbol>): Promise<void> {
+    if (this._consumer != null) {
+      throw new Error('Trying to feed multiple consumers in parrallel with the same context instance.')
+    }
+
+    this._feeding = new Promise(nothing)
+    this._consumer = consumer
+
+    consumer.start()
+
+    this.import(resource)
+
+    if (this._importing == null) {
+      this.execute()
+    }
+
+    return this._feeding
+  }
+
+  /**
+   * 
+   */
+  public handleFeedingSuccess(): void {
+    this._consumer.success()
+    this._consumer = null
+
+    const promise: Promise<void> = this._feeding
+    this._feeding = null
+
+    Promise.resolve(promise)
+  }
+
+  /**
+   * 
+   */
+  private assertThatThereIsNoCircularDependency(resource: UnidocResource): void {
+    for (const existingResource of this._stack) {
+      if (existingResource.import.equals(resource.import)) {
+        throw new Error(
+          `Unable to stream resource ${resource.import.scheme}://${resource.import.identifier} of type ${resource.import.mime} (` +
+          `${resource.import.origin.toString()}) because there is a circular dependency : ` +
+          this._stack.map(x => `${x.import.scheme}://${x.import.identifier} of type ${x.import.mime} (${x.import.origin.toString()})`).join(' > ') +
+          ` > ${resource.import.scheme}://${resource.import.identifier} of type ${resource.import.mime} (` +
+          `${resource.import.origin.toString()}).`
+        )
+      }
+    }
   }
 }

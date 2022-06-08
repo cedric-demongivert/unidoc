@@ -25,7 +25,7 @@ export class UnidocURI implements DataObject<UnidocURI> {
   /**
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.3
    */
-  public readonly path: Pack<string>
+  public identifier: string
 
   /**
    * @see https://datatracker.ietf.org/doc/html/rfc3986#section-3.4
@@ -43,7 +43,7 @@ export class UnidocURI implements DataObject<UnidocURI> {
   public constructor(scheme: string = UnidocURI.DEFAULT_SCHEME) {
     this.scheme = scheme
     this.authority = new Optional(new UnidocAuthority(), false)
-    this.path = Pack.any(4, Empty.string)
+    this.identifier = Empty.STRING
     this.query = new Map()
     this.fragment = undefined
   }
@@ -54,7 +54,7 @@ export class UnidocURI implements DataObject<UnidocURI> {
   public asFile(path: string): this {
     this.clear()
     this.scheme = UnidocURI.FILE_SCHEME
-    this.path.concatArray(path.split(/(\/|\\)/))
+    this.identifier = path
     return this
   }
 
@@ -64,7 +64,7 @@ export class UnidocURI implements DataObject<UnidocURI> {
   public asRuntime(origin: Function | string): this {
     this.clear()
     this.scheme = UnidocURI.RUNTIME_SCHEME
-    this.path.set(0, typeof origin === 'string' ? origin : origin.name || 'function')
+    this.identifier = typeof origin === 'string' ? origin : origin.name || 'function'
     return this
   }
 
@@ -95,44 +95,8 @@ export class UnidocURI implements DataObject<UnidocURI> {
   /**
    * 
    */
-  public pushPath(element: string): this {
-    this.path.push(element)
-    return this
-  }
-
-  /**
-   * 
-   */
-  public setPath(pathToSet: Iterable<string>): this {
-    const path: Pack<string> = this.path
-
-    path.clear()
-
-    for (const element of pathToSet) {
-      path.push(element)
-    }
-
-    return this
-  }
-
-  /**
-   * 
-   */
-  public appendPath(pathToAppend: Iterable<string>): this {
-    const path: Pack<string> = this.path
-
-    for (const element of pathToAppend) {
-      path.push(element)
-    }
-
-    return this
-  }
-
-  /**
-   * 
-   */
-  public deletePath(): this {
-    this.path.clear()
+  public setIdentifier(identifier: string): this {
+    this.identifier = identifier
     return this
   }
 
@@ -194,7 +158,7 @@ export class UnidocURI implements DataObject<UnidocURI> {
   public clear(): this {
     this.scheme = UnidocURI.DEFAULT_SCHEME
     this.authority.delete()
-    this.path.clear()
+    this.identifier = Empty.STRING
     this.query.clear()
     this.fragment = undefined
     return this
@@ -213,7 +177,7 @@ export class UnidocURI implements DataObject<UnidocURI> {
   public copy(toCopy: this): this {
     this.scheme = toCopy.scheme
     this.authority.copy(toCopy.authority)
-    this.path.copy(toCopy.path)
+    this.identifier = toCopy.identifier
     this.setQuery(toCopy.query)
     this.fragment = toCopy.fragment
     return this
@@ -229,16 +193,7 @@ export class UnidocURI implements DataObject<UnidocURI> {
       result += this.authority.get().toString() + '/'
     }
 
-    const path: Pack<string> = this.path
-
-    if (path.size > 0) {
-      result += path.get(0)
-
-      for (let index = 1, size = path.size; index < size; ++index) {
-        result += '/'
-        result += path.get(index)
-      }
-    }
+    result += this.identifier
 
     const query: Map<string, string> = this.query
 
@@ -288,7 +243,7 @@ export class UnidocURI implements DataObject<UnidocURI> {
       return (
         this.scheme === other.scheme &&
         this.authority.equals(other.authority) &&
-        this.path.equals(other.path) &&
+        this.identifier === other.identifier &&
         this.fragment === other.fragment
       )
     }

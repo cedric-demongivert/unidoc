@@ -1,2 +1,5 @@
+export { extractImports } from './extractImports'
 export { UnidocAutoWrapper } from './UnidocAutoWrapper'
 export { UnidocAutoCloser } from './UnidocAutoCloser'
+export { UnidocImportExtractor } from './UnidocImportExtractor'
+export { UnidocImportExtractorState } from './UnidocImportExtractorState'

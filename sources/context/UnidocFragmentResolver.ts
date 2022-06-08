@@ -1,15 +1,15 @@
-import { UnidocOrigin } from '../origin/UnidocOrigin'
-import { UnidocSymbolGenerator } from '../source/UnidocSymbolGenerator'
+import { UnidocSymbols } from '../symbol'
+import { UnidocURI } from '../origin'
 
-import { UnidocImportationResolver } from './UnidocImportationResolver'
-
-import { UnidocImportation } from './UnidocImportation'
+import { UnidocImportResolver } from './UnidocImportResolver'
+import { UnidocImport } from './UnidocImport'
 import { UnidocResource } from './UnidocResource'
+import { UnidocIteratorResource } from './UnidocIteratorResource'
 
 /**
  * 
  */
-export class UnidocFragmentResolver extends UnidocImportationResolver {
+export class UnidocFragmentResolver implements UnidocImportResolver {
   /**
    * 
    */
@@ -18,9 +18,14 @@ export class UnidocFragmentResolver extends UnidocImportationResolver {
   /**
    * 
    */
+  private readonly _uri: UnidocURI
+
+  /**
+   * 
+   */
   public constructor() {
-    super()
     this._fragments = new Map()
+    this._uri = new UnidocURI()
   }
 
   /**
@@ -33,24 +38,20 @@ export class UnidocFragmentResolver extends UnidocImportationResolver {
   /**
    * 
    */
-  public async resolve(value: UnidocImportation): Promise<UnidocResource> {
-    const fragment: string | undefined = this._fragments.get(value.resource)
+  public resolve(value: UnidocImport): UnidocResource {
+    const fragment: string | undefined = this._fragments.get(value.identifier)
 
     if (fragment == null) {
       throw new Error(
-        'Unable to resolve fragment : ' + value.resource + ' because there is ' +
+        'Unable to resolve import ' + value.toString() + ' because there is ' +
         'no fragment registered with the given name.'
       )
     } else {
-      const resource: UnidocResource = new UnidocResource()
+      const uri: UnidocURI = this._uri
+      uri.scheme = 'fragment'
+      uri.identifier = value.identifier
 
-      resource.resource = 'fragment://' + value.resource
-      resource.reader = UnidocSymbolGenerator.fromString(
-        fragment, new UnidocOrigin().resource('fragment://' + value.resource)
-      )
-      resource.origin.copy(value)
-
-      return resource
+      return new UnidocIteratorResource(uri, value, UnidocSymbols.fromString(fragment, uri.clone()))
     }
   }
 }

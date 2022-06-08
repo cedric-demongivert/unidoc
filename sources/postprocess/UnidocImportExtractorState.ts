@@ -1,20 +1,20 @@
 /**
  * 
  */
-export type UnidocImportFilterState = (
-  UnidocImportFilterState.CONTENT |
-  UnidocImportFilterState.LEADING_WHITESPACE |
-  UnidocImportFilterState.URI |
-  UnidocImportFilterState.URI_TRAILING_WHITESPACE |
-  UnidocImportFilterState.TYPEDEF |
-  UnidocImportFilterState.TYPEDEF_VALUE |
-  UnidocImportFilterState.TYPEDEF_TRAILING_WHITESPACE
+export type UnidocImportExtractorState = (
+  UnidocImportExtractorState.CONTENT |
+  UnidocImportExtractorState.LEADING_WHITESPACE |
+  UnidocImportExtractorState.URI |
+  UnidocImportExtractorState.URI_TRAILING_WHITESPACE |
+  UnidocImportExtractorState.TYPEDEF |
+  UnidocImportExtractorState.TYPEDEF_VALUE |
+  UnidocImportExtractorState.TYPEDEF_TRAILING_WHITESPACE
 )
 
 /**
  * 
  */
-export namespace UnidocImportFilterState {
+export namespace UnidocImportExtractorState {
   /**
    * 
    */
@@ -88,7 +88,7 @@ export namespace UnidocImportFilterState {
   /**
    * 
    */
-  export const ALL: UnidocImportFilterState[] = [
+  export const ALL: UnidocImportExtractorState[] = [
     CONTENT,
     LEADING_WHITESPACE,
     URI,
@@ -101,7 +101,7 @@ export namespace UnidocImportFilterState {
   /**
    * 
    */
-  export function toString(value: UnidocImportFilterState): string | undefined {
+  export function toString(value: UnidocImportExtractorState): string | undefined {
     switch (value) {
       case CONTENT: return 'CONTENT'
       case LEADING_WHITESPACE: return 'LEADING_WHITESPACE'
@@ -117,7 +117,7 @@ export namespace UnidocImportFilterState {
   /**
    * 
    */
-  export function toDebugString(value: UnidocImportFilterState): string {
-    return 'UnidocImportFilterState #' + value + ' (' + (toString(value) || 'undefined') + ')'
+  export function toDebugString(value: UnidocImportExtractorState): string {
+    return 'UnidocImportExtractorState #' + value + ' (' + (toString(value) || 'undefined') + ')'
   }
 }

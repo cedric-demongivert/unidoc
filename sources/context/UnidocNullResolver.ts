@@ -1,16 +1,16 @@
-import { UnidocImportationResolver } from './UnidocImportationResolver'
+import { UnidocImportResolver } from './UnidocImportResolver'
 
 import { UnidocResource } from './UnidocResource'
-import { UnidocImportation } from './UnidocImportation'
+import { UnidocImport } from './UnidocImport'
 
 /**
  * 
  */
-export class UnidocNullResolver extends UnidocImportationResolver {
+export class UnidocNullResolver implements UnidocImportResolver {
   /**
    * 
    */
-  public async resolve(value: UnidocImportation): Promise<UnidocResource> {
+  public resolve(value: UnidocImport): Promise<UnidocResource> | UnidocResource {
     throw 'A null resolver can\'t resolve unidoc resources.'
   }
 }
