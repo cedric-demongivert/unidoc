@@ -4,9 +4,9 @@ import { Empty, Factory } from '@cedric-demongivert/gl-tool-utils'
 
 import { UnidocCoroutine } from '../../sources/stream/UnidocCoroutine'
 import { feed } from '../../sources/stream/feed'
-import { UnidocImportExtractor } from '../../sources/postprocess/import/UnidocImportExtractor'
-import { UnidocImport } from '../../sources/postprocess/import/UnidocImport'
-import { UnidocImportScheme } from '../../sources/postprocess/import/UnidocImportScheme'
+import { UnidocImportExtractor } from '../../sources/postprocess/UnidocImportExtractor'
+import { UnidocImport } from '../../sources/context/UnidocImport'
+import { UnidocImportScheme } from '../../sources/context/UnidocImportScheme'
 import { UnidocEventFlow } from '../../sources/event/UnidocEventFlow'
 import { UnidocEvent } from '../../sources/event/UnidocEvent'
 
