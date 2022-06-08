@@ -1,7 +1,7 @@
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 import { Empty } from '@cedric-demongivert/gl-tool-utils'
 
-import { UnidocLayout } from '../../origin'
+import { UnidocLayout } from '../origin'
 import { UnidocImportScheme } from './UnidocImportScheme'
 
 /**

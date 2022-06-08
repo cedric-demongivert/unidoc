@@ -96,7 +96,7 @@ export class UnidocContext {
     this.assertThatThereIsNoCircularDependency(resource)
     this._stack.push(resource)
 
-    if (this._importing.resolved) {
+    if (this._importing!.resolved) {
       this._importing = null
       this.execute()
     }
@@ -120,7 +120,7 @@ export class UnidocContext {
       const resource: UnidocResource = stack[stack.length - 1]
 
       while (resource.hasNext() && this._importing == null) {
-        consumer.next(resource.next())
+        consumer.next(resource.next()!)
       }
     }
 
@@ -155,10 +155,10 @@ export class UnidocContext {
    * 
    */
   public handleFeedingSuccess(): void {
-    this._consumer.success()
+    this._consumer!.success()
     this._consumer = null
 
-    const promise: Promise<void> = this._feeding
+    const promise: Promise<void> = this._feeding!
     this._feeding = null
 
     Promise.resolve(promise)
