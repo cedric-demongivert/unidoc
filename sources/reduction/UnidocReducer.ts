@@ -14,6 +14,7 @@ import { expectToken as expectTokenReducer } from './expectToken'
 import { expectWhitespaces as expectWhitespacesReducer } from './expectWhitespaces'
 import { expectWords as expectWordsReducer } from './expectWords'
 import { findTag as findTagReducer } from './findTag'
+import { optionalTag as optionalTagReducer } from './optionalTag'
 import { reduceMany as reduceManyReducer } from './reduceMany'
 import { reduceTag as reduceTagReducer } from './reduceTag'
 import { reduceText as reduceTextReducer } from './reduceText'
@@ -89,6 +90,11 @@ export namespace UnidocReducer {
    * 
    */
   export const findTag = findTagReducer
+
+  /**
+   * 
+   */
+  export const optionalTag = optionalTagReducer
 
   /**
    * 
