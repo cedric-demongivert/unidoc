@@ -1,4 +1,5 @@
 //export * from './compilation'
+export * from './reduction'
 export * from './context'
 export * from './event'
 export * from './lexer'
