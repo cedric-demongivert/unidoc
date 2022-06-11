@@ -158,7 +158,7 @@ export class UnidocContext {
   /**
    * 
    */
-  public handleFeedingSuccess(): void {
+  private handleFeedingSuccess(): void {
     this._consumer!.success()
     this._consumer = null
 

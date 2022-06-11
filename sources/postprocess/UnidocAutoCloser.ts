@@ -79,6 +79,8 @@ export class UnidocAutoCloser extends UnidocFunction<UnidocEvent>
 
       this.output.next(event)
     }
+
+    this.output.success()
   }
 
   /**
