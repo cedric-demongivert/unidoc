@@ -15,7 +15,9 @@ import { assertWhitespace as assertWhitespaceReducer } from './assertWhitespace'
 import { assertWord as assertWordReducer } from './assertWord'
 import { expectOptionalTag as expectOptionalTagReducer } from './expectOptionalTag'
 import { expectText as expectTextReducer } from './expectText'
+import { expectTextTag as expectTextTagReducer } from './expectTextTag'
 import { expectToken as expectTokenReducer } from './expectToken'
+import { expectTokenTag as expectTokenTagReducer } from './expectTokenTag'
 import { expectWhitespaces as expectWhitespacesReducer } from './expectWhitespaces'
 import { expectWords as expectWordsReducer } from './expectWords'
 import { fail as failReducer } from './fail'
@@ -24,7 +26,9 @@ import { optionalTag as optionalTagReducer } from './optionalTag'
 import { reduceMany as reduceManyReducer } from './reduceMany'
 import { reduceTag as reduceTagReducer } from './reduceTag'
 import { reduceText as reduceTextReducer } from './reduceText'
+import { reduceTextTag as reduceTextTagReducer } from './reduceTextTag'
 import { reduceToken as reduceTokenReducer } from './reduceToken'
+import { reduceTokenTag as reduceTokenTagReducer } from './reduceTokenTag'
 import { reduceWhitespaces as reduceWhitespacesReducer } from './reduceWhitespaces'
 import { reduceWords as reduceWordsReducer } from './reduceWords'
 import { skipRest as skipRestReducer } from './skipRest'
@@ -105,7 +109,17 @@ export namespace UnidocReducer {
   /**
    * 
    */
+  export const expectTextTag = expectTextTagReducer
+
+  /**
+   * 
+   */
   export const expectToken = expectTokenReducer
+
+  /**
+   * 
+   */
+  export const expectTokenTag = expectTokenTagReducer
 
   /**
    * 
@@ -150,7 +164,17 @@ export namespace UnidocReducer {
   /**
    * 
    */
+  export const reduceTextTag = reduceTextTagReducer
+
+  /**
+   * 
+   */
   export const reduceToken = reduceTokenReducer
+
+  /**
+   * 
+   */
+  export const reduceTokenTag = reduceTokenTagReducer
 
   /**
    * 

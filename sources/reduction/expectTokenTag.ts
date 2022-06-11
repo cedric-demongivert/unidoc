@@ -1,9 +1,8 @@
-import { UTF32String } from '../symbol'
 import { assertEndOfAnyTag } from './assertEndOfAnyTag'
 import { assertStart } from './assertStart'
 import { assertStartOfAnyTag } from './assertStartOfAnyTag'
 import { assertTermination } from './assertTermination'
-import { reduceToken } from './reduceToken'
+import { expectToken } from './expectToken'
 import { skipWhitespaces } from './skipWhitespaces'
 
 import { UnidocReduction } from './UnidocReduction'
@@ -11,14 +10,14 @@ import { UnidocReduction } from './UnidocReduction'
 /**
 *
 */
-export function* reduceTokenTag(): UnidocReduction<string | null> {
+export function* expectTokenTag(): UnidocReduction<string | null> {
   yield* assertStart()
   yield UnidocReduction.NEXT
 
   yield* assertStartOfAnyTag()
   yield UnidocReduction.NEXT
 
-  const result: string | null = yield* reduceToken()
+  const result: string = yield* expectToken()
 
   yield* skipWhitespaces()
 
