@@ -1,6 +1,7 @@
 import { UnidocURI } from '../origin'
 import { UnidocSymbol } from '../symbol'
 import { UnidocImport } from './UnidocImport'
+import { UnidocIteratorResource } from './UnidocIteratorResource'
 
 /**
  * 
@@ -25,4 +26,14 @@ export interface UnidocResource {
    * 
    */
   next(): UnidocSymbol | undefined
+}
+
+/**
+ * 
+ */
+export namespace UnidocResource {
+  /**
+   * 
+   */
+  export const fromIterator = UnidocIteratorResource.create
 }

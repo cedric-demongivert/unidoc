@@ -53,3 +53,15 @@ export class UnidocIteratorResource {
     return result
   }
 }
+
+/**
+ * 
+ */
+export namespace UnidocIteratorResource {
+  /**
+   * 
+   */
+  export function create(origin: UnidocURI, from: UnidocImport, iterator: Iterator<UnidocSymbol>): UnidocIteratorResource {
+    return new UnidocIteratorResource(origin, from, iterator)
+  }
+}

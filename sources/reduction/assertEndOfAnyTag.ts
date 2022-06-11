@@ -7,7 +7,7 @@ export function* assertEndOfAnyTag(): UnidocReduction<void> {
   const current: UnidocReduction.Input = (yield UnidocReduction.CURRENT)
 
   if (!current.isNext()) {
-    throw new Error(`Expected to receive another element, but received ${current.toString()}.`)
+    throw new Error(`Stream : expected to receive another element, but received ${current.toString()}.`)
   }
 
   if (!current.value.isEndOfAnyTag()) {
