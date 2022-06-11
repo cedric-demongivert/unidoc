@@ -122,6 +122,10 @@ export class UnidocContext {
       while (resource.hasNext() && this._importing == null) {
         consumer.next(resource.next()!)
       }
+
+      if (!resource.hasNext()) {
+        stack.pop()
+      }
     }
 
     if (stack.length === 0) {
