@@ -59,8 +59,26 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    *
    */
+  public assertStartOfAnyTag(): void {
+    if (this.type !== UnidocEventType.START_TAG) {
+      throw new Error(`Expected start of any tag, but received ${this.toString()}`)
+    }
+  }
+
+  /**
+   *
+   */
   public isStartOfAnyTag(): boolean {
     return this.type === UnidocEventType.START_TAG
+  }
+
+  /**
+   *
+   */
+  public assertStartOfTag(tag: string): void {
+    if (this.type !== UnidocEventType.START_TAG || !this.symbols.equalsToString(tag)) {
+      throw new Error(`Expected start of tag "${tag}", but received ${this.toString()}`)
+    }
   }
 
   /**
@@ -73,8 +91,26 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    *
    */
+  public assertEndOfAnyTag(): void {
+    if (this.type !== UnidocEventType.END_TAG) {
+      throw new Error(`Expected end of any tag, but received ${this.toString()}`)
+    }
+  }
+
+  /**
+   *
+   */
   public isEndOfAnyTag(): boolean {
     return this.type === UnidocEventType.END_TAG
+  }
+
+  /**
+   *
+   */
+  public assertEndOfTag(tag: string): void {
+    if (this.type !== UnidocEventType.END_TAG || !this.symbols.equalsToString(tag)) {
+      throw new Error(`Expected end of tag "${tag}", but received ${this.toString()}`)
+    }
   }
 
   /**
@@ -87,6 +123,15 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    *
    */
+  public assertWhitespace(): void {
+    if (this.type !== UnidocEventType.WHITESPACE) {
+      throw new Error(`Expected whitespace, but received ${this.toString()}`)
+    }
+  }
+
+  /**
+   *
+   */
   public isWhitespace(): boolean {
     return this.type === UnidocEventType.WHITESPACE
   }
@@ -94,8 +139,26 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    *
    */
+  public assertWord(): void {
+    if (this.type !== UnidocEventType.WORD) {
+      throw new Error(`Expected word, but received ${this.toString()}`)
+    }
+  }
+
+  /**
+   *
+   */
   public isWord(): boolean {
     return this.type === UnidocEventType.WORD
+  }
+
+  /**
+   *
+   */
+  public assertText(): void {
+    if (this.type !== UnidocEventType.WORD && this.type !== UnidocEventType.WHITESPACE) {
+      throw new Error(`Expected text, but received ${this.toString()}`)
+    }
   }
 
   /**

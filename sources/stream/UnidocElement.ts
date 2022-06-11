@@ -65,8 +65,26 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
   /**
    * 
    */
+  public assertStart(): asserts this is UnidocElement.Start {
+    if (this.type !== UnidocElementType.START) {
+      throw new Error(`Expected start of stream but, received ${this.toString()}.`)
+    }
+  }
+
+  /**
+   * 
+   */
   public isStart(): this is UnidocElement.Start {
     return this.type === UnidocElementType.START
+  }
+
+  /**
+   * 
+   */
+  public assertNext(): asserts this is UnidocElement.Next<Output> {
+    if (this.type !== UnidocElementType.NEXT) {
+      throw new Error(`Expected element of stream, but received ${this.toString()}.`)
+    }
   }
 
   /**
@@ -79,6 +97,15 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
   /**
    * 
    */
+  public assertSuccess(): asserts this is UnidocElement.Success {
+    if (this.type !== UnidocElementType.SUCCESS) {
+      throw new Error(`Expected stream success, but received ${this.toString()}.`)
+    }
+  }
+
+  /**
+   * 
+   */
   public isSuccess(): this is UnidocElement.Success {
     return this.type === UnidocElementType.SUCCESS
   }
@@ -86,8 +113,26 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
   /**
    * 
    */
+  public assertFailure(): asserts this is UnidocElement.Failure {
+    if (this.type !== UnidocElementType.FAILURE) {
+      throw new Error(`Expected stream failure, but received ${this.toString()}.`)
+    }
+  }
+
+  /**
+   * 
+   */
   public isFailure(): this is UnidocElement.Failure {
     return this.type === UnidocElementType.FAILURE
+  }
+
+  /**
+   * 
+   */
+  public assertTermination(): asserts this is UnidocElement.Success | UnidocElement.Failure {
+    if (this.type !== UnidocElementType.SUCCESS && this.type !== UnidocElementType.FAILURE) {
+      throw new Error(`Expected stream termination, but received ${this.toString()}.`)
+    }
   }
 
   /**

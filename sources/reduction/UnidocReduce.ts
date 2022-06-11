@@ -1,3 +1,5 @@
+import { toString } from '@cedric-demongivert/gl-tool-utils'
+
 import { UnidocElement, UnidocFunction } from '../stream'
 import { UnidocEvent } from '../event'
 
@@ -49,7 +51,7 @@ export class UnidocReduce<Product> extends UnidocFunction<UnidocEvent, Product> 
     try {
       this._result = UnidocReduction.push(UnidocElement.start(), this._reduction)
     } catch (error) {
-      this.handleReductionFailure(error)
+      this.handleReductionFailure(error instanceof Error ? error : new Error(toString(error)))
     }
   }
 
@@ -71,7 +73,7 @@ export class UnidocReduce<Product> extends UnidocFunction<UnidocEvent, Product> 
     try {
       this._result = UnidocReduction.push(this._element.asNext(event), reduction)
     } catch (error) {
-      this.handleReductionFailure(error)
+      this.handleReductionFailure(error instanceof Error ? error : new Error(toString(error)))
     }
   }
 
@@ -99,7 +101,7 @@ export class UnidocReduce<Product> extends UnidocFunction<UnidocEvent, Product> 
         return this.handleReductionSuccess(result.value)
       }
     } catch (error) {
-      return this.handleReductionFailure(error)
+      this.handleReductionFailure(error instanceof Error ? error : new Error(toString(error)))
     }
 
     throw new Error(
