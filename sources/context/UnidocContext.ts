@@ -48,8 +48,8 @@ export class UnidocContext {
     this._feeding = null
     this._consumer = null
 
-    this.handleImportSuccess.bind(this)
-    this.handleImportFailure.bind(this)
+    this.handleImportSuccess = this.handleImportSuccess.bind(this)
+    this.handleImportFailure = this.handleImportFailure.bind(this)
   }
 
   /**
