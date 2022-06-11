@@ -15,6 +15,11 @@ export class UnidocIteratorResource {
   /**
    * 
    */
+  private readonly _symbol: UnidocSymbol
+
+  /**
+   * 
+   */
   public readonly import: UnidocImport
 
   /**
@@ -35,6 +40,7 @@ export class UnidocIteratorResource {
     this.import = from.clone()
     this._iterator = iterator
     this._next = iterator.next()
+    this._symbol = new UnidocSymbol()
   }
 
   /**
@@ -49,8 +55,15 @@ export class UnidocIteratorResource {
    */
   public next(): UnidocSymbol | undefined {
     const result: UnidocSymbol | undefined = this._next.value
-    this._next = this._iterator.next()
-    return result
+
+    if (result == null) {
+      this._next = this._iterator.next()
+      return undefined
+    } else {
+      this._symbol.copy(result)
+      this._next = this._iterator.next()
+      return this._symbol
+    }
   }
 }
 
