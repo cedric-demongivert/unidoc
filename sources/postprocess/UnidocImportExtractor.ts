@@ -242,6 +242,8 @@ export class UnidocImportExtractor extends UnidocFunction<UnidocEvent>
   private emitValidImportation(): void {
     const result: UnidocImport = this._import
 
+    result.clear()
+
     for (const event of this._buffer) {
       result.origin.concat(event.origin)
     }
@@ -283,7 +285,6 @@ export class UnidocImportExtractor extends UnidocFunction<UnidocEvent>
    */
   private startContent(): void {
     this._buffer.clear()
-    this._import.clear()
     this._uri.clear()
     this._typedef.clear()
     this._state = UnidocImportExtractorState.CONTENT
