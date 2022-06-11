@@ -1,7 +1,7 @@
-import { Duplicator, Group } from '@cedric-demongivert/gl-tool-collection'
+import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
 import { Empty } from '@cedric-demongivert/gl-tool-utils'
 
-import { UTF32StringTree, UTF32String } from '../symbol'
+import { UTF32StringSet, UTF32String } from '../symbol'
 import { UnidocPath, UnidocLayout } from '../origin'
 
 import { DataObject } from '../DataObject'
@@ -27,7 +27,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    * Classes associated to the block or the tag if any.
    */
-  public readonly classes: UTF32StringTree
+  public readonly classes: UTF32StringSet
 
   /**
    * Content associated to this event.
@@ -50,7 +50,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   public constructor() {
     this.type = UnidocEventType.START_TAG
     this.identifier = UTF32String.allocate(64)
-    this.classes = new UTF32StringTree()
+    this.classes = new UTF32StringSet()
     this.symbols = UTF32String.allocate(64)
     this.origin = new UnidocLayout()
     this.path = new UnidocPath()
@@ -99,6 +99,13 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   }
 
   /**
+   *
+   */
+  public isText(): boolean {
+    return this.type === UnidocEventType.WORD || this.type === UnidocEventType.WHITESPACE
+  }
+
+  /**
    * 
    */
   public setType(type: UnidocEventType): this {
@@ -117,7 +124,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    * 
    */
-  public setClasses(classes: UTF32StringTree): this {
+  public setClasses(classes: UTF32StringSet): this {
     this.classes.copy(classes)
     return this
   }
@@ -253,6 +260,7 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
     this.symbols.copy(toCopy.symbols)
     this.origin.copy(toCopy.origin)
     this.classes.copy(toCopy.classes)
+    this.path.copy(toCopy.path)
 
     return this
   }
@@ -316,6 +324,12 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
     result += ' '
     result += this.origin.toString()
 
+    if (this.path.size > 0) {
+      result += ' ('
+      result += this.path.toString()
+      result += ')'
+    }
+
     return result
   }
 
@@ -333,7 +347,8 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
           return (
             other.type === this.type &&
             this.symbols.equals(other.symbols) &&
-            other.origin.equals(this.origin)
+            other.origin.equals(this.origin) &&
+            other.path.equals(this.path)
           )
         default:
           return (
@@ -341,7 +356,8 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
             other.classes.equals(this.classes) &&
             other.identifier.equals(this.identifier) &&
             this.symbols.equals(other.symbols) &&
-            other.origin.equals(this.origin)
+            other.origin.equals(this.origin) &&
+            other.path.equals(this.path)
           )
       }
     }

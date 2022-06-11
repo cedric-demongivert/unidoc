@@ -40,7 +40,7 @@ export class UnidocPath extends InstancePack<UnidocSection> implements DataObjec
       let result: string = this.first.toString()
 
       for (let index = 1; index < this.size; ++index) {
-        result += ', ' + this.get(index).toString()
+        result += ' > ' + this.get(index).toString()
       }
 
       return result

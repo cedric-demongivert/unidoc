@@ -39,15 +39,19 @@ export class UnidocAutoCloser extends UnidocFunction<UnidocEvent>
    * @see UnidocConsumer.prototype.next
    */
   public next(value: UnidocEvent): void {
-    const valuePath: UnidocPath = value.path
     const path: UnidocPath = this._path
 
-    while (valuePath.size > path.size) {
-      path.push(valuePath.get(path.size))
+    if (value.isStartOfAnyTag()) {
+      path.push(UnidocSection.DEFAULT)
+
+      path.last.setClasses(value.classes)
+        .setIdentifier(value.identifier)
+        .setName(value.symbols)
+        .setOrigin(value.origin)
     }
 
-    if (valuePath.size < path.size) {
-      path.size = valuePath.size
+    if (value.isEndOfAnyTag()) {
+      path.delete(path.size - 1)
     }
 
     this._event.origin.endOf(value.origin)

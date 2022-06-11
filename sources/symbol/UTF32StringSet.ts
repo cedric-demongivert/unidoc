@@ -6,11 +6,11 @@ import { UTF32String } from "./UTF32String"
 /**
  * 
  */
-export class UTF32StringTree<Value> implements DataObject<UTF32StringTree<Value>> {
+export class UTF32StringSet implements DataObject<UTF32StringSet> {
   /**
    * 
    */
-  private readonly _root: UTF32StringNode<Value>
+  private readonly _root: UTF32StringNode<boolean>
 
   /**
    * 
@@ -43,46 +43,32 @@ export class UTF32StringTree<Value> implements DataObject<UTF32StringTree<Value>
   /**
    * 
    */
-  public get(key: UTF32String, offset: number = 0): Value | undefined {
-    return this._root.get(key, offset)
-  }
-
-  /**
-   * 
-   */
-  public getString(key: string, offset: number = 0): Value | undefined {
-    return this._root.getString(key, offset)
-  }
-
-  /**
-   * 
-   */
-  public set(key: UTF32String, value: Value, offset: number = 0): this {
-    this._root.set(key, value, offset)
+  public add(key: UTF32String, offset: number = 0): this {
+    this._root.set(key, true, offset)
     return this
   }
 
   /**
    * 
    */
-  public setMany(keys: Iterable<UTF32String>, value: Value): this {
-    for (const key of keys) this._root.set(key, value)
+  public addMany(keys: Iterable<UTF32String>): this {
+    for (const key of keys) this._root.set(key, true)
     return this
   }
 
   /**
    * 
    */
-  public setString(key: string, value: Value, offset: number = 0): this {
-    this._root.setString(key, value, offset)
+  public addString(key: string, offset: number = 0): this {
+    this._root.setString(key, true, offset)
     return this
   }
 
   /**
    * 
    */
-  public setManyString(keys: Iterable<string>, value: Value): this {
-    for (const key of keys) this._root.setString(key, value)
+  public addManyString(keys: Iterable<string>): this {
+    for (const key of keys) this._root.setString(key, true)
     return this
   }
 
@@ -117,26 +103,18 @@ export class UTF32StringTree<Value> implements DataObject<UTF32StringTree<Value>
     for (const key of keys) this._root.deleteString(key)
     return this
   }
-
   /**
    * 
    */
-  public values(): IterableIterator<Value> {
-    return this._root.values()
-  }
-
-  /**
-   * 
-   */
-  public keys(container: UTF32String = UTF32String.allocate.withDefaultCapacity()): IterableIterator<UTF32String> {
+  public values(container: UTF32String = UTF32String.allocate.withDefaultCapacity()): IterableIterator<UTF32String> {
     return this._root.keys(container)
   }
 
   /**
    * 
    */
-  public [Symbol.iterator](): IterableIterator<Value> {
-    return this._root.values()
+  public [Symbol.iterator](): IterableIterator<UTF32String> {
+    return this._root.keys()
   }
 
   /**
@@ -150,7 +128,7 @@ export class UTF32StringTree<Value> implements DataObject<UTF32StringTree<Value>
   /**
    * @see Assignable.prototype.copy
    */
-  public copy(toCopy: UTF32StringTree<Value>): this {
+  public copy(toCopy: UTF32StringSet): this {
     this._root.copy(toCopy._root)
     return this
   }
@@ -158,8 +136,8 @@ export class UTF32StringTree<Value> implements DataObject<UTF32StringTree<Value>
   /**
    * @see Clonable.prototype.clone
    */
-  public clone(): UTF32StringTree<Value> {
-    return new UTF32StringTree<Value>().copy(this)
+  public clone(): UTF32StringSet {
+    return new UTF32StringSet().copy(this)
   }
 
   /**
@@ -169,7 +147,7 @@ export class UTF32StringTree<Value> implements DataObject<UTF32StringTree<Value>
     if (other == null) return false
     if (other === this) return true
 
-    if (other instanceof UTF32StringTree) {
+    if (other instanceof UTF32StringSet) {
       return other._root.equals(this._root)
     }
 

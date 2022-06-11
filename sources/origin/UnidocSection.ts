@@ -1,5 +1,5 @@
 import { Duplicator } from '@cedric-demongivert/gl-tool-collection'
-import { UTF32String, UTF32StringTree } from '../symbol'
+import { UTF32String, UTF32StringSet } from '../symbol'
 import { UnidocLayout } from "./UnidocLayout"
 
 import { DataObject } from "../DataObject"
@@ -16,7 +16,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
   /**
    * 
    */
-  public readonly classes: UTF32StringTree
+  public readonly classes: UTF32StringSet
 
   /**
    * 
@@ -33,7 +33,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
    */
   public constructor() {
     this.name = UTF32String.allocate(32)
-    this.classes = new UTF32StringTree()
+    this.classes = new UTF32StringSet()
     this.identifier = UTF32String.allocate(32)
     this.origin = UnidocLayout.create()
   }
@@ -49,7 +49,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
   /**
    * 
    */
-  public setClasses(classes: UTF32StringTree): this {
+  public setClasses(classes: UTF32StringSet): this {
     this.classes.copy(classes)
     return this
   }
@@ -163,7 +163,7 @@ export class UnidocSection implements DataObject<UnidocSection> {
    * 
    */
   public toString(): string {
-    let result: string = `${this.constructor.name} \\${this.name.toString()}`
+    let result: string = `\\${this.name.toString()}`
 
     if (this.identifier.size > 0) {
       result += `#${this.identifier.toString()}`

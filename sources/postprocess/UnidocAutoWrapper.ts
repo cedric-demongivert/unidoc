@@ -101,7 +101,9 @@ export class UnidocAutoWrapper extends UnidocFunction<UnidocEvent>
       section.setOrigin(value.origin)
 
       this._state = UnidocAutoWrapperState.DOCUMENT
-      this.next(value)
+
+      this._event.origin.endOf(value.origin)
+      this.output.next(value)
       return
     }
 

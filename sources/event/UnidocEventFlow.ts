@@ -66,7 +66,7 @@ export class UnidocEventFlow {
     this._tracker = new UnidocTracker()
     this._event.origin.origins.size = 1
     this._origin = this._event.origin.origins.first
-    this._path = this._event.path
+    this._path = new UnidocPath()
 
     this._origin.setSource(source)
   }
@@ -91,6 +91,8 @@ export class UnidocEventFlow {
     tracker.nextString(line)
     origin.toLocation(tracker.location)
 
+    this.updatePath()
+
     return event.asWord(content)
   }
 
@@ -103,6 +105,8 @@ export class UnidocEventFlow {
     let offset: number = 0
     let cursor: number = 1
     let state: number | undefined = STATE_WORD
+
+    this.updatePath()
 
     for (const unit of UTF32CodeUnit.fromString(value)) {
       const nextState: number = getState(unit)
@@ -150,6 +154,8 @@ export class UnidocEventFlow {
     tracker.nextString(line)
     origin.toLocation(tracker.location)
 
+    this.updatePath()
+
     return event.asWhitespace(content)
   }
 
@@ -167,6 +173,8 @@ export class UnidocEventFlow {
     origin.toLocation(tracker.location)
 
     event.asTagStart(configuration)
+
+    this.updatePath()
 
     path.push(UnidocSection.DEFAULT)
 
@@ -201,7 +209,27 @@ export class UnidocEventFlow {
 
     path.delete(path.size - 1)
 
+    this.updatePath()
+
     return event
+  }
+
+  /**
+   * 
+   */
+  private updatePath(): this {
+    const eventPath: UnidocPath = this._event.path
+    const path: UnidocPath = this._path
+
+    while (eventPath.size < path.size) {
+      eventPath.push(path.get(eventPath.size))
+    }
+
+    if (eventPath.size > path.size) {
+      eventPath.size = path.size
+    }
+
+    return this
   }
 
   /**

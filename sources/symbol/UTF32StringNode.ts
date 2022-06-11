@@ -9,7 +9,7 @@ import { UTF32String } from './UTF32String'
 /**
  * 
  */
-export class UTF32StringNode implements DataObject<UTF32StringNode> {
+export class UTF32StringNode<Value> implements DataObject<UTF32StringNode<Value>> {
   /**
    * 
    */
@@ -18,12 +18,17 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
   /**
    * 
    */
-  public readonly outputs: Pack<UTF32StringNode>
+  public readonly outputs: Pack<UTF32StringNode<Value>>
 
   /**
    * 
    */
   public EOL: boolean
+
+  /**
+   * 
+   */
+  public value: Value | null
 
   /**
    * 
@@ -45,6 +50,7 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
     this.prefixes = Pack.any(0, UTF32String.allocate.withDefaultCapacity)
     this.outputs = Pack.any(0, UTF32StringNode.create)
     this.EOL = false
+    this.value = null
   }
 
   /**
@@ -52,6 +58,7 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
    */
   public clear(): this {
     this.EOL = false
+    this.value = null
 
     for (const prefix of this.prefixes) {
       UTF32String.DUPLICATOR.free(prefix)
@@ -71,7 +78,7 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
   /**
    * @see Assignable.prototype.copy
    */
-  public copy(toCopy: UTF32StringNode): this {
+  public copy(toCopy: UTF32StringNode<Value>): this {
     this.clear()
 
     for (const prefix of toCopy.prefixes) {
@@ -83,6 +90,7 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
     }
 
     this.EOL = toCopy.EOL
+    this.value = toCopy.value
 
     return this
   }
@@ -90,8 +98,8 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
   /**
    * @see Clonable.prototype.clone
    */
-  public clone(): UTF32StringNode {
-    return new UTF32StringNode().copy(this)
+  public clone(): UTF32StringNode<Value> {
+    return new UTF32StringNode<Value>().copy(this)
   }
 
   /**
@@ -105,7 +113,8 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
       return (
         other.prefixes.equals(this.prefixes) &&
         other.outputs.equals(this.outputs) &&
-        other.EOL === this.EOL
+        other.EOL === this.EOL &&
+        other.value === this.value
       )
     }
 
@@ -115,46 +124,60 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
   /**
    * 
    */
-  public has(value: UTF32String, offset: number = 0): boolean {
-    return UTF32StringNode.has(this, value, offset)
+  public has(key: UTF32String, offset: number = 0): boolean {
+    return UTF32StringNode.has(this, key, offset)
   }
 
   /**
    * 
    */
-  public hasString(value: string, offset: number = 0): boolean {
-    return UTF32StringNode.hasString(this, value, offset)
+  public hasString(key: string, offset: number = 0): boolean {
+    return UTF32StringNode.hasString(this, key, offset)
   }
 
   /**
    * 
    */
-  public add(value: UTF32String, offset: number = 0): this {
-    UTF32StringNode.add(this, value, offset)
+  public get(key: UTF32String, offset: number = 0): Value | undefined {
+    return UTF32StringNode.get(this, key, offset)
+  }
+
+  /**
+   * 
+   */
+  public getString(key: string, offset: number = 0): Value | undefined {
+    return UTF32StringNode.getString(this, key, offset)
+  }
+
+  /**
+   * 
+   */
+  public set(key: UTF32String, value: Value, offset: number = 0): this {
+    UTF32StringNode.set(this, key, value, offset)
     return this
   }
 
   /**
    * 
    */
-  public addString(value: string, offset: number = 0): this {
-    UTF32StringNode.addString(this, value, offset)
+  public setString(key: string, value: Value, offset: number = 0): this {
+    UTF32StringNode.setString(this, key, value, offset)
     return this
   }
 
   /**
    * 
    */
-  public delete(value: UTF32String, offset: number = 0): this {
-    UTF32StringNode.remove(this, value, offset)
+  public delete(key: UTF32String, offset: number = 0): this {
+    UTF32StringNode.remove(this, key, offset)
     return this
   }
 
   /**
    * 
    */
-  public deleteString(value: string, offset: number = 0): this {
-    UTF32StringNode.removeString(this, value, offset)
+  public deleteString(key: string, offset: number = 0): this {
+    UTF32StringNode.removeString(this, key, offset)
     return this
   }
 
@@ -169,14 +192,29 @@ export class UTF32StringNode implements DataObject<UTF32StringNode> {
   /**
    * 
    */
-  public values(container: UTF32String = UTF32String.allocate.withDefaultCapacity()): IterableIterator<UTF32String> {
-    return UTF32StringNode.iterate(this, container)
+  public setValue(value: Value | null): this {
+    this.value = value
+    return this
   }
 
   /**
    * 
    */
-  public [Symbol.iterator](): IterableIterator<UTF32String> {
+  public keys(container: UTF32String = UTF32String.allocate.withDefaultCapacity()): IterableIterator<UTF32String> {
+    return UTF32StringNode.iterateKeys(this, container)
+  }
+
+  /**
+   * 
+   */
+  public values(): IterableIterator<Value> {
+    return UTF32StringNode.iterateValues(this)
+  }
+
+  /**
+   * 
+   */
+  public [Symbol.iterator](): IterableIterator<Value> {
     return this.values()
   }
 }
@@ -188,14 +226,14 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export const EOL: UTF32StringNode = Object.freeze(new UTF32StringNode().setEOL(true)) as UTF32StringNode
+  export const EOL: UTF32StringNode<any> = Object.freeze(new UTF32StringNode().setEOL(true)) as UTF32StringNode<any>
 
   /**
    * 
    */
-  export function* iterate(root: UTF32StringNode, container: UTF32String = UTF32String.allocate(32)): IterableIterator<UTF32String> {
+  export function* iterateKeys(root: UTF32StringNode<unknown>, container: UTF32String = UTF32String.allocate(32)): IterableIterator<UTF32String> {
     const indices: Array<number> = [0]
-    const nodes: Array<UTF32StringNode> = [root]
+    const nodes: Array<UTF32StringNode<unknown>> = [root]
 
     if (root.EOL) {
       yield container
@@ -203,14 +241,14 @@ export namespace UTF32StringNode {
 
     while (nodes.length > 0) {
       const currentIndex: number = indices[nodes.length - 1]
-      const currentNode: UTF32StringNode = nodes[nodes.length - 1]
+      const currentNode: UTF32StringNode<unknown> = nodes[nodes.length - 1]
       const currentPrefixes: Pack<UTF32String> = currentNode.prefixes
-      const currentOutputs: Pack<UTF32StringNode> = currentNode.outputs
+      const currentOutputs: Pack<UTF32StringNode<unknown>> = currentNode.outputs
 
       if (currentIndex < currentPrefixes.size) {
         container.concat(currentPrefixes.get(currentIndex))
 
-        const nextNode: UTF32StringNode = currentOutputs.get(currentIndex)
+        const nextNode: UTF32StringNode<unknown> = currentOutputs.get(currentIndex)
 
         indices[nodes.length - 1] += 1
         nodes.push(nextNode)
@@ -220,7 +258,7 @@ export namespace UTF32StringNode {
           yield container
         }
       } else if (nodes.length > 1) {
-        const previousNode: UTF32StringNode = nodes[nodes.length - 2]
+        const previousNode: UTF32StringNode<unknown> = nodes[nodes.length - 2]
         const previousIndex: number = indices[nodes.length - 2]
         container.size -= previousNode.prefixes.get(previousIndex - 1).size
         indices.pop()
@@ -236,8 +274,129 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export function has(root: UTF32StringNode, value: UTF32String, offset: number = 0) {
-    let currentNode: UTF32StringNode = root
+  export function* iterateValues<Value>(root: UTF32StringNode<Value>): IterableIterator<Value> {
+    const indices: Array<number> = [0]
+    const nodes: Array<UTF32StringNode<Value>> = [root]
+
+    if (root.EOL) {
+      yield root.value!
+    }
+
+    while (nodes.length > 0) {
+      const currentIndex: number = indices[nodes.length - 1]
+      const currentNode: UTF32StringNode<Value> = nodes[nodes.length - 1]
+      const currentPrefixes: Pack<UTF32String> = currentNode.prefixes
+      const currentOutputs: Pack<UTF32StringNode<Value>> = currentNode.outputs
+
+      if (currentIndex < currentPrefixes.size) {
+        const nextNode: UTF32StringNode<Value> = currentOutputs.get(currentIndex)
+
+        indices[nodes.length - 1] += 1
+        nodes.push(nextNode)
+        indices.push(0)
+
+        if (nextNode.EOL) {
+          yield nextNode.value!
+        }
+      } else if (nodes.length > 1) {
+        indices.pop()
+        nodes.pop()
+      } else {
+        indices.pop()
+        nodes.pop()
+      }
+    }
+  }
+
+  /**
+   * 
+   */
+  export function get<Value>(root: UTF32StringNode<Value>, value: UTF32String, offset: number = 0): Value | undefined {
+    let currentNode: UTF32StringNode<Value> = root
+
+    while (true) {
+      if (offset >= value.size) {
+        return currentNode.EOL ? currentNode.value! : undefined
+      }
+
+      const prefixes: Pack<UTF32String> = currentNode.prefixes
+
+      if (prefixes.size === 0) {
+        return undefined
+      }
+
+      const candidateIndex: number = bisect(prefixes, value.get(offset), UTF32StringNode.compareWithSymbol)
+
+      if (candidateIndex < 0) {
+        return undefined
+      }
+
+      const candidate: UTF32String = prefixes.get(candidateIndex)
+
+      if (candidate.size > value.size - offset) {
+        return undefined
+      }
+
+      for (let index = 1; index < candidate.size; ++index) {
+        if (value.get(offset + index) !== candidate.get(index)) {
+          return undefined
+        }
+      }
+
+      offset += candidate.size
+      currentNode = currentNode.outputs.get(candidateIndex)
+    }
+  }
+
+  /**
+   * 
+   */
+  export function getString<Value>(root: UTF32StringNode<Value>, value: string, offset: number = 0): Value | undefined {
+    let currentNode: UTF32StringNode<Value> = root
+
+    while (true) {
+      if (offset >= value.length) {
+        return currentNode.EOL ? currentNode.value! : undefined
+      }
+
+      const prefixes: Pack<UTF32String> = currentNode.prefixes
+
+      if (prefixes.size === 0) {
+        return undefined
+      }
+
+      const candidateIndex: number = bisect(prefixes, UTF32CodeUnit.getAt(value, offset), UTF32StringNode.compareWithSymbol)
+
+      if (candidateIndex < 0) {
+        return undefined
+      }
+
+      const candidate: UTF32String = prefixes.get(candidateIndex)
+      let nextOffset: number = UTF16CodeUnit.next(value, offset)
+      let candidateOffset: number = 1
+
+      for (; candidateOffset < candidate.size && nextOffset < value.length; ++candidateOffset) {
+        if (UTF32CodeUnit.getAt(value, nextOffset) !== candidate.get(candidateOffset)) {
+          return undefined
+        }
+
+        nextOffset = UTF16CodeUnit.next(value, nextOffset)
+      }
+
+      if (nextOffset >= value.length && candidateOffset < candidate.size) {
+        return undefined
+      }
+
+      offset = nextOffset
+      currentNode = currentNode.outputs.get(candidateIndex)
+    }
+  }
+
+  /**
+   * 
+   */
+  export function has(root: UTF32StringNode<unknown>, value: UTF32String, offset: number = 0) {
+    let currentNode: UTF32StringNode<unknown> = root
 
     while (true) {
       if (offset >= value.size) {
@@ -276,8 +435,8 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export function hasString(root: UTF32StringNode, value: string, offset: number = 0) {
-    let currentNode: UTF32StringNode = root
+  export function hasString(root: UTF32StringNode<unknown>, value: string, offset: number = 0) {
+    let currentNode: UTF32StringNode<unknown> = root
 
     while (true) {
       if (offset >= value.length) {
@@ -320,38 +479,41 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export function add(root: UTF32StringNode, value: UTF32String, offset: number = 0): void {
-    let currentNode: UTF32StringNode = root
+  export function set<Value>(root: UTF32StringNode<Value>, key: UTF32String, value: Value, offset: number = 0): void {
+    let currentNode: UTF32StringNode<Value> = root
 
     while (true) {
-      if (offset >= value.size) {
+      if (offset >= key.size) {
         currentNode.setEOL(true)
+        currentNode.setValue(value)
         return
       }
 
       const prefixes: Pack<UTF32String> = currentNode.prefixes
-      const outputs: Pack<UTF32StringNode> = currentNode.outputs
+      const outputs: Pack<UTF32StringNode<Value>> = currentNode.outputs
 
       if (prefixes.size === 0) {
         const prefix: UTF32String = UTF32String.DUPLICATOR.allocate()
-        prefix.subCopy(value, offset)
+        prefix.subCopy(key, offset)
 
-        const output: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
+        const output: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
         output.setEOL(true)
+        output.setValue(value)
 
         prefixes.push(prefix)
         outputs.push(output)
         return
       }
 
-      const candidateIndex: number = bisect(prefixes, value.get(offset), UTF32StringNode.compareWithSymbol)
+      const candidateIndex: number = bisect(prefixes, key.get(offset), UTF32StringNode.compareWithSymbol)
 
       if (candidateIndex < 0) {
         const prefix: UTF32String = UTF32String.DUPLICATOR.allocate()
-        prefix.subCopy(value, offset)
+        prefix.subCopy(key, offset)
 
-        const output: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
+        const output: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
         output.setEOL(true)
+        output.setValue(value)
 
         const insertionIndex: number = -candidateIndex - 1
         prefixes.insert(insertionIndex, prefix)
@@ -360,20 +522,27 @@ export namespace UTF32StringNode {
       }
 
       const candidate: UTF32String = prefixes.get(candidateIndex)
-      const rest: number = value.size - offset
+      const rest: number = key.size - offset
       const candidateSizeOrRest: number = rest < candidate.size ? rest : candidate.size
 
       let splitIndex: number = 1
 
       for (; splitIndex < candidateSizeOrRest; ++splitIndex) {
-        if (value.get(offset + splitIndex) !== candidate.get(splitIndex)) {
+        if (key.get(offset + splitIndex) !== candidate.get(splitIndex)) {
           break
         }
       }
 
       if (splitIndex === rest) {
-        const nextNode: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
+        if (rest === candidate.size) {
+          offset += candidate.size
+          currentNode = outputs.get(candidateIndex)
+          continue
+        }
+
+        const nextNode: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
         nextNode.setEOL(true)
+        nextNode.setValue(value)
 
         const prefix: UTF32String = UTF32String.DUPLICATOR.allocate()
         prefix.subCopy(candidate, splitIndex)
@@ -387,16 +556,17 @@ export namespace UTF32StringNode {
       }
 
       if (splitIndex < candidate.size) {
-        const nextNode: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
-        const eol: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
+        const nextNode: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
+        const eol: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
         const candidatePefix: UTF32String = UTF32String.DUPLICATOR.allocate()
         const valuePrefix: UTF32String = UTF32String.DUPLICATOR.allocate()
 
         eol.setEOL(true)
+        eol.setValue(value)
         candidatePefix.subCopy(candidate, splitIndex)
-        valuePrefix.subCopy(value, offset + splitIndex)
+        valuePrefix.subCopy(key, offset + splitIndex)
 
-        if (candidate.get(splitIndex) < value.get(offset + splitIndex)) {
+        if (candidate.get(splitIndex) < key.get(offset + splitIndex)) {
           nextNode.prefixes.push(candidatePefix)
           nextNode.prefixes.push(valuePrefix)
           nextNode.outputs.push(outputs.get(candidateIndex))
@@ -421,39 +591,40 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export function addString(root: UTF32StringNode, value: string, offset: number = 0): void {
-    let currentNode: UTF32StringNode = root
-    let valueOffset: number = 0
-
+  export function setString<Value>(root: UTF32StringNode<Value>, key: string, value: Value, offset: number = 0): void {
+    let currentNode: UTF32StringNode<Value> = root
     while (true) {
-      if (valueOffset >= value.length) {
+      if (offset >= key.length) {
         currentNode.setEOL(true)
+        currentNode.setValue(value)
         return
       }
 
       const prefixes: Pack<UTF32String> = currentNode.prefixes
-      const outputs: Pack<UTF32StringNode> = currentNode.outputs
+      const outputs: Pack<UTF32StringNode<Value>> = currentNode.outputs
 
       if (prefixes.size === 0) {
         const prefix: UTF32String = UTF32String.DUPLICATOR.allocate()
-        prefix.subCopyString(value, offset)
+        prefix.subCopyString(key, offset)
 
-        const output: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
+        const output: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
         output.setEOL(true)
+        output.setValue(value)
 
         prefixes.push(prefix)
         outputs.push(output)
         return
       }
 
-      const candidateIndex: number = bisect(prefixes, UTF32CodeUnit.getAt(value, offset), UTF32StringNode.compareWithSymbol)
+      const candidateIndex: number = bisect(prefixes, UTF32CodeUnit.getAt(key, offset), UTF32StringNode.compareWithSymbol)
 
       if (candidateIndex < 0) {
         const prefix: UTF32String = UTF32String.DUPLICATOR.allocate()
-        prefix.subCopyString(value, offset)
+        prefix.subCopyString(key, offset)
 
-        const output: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
+        const output: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
         output.setEOL(true)
+        output.setValue(value)
 
         const insertionIndex: number = -candidateIndex - 1
         prefixes.insert(insertionIndex, prefix)
@@ -463,20 +634,28 @@ export namespace UTF32StringNode {
 
       const candidate: UTF32String = prefixes.get(candidateIndex)
 
-      let nextOffset: number = UTF16CodeUnit.next(value, offset)
+      let nextOffset: number = UTF16CodeUnit.next(key, offset)
       let splitIndex: number = 1
 
-      for (; splitIndex < candidate.size && nextOffset < value.length; ++splitIndex) {
-        if (UTF32CodeUnit.getAt(value, nextOffset) !== candidate.get(splitIndex)) {
+      while (splitIndex < candidate.size && nextOffset < key.length) {
+        if (UTF32CodeUnit.getAt(key, nextOffset) !== candidate.get(splitIndex)) {
           break
         }
 
-        nextOffset = UTF16CodeUnit.next(value, nextOffset)
+        nextOffset = UTF16CodeUnit.next(key, nextOffset)
+        splitIndex += 1
       }
 
-      if (nextOffset === value.length) {
-        const nextNode: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
+      if (nextOffset === key.length) {
+        if (splitIndex === candidate.size) {
+          offset = nextOffset
+          currentNode = outputs.get(candidateIndex)
+          continue
+        }
+
+        const nextNode: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
         nextNode.setEOL(true)
+        nextNode.setValue(value)
 
         const prefix: UTF32String = UTF32String.DUPLICATOR.allocate()
         prefix.subCopy(candidate, splitIndex)
@@ -490,16 +669,17 @@ export namespace UTF32StringNode {
       }
 
       if (splitIndex < candidate.size) {
-        const nextNode: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
-        const eol: UTF32StringNode = UTF32StringNode.DUPLICATOR.allocate()
+        const nextNode: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
+        const eol: UTF32StringNode<Value> = UTF32StringNode.DUPLICATOR.allocate()
         const candidatePefix: UTF32String = UTF32String.DUPLICATOR.allocate()
         const valuePrefix: UTF32String = UTF32String.DUPLICATOR.allocate()
 
         eol.setEOL(true)
+        eol.setValue(value)
         candidatePefix.subCopy(candidate, splitIndex)
-        valuePrefix.subCopyString(value, nextOffset)
+        valuePrefix.subCopyString(key, nextOffset)
 
-        if (candidate.get(splitIndex) < UTF32CodeUnit.getAt(value, nextOffset)) {
+        if (candidate.get(splitIndex) < UTF32CodeUnit.getAt(key, nextOffset)) {
           nextNode.prefixes.push(candidatePefix)
           nextNode.prefixes.push(valuePrefix)
           nextNode.outputs.push(outputs.get(candidateIndex))
@@ -513,7 +693,6 @@ export namespace UTF32StringNode {
 
         outputs.set(candidateIndex, nextNode)
         candidate.size = splitIndex
-
         return
       }
 
@@ -525,7 +704,7 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  function dissolve(previousNode: UTF32StringNode, previousIndex: number, currentNode: UTF32StringNode): void {
+  function dissolve(previousNode: UTF32StringNode<unknown>, previousIndex: number, currentNode: UTF32StringNode<unknown>): void {
     previousNode.prefixes.get(previousIndex).concat(currentNode.prefixes.first)
     previousNode.outputs.set(previousIndex, currentNode.outputs.pop())
     currentNode.clear()
@@ -535,11 +714,11 @@ export namespace UTF32StringNode {
    * 
    */
   function resolveRemove(
-    previousPreviousNode: UTF32StringNode | undefined,
+    previousPreviousNode: UTF32StringNode<unknown> | undefined,
     previousPreviousIndex: number | undefined,
-    previousNode: UTF32StringNode | undefined,
+    previousNode: UTF32StringNode<unknown> | undefined,
     previousIndex: number | undefined,
-    currentNode: UTF32StringNode
+    currentNode: UTF32StringNode<unknown>
   ): void {
     if (previousNode == null || currentNode.prefixes.size > 1) {
       currentNode.setEOL(false)
@@ -547,7 +726,7 @@ export namespace UTF32StringNode {
     }
 
     const previousPrefixes: Pack<UTF32String> = previousNode.prefixes
-    const previousOutputs: Pack<UTF32StringNode> = previousNode.outputs
+    const previousOutputs: Pack<UTF32StringNode<unknown>> = previousNode.outputs
 
     if (currentNode.prefixes.size === 1) {
       dissolve(previousNode, previousIndex!, currentNode)
@@ -574,27 +753,27 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export function remove(root: UTF32StringNode, value: UTF32String, offset: number = 0): void {
-    let previousPreviousNode: UTF32StringNode | undefined = undefined
+  export function remove(root: UTF32StringNode<unknown>, key: UTF32String, offset: number = 0): void {
+    let previousPreviousNode: UTF32StringNode<unknown> | undefined = undefined
     let previousPreviousIndex: number | undefined = undefined
-    let previousNode: UTF32StringNode | undefined = undefined
+    let previousNode: UTF32StringNode<unknown> | undefined = undefined
     let previousIndex: number | undefined = undefined
-    let currentNode: UTF32StringNode = root
+    let currentNode: UTF32StringNode<unknown> = root
 
     while (true) {
-      if (offset >= value.size) {
+      if (offset >= key.size) {
         resolveRemove(previousPreviousNode, previousPreviousIndex, previousNode, previousIndex, currentNode)
         return
       }
 
       const prefixes: Pack<UTF32String> = currentNode.prefixes
-      const outputs: Pack<UTF32StringNode> = currentNode.outputs
+      const outputs: Pack<UTF32StringNode<unknown>> = currentNode.outputs
 
       if (prefixes.size === 0) {
         return
       }
 
-      const candidateIndex: number = bisect(prefixes, value.get(offset), UTF32StringNode.compareWithSymbol)
+      const candidateIndex: number = bisect(prefixes, key.get(offset), UTF32StringNode.compareWithSymbol)
 
       if (candidateIndex < 0) {
         return
@@ -602,12 +781,12 @@ export namespace UTF32StringNode {
 
       const candidate: UTF32String = prefixes.get(candidateIndex)
 
-      if (candidate.size > value.size - offset) {
+      if (candidate.size > key.size - offset) {
         return
       }
 
       for (let index = 0, size = candidate.size; index < size; ++index) {
-        if (value.get(offset + index) !== candidate.get(index)) {
+        if (key.get(offset + index) !== candidate.get(index)) {
           return
         }
       }
@@ -624,41 +803,41 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export function removeString(root: UTF32StringNode, value: string, offset: number = 0): void {
-    let previousPreviousNode: UTF32StringNode | undefined = undefined
+  export function removeString(root: UTF32StringNode<unknown>, key: string, offset: number = 0): void {
+    let previousPreviousNode: UTF32StringNode<unknown> | undefined = undefined
     let previousPreviousIndex: number | undefined = undefined
-    let previousNode: UTF32StringNode | undefined = undefined
+    let previousNode: UTF32StringNode<unknown> | undefined = undefined
     let previousIndex: number | undefined = undefined
-    let currentNode: UTF32StringNode = root
+    let currentNode: UTF32StringNode<unknown> = root
 
     while (true) {
-      if (offset >= value.length) {
+      if (offset >= key.length) {
         resolveRemove(previousPreviousNode, previousPreviousIndex, previousNode, previousIndex, currentNode)
         return
       }
 
       const prefixes: Pack<UTF32String> = currentNode.prefixes
-      const outputs: Pack<UTF32StringNode> = currentNode.outputs
+      const outputs: Pack<UTF32StringNode<unknown>> = currentNode.outputs
 
       if (prefixes.size === 0) {
         return
       }
 
-      const candidateIndex: number = bisect(prefixes, UTF32CodeUnit.getAt(value, offset), UTF32StringNode.compareWithSymbol)
+      const candidateIndex: number = bisect(prefixes, UTF32CodeUnit.getAt(key, offset), UTF32StringNode.compareWithSymbol)
 
       if (candidateIndex < 0) {
         return
       }
 
       const candidate: UTF32String = prefixes.get(candidateIndex)
-      let nextOffset: number = UTF16CodeUnit.next(value, offset)
+      let nextOffset: number = UTF16CodeUnit.next(key, offset)
 
       for (let index = 1, size = candidate.size; index < size; ++index) {
-        if (UTF32CodeUnit.getAt(value, nextOffset) !== candidate.get(index)) {
+        if (UTF32CodeUnit.getAt(key, nextOffset) !== candidate.get(index)) {
           return
         }
 
-        nextOffset = UTF16CodeUnit.next(value, nextOffset)
+        nextOffset = UTF16CodeUnit.next(key, nextOffset)
       }
 
       previousPreviousIndex = previousIndex
@@ -673,14 +852,14 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export function eol(): UTF32StringNode {
+  export function eol(): UTF32StringNode<any> {
     return new UTF32StringNode().setEOL(true)
   }
 
   /**
    * 
    */
-  export function create(): UTF32StringNode {
+  export function create(): UTF32StringNode<any> {
     return new UTF32StringNode()
   }
 
@@ -701,5 +880,5 @@ export namespace UTF32StringNode {
   /**
    * 
    */
-  export const DUPLICATOR: Duplicator<UTF32StringNode> = Duplicator.fromFactory(create)
+  export const DUPLICATOR: Duplicator<UTF32StringNode<any>> = Duplicator.fromFactory(create)
 }

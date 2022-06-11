@@ -11,7 +11,7 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
   /**
    * 
    */
-  public value: Readonly<Output> | Error | undefined
+  public value: Readonly<Output> | Error | null
 
   /**
    * 
@@ -21,7 +21,7 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
   /**
    * 
    */
-  public constructor(type: UnidocElementType = UnidocElementType.DEFAULT, value?: Readonly<Output> | Error | undefined) {
+  public constructor(type: UnidocElementType = UnidocElementType.DEFAULT, value: Readonly<Output> | Error | null = null) {
     this.value = value
     this.type = type
   }
@@ -31,7 +31,7 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
    */
   public asStart(): this {
     this.type = UnidocElementType.START
-    this.value = undefined
+    this.value = null
     return this
   }
 
@@ -49,7 +49,7 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
    */
   public asSuccess(): this {
     this.type = UnidocElementType.SUCCESS
-    this.value = undefined
+    this.value = null
     return this
   }
 
@@ -65,29 +65,36 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
   /**
    * 
    */
-  public isStart(): boolean {
+  public isStart(): this is UnidocElement.Start {
     return this.type === UnidocElementType.START
   }
 
   /**
    * 
    */
-  public isNext(): boolean {
+  public isNext(): this is UnidocElement.Next<Output> {
     return this.type === UnidocElementType.NEXT
   }
 
   /**
    * 
    */
-  public isSuccess(): boolean {
+  public isSuccess(): this is UnidocElement.Success {
     return this.type === UnidocElementType.SUCCESS
   }
 
   /**
    * 
    */
-  public isFailure(): boolean {
+  public isFailure(): this is UnidocElement.Failure {
     return this.type === UnidocElementType.FAILURE
+  }
+
+  /**
+   * 
+   */
+  public isTermination(): this is UnidocElement.Success | UnidocElement.Failure {
+    return this.type === UnidocElementType.SUCCESS || this.type === UnidocElementType.FAILURE
   }
 
   /**
@@ -101,7 +108,7 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
   /**
    * 
    */
-  public setValue(value: Readonly<Output> | Error | undefined): this {
+  public setValue(value: Readonly<Output> | Error | null): this {
     this.value = value
     return this
   }
@@ -111,7 +118,7 @@ export class UnidocElement<Output = any> implements DataObject<UnidocElement<Out
    */
   public clear(): this {
     this.type = UnidocElementType.DEFAULT
-    this.value = undefined
+    this.value = null
     return this
   }
 
@@ -170,6 +177,26 @@ export namespace UnidocElement {
   /**
    * 
    */
+  export type Start = UnidocElement & { value: null, type: UnidocElementType.START }
+
+  /**
+   * 
+   */
+  export type Next<Product> = UnidocElement & { value: Product, type: UnidocElementType.NEXT }
+
+  /**
+   * 
+   */
+  export type Success = UnidocElement & { value: null, type: UnidocElementType.SUCCESS }
+
+  /**
+   * 
+   */
+  export type Failure = UnidocElement & { value: Error, type: UnidocElementType.FAILURE }
+
+  /**
+   * 
+   */
   export const START: Readonly<UnidocElement<any>> = Object.freeze(new UnidocElement().setType(UnidocElementType.START))
 
   /**
@@ -208,8 +235,8 @@ export namespace UnidocElement {
   /**
    * 
    */
-  export function create<Output>(type: UnidocElementType = UnidocElementType.DEFAULT, value?: Readonly<Output> | Error | undefined): UnidocElement<Output> {
-    return new UnidocElement()
+  export function create<Output>(type: UnidocElementType = UnidocElementType.DEFAULT, value?: Readonly<Output> | Error | null): UnidocElement<Output> {
+    return new UnidocElement(type, value)
   }
 
   /**
