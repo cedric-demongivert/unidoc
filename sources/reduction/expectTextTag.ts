@@ -25,7 +25,6 @@ export function* expectTextTag(): UnidocReduction<string | null> {
   yield UnidocReduction.NEXT
 
   yield* assertTermination()
-  yield UnidocReduction.NEXT
 
   return result
 }
