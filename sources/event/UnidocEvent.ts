@@ -351,13 +351,11 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   }
 
   /**
-   * @see Object.toString
+   * 
    */
-  public toString(): string {
-    let result: string = ''
+  public stringifyContent(): string {
+    let result: string = Empty.STRING
 
-    result += this.constructor.name
-    result += ' '
     result += UnidocEventType.toSignature(this.type)
 
     switch (this.type) {
@@ -383,6 +381,36 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
           }
         }
     }
+
+    return result
+  }
+
+  /**
+   * 
+   */
+  public stringifyLocation(): string {
+    let result: string = Empty.STRING
+
+    if (this.path.size > 0) {
+      result += '('
+      result += this.path.toString()
+      result += ') '
+    }
+
+    result += this.origin.toString()
+
+    return result
+  }
+
+  /**
+   * @see Object.toString
+   */
+  public toString(): string {
+    let result: string = ''
+
+    result += this.constructor.name
+    result += ' '
+    result += this.stringifyContent()
 
     result += ' '
     result += this.origin.toString()

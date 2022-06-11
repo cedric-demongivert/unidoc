@@ -3,16 +3,22 @@ import { Factory } from '@cedric-demongivert/gl-tool-utils'
 
 import { UnidocReduction } from './UnidocReduction'
 
+import { assertEndOfAnyTag as assertEndOfAnyTagReducer } from './assertEndOfAnyTag'
 import { assertFailure as assertFailureReducer } from './assertFailure'
 import { assertNext as assertNextReducer } from './assertNext'
 import { assertStart as assertStartReducer } from './assertStart'
 import { assertStartOfAnyTag as assertStartOfAnyTagReducer } from './assertStartOfAnyTag'
 import { assertSuccess as assertSuccessReducer } from './assertSuccess'
 import { assertTermination as assertTerminationReducer } from './assertTermination'
+import { assertText as assertTextReducer } from './assertText'
+import { assertWhitespace as assertWhitespaceReducer } from './assertWhitespace'
+import { assertWord as assertWordReducer } from './assertWord'
+import { expectOptionalTag as expectOptionalTagReducer } from './expectOptionalTag'
 import { expectText as expectTextReducer } from './expectText'
 import { expectToken as expectTokenReducer } from './expectToken'
 import { expectWhitespaces as expectWhitespacesReducer } from './expectWhitespaces'
 import { expectWords as expectWordsReducer } from './expectWords'
+import { fail as failReducer } from './fail'
 import { findTag as findTagReducer } from './findTag'
 import { optionalTag as optionalTagReducer } from './optionalTag'
 import { reduceMany as reduceManyReducer } from './reduceMany'
@@ -36,6 +42,11 @@ export type UnidocReducer<Product> = Factory<UnidocReduction<Product>>
  *
  */
 export namespace UnidocReducer {
+  /**
+   * 
+   */
+  export const assertEndOfAnyTag = assertEndOfAnyTagReducer
+
   /**
    * 
    */
@@ -69,6 +80,26 @@ export namespace UnidocReducer {
   /**
    * 
    */
+  export const assertText = assertTextReducer
+
+  /**
+   * 
+   */
+  export const assertWhitespace = assertWhitespaceReducer
+
+  /**
+   * 
+   */
+  export const assertWord = assertWordReducer
+
+  /**
+   * 
+   */
+  export const expectOptionalTag = expectOptionalTagReducer
+
+  /**
+   * 
+   */
   export const expectText = expectTextReducer
 
   /**
@@ -85,6 +116,11 @@ export namespace UnidocReducer {
    * 
    */
   export const expectWords = expectWordsReducer
+
+  /**
+   * 
+   */
+  export const fail = failReducer
 
   /**
    * 

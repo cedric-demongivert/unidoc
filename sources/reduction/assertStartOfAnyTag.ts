@@ -6,6 +6,11 @@ import { UnidocReduction } from './UnidocReduction'
 export function* assertStartOfAnyTag(): UnidocReduction<void> {
   const current: UnidocReduction.Input = (yield UnidocReduction.CURRENT)
 
-  current.assertNext()
-  current.value.assertStartOfAnyTag()
+  if (!current.isNext()) {
+    throw new Error(`Stream : expected to receive another element, but received ${current.toString()}.`)
+  }
+
+  if (!current.value.isStartOfAnyTag()) {
+    throw new Error(`${current.value.stringifyLocation()} : expected to receive start of any tag, but received ${current.value.stringifyContent()}.`)
+  }
 }
