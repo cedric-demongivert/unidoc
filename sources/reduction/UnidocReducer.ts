@@ -6,8 +6,13 @@ import { UnidocReduction } from './UnidocReduction'
 import { assertFailure as assertFailureReducer } from './assertFailure'
 import { assertNext as assertNextReducer } from './assertNext'
 import { assertStart as assertStartReducer } from './assertStart'
+import { assertStartOfAnyTag as assertStartOfAnyTagReducer } from './assertStartOfAnyTag'
 import { assertSuccess as assertSuccessReducer } from './assertSuccess'
 import { assertTermination as assertTerminationReducer } from './assertTermination'
+import { expectText as expectTextReducer } from './expectText'
+import { expectToken as expectTokenReducer } from './expectToken'
+import { expectWhitespaces as expectWhitespacesReducer } from './expectWhitespaces'
+import { expectWords as expectWordsReducer } from './expectWords'
 import { findTag as findTagReducer } from './findTag'
 import { reduceMany as reduceManyReducer } from './reduceMany'
 import { reduceTag as reduceTagReducer } from './reduceTag'
@@ -21,15 +26,14 @@ import { skipText as skipTextReducer } from './skipText'
 import { skipWhitespaces as skipWhitespacesReducer } from './skipWhitespaces'
 import { skipWords as skipWordsReducer } from './skipWords'
 
-
 /**
-*
-*/
+ *
+ */
 export type UnidocReducer<Product> = Factory<UnidocReduction<Product>>
 
 /**
-*
-*/
+ *
+ */
 export namespace UnidocReducer {
   /**
    * 
@@ -49,12 +53,37 @@ export namespace UnidocReducer {
   /**
    * 
    */
+  export const assertStartOfAnyTag = assertStartOfAnyTagReducer
+
+  /**
+   * 
+   */
   export const assertSuccess = assertSuccessReducer
 
   /**
    * 
    */
   export const assertTermination = assertTerminationReducer
+
+  /**
+   * 
+   */
+  export const expectText = expectTextReducer
+
+  /**
+   * 
+   */
+  export const expectToken = expectTokenReducer
+
+  /**
+   * 
+   */
+  export const expectWhitespaces = expectWhitespacesReducer
+
+  /**
+   * 
+   */
+  export const expectWords = expectWordsReducer
 
   /**
    * 
