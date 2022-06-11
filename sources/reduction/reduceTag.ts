@@ -28,7 +28,7 @@ export function* reduceTag<Product>(reducer: UnidocReducer<Product>): UnidocRedu
 
   if (!current.isTermination()) {
     yield UnidocReduction.NEXT
-    if (!result.done) result = UnidocReduction.push(current, reduction)
+    if (!result.done) result = UnidocReduction.push(UnidocElement.success(), reduction)
   }
 
   if (!result.done) {
@@ -69,7 +69,7 @@ export namespace reduceTag {
 
     if (!current.isTermination()) {
       yield UnidocReduction.NEXT
-      if (!result.done) result = UnidocReduction.push(current, reduction)
+      if (!result.done) result = UnidocReduction.push(UnidocElement.success(), reduction)
     }
 
     if (!result.done) {

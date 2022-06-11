@@ -19,8 +19,6 @@ export function* reduceTextTag(): UnidocReduction<string | null> {
 
   const result: string | null = yield* reduceText()
 
-  yield* skipWhitespaces()
-
   yield* assertEndOfAnyTag()
   yield UnidocReduction.NEXT
 
