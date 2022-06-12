@@ -468,7 +468,7 @@ export class UnidocParser extends UnidocFunction<UnidocToken, UnidocEvent>
     event.symbols.clear()
     event.classes.clear()
     event.identifier.clear()
-    event.origin.reduceToEnd()
+    event.origin.clear()
 
     for (let index = 0; index < tokens.size; ++index) {
       const token: UnidocToken = tokens.get(index)
@@ -492,7 +492,7 @@ export class UnidocParser extends UnidocFunction<UnidocToken, UnidocEvent>
     event.symbols.clear()
     event.classes.clear()
     event.identifier.clear()
-    event.origin.reduceToEnd()
+    event.origin.clear()
 
     for (let index = 0; index < tokens.size; ++index) {
       const token: UnidocToken = tokens.get(index)
