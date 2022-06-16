@@ -1,14 +1,13 @@
 import { UTF32String } from '../symbol'
 
 import { UnidocReduction } from './UnidocReduction'
-import { UnidocReducer } from './UnidocReducer'
 
 import { reduceTag } from './reduceTag'
 
 /**
  *
  */
-export function* expectOptionalTag<Product>(name: UTF32String, reducer: UnidocReducer<Product>): UnidocReduction<Product | null> {
+export function* expectOptionalTag<Product>(name: UTF32String, reducer: UnidocReduction<Product>): UnidocReduction<Product | null> {
   const current: UnidocReduction.Input = yield UnidocReduction.CURRENT
 
   if (!current.isNext() || !current.value.isStartOfAnyTag()) {
@@ -32,7 +31,7 @@ export namespace optionalTag {
   /**
    *
    */
-  export function* content<Product>(name: UTF32String, reducer: UnidocReducer<Product>): UnidocReduction<Product | null> {
+  export function* content<Product>(name: UTF32String, reducer: UnidocReduction<Product>): UnidocReduction<Product | null> {
     const current: UnidocReduction.Input = yield UnidocReduction.CURRENT
 
     if (!current.isNext() || !current.value.isStartOfAnyTag()) {
