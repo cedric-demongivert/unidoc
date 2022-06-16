@@ -6,14 +6,13 @@ import { UnidocReducer } from './UnidocReducer'
 /**
 *
 */
-export function* reduceTag<Product>(reducer: UnidocReducer<Product>): UnidocReduction<Product | null> {
+export function* reduceTag<Product>(reduction: UnidocReduction<Product>): UnidocReduction<Product | null> {
   let current: UnidocReduction.Input = yield UnidocReduction.CURRENT
 
   if (!current.isNext() || !current.value.isStartOfAnyTag()) {
     return null
   }
 
-  const reduction: UnidocReduction<Product> = reducer()
   const depth: number = current.value.path.size
 
   let result: UnidocReduction.Result<Product> = UnidocReduction.push(UnidocElement.start(), reduction)
@@ -48,14 +47,13 @@ export namespace reduceTag {
   /**
   *
   */
-  export function* content<Product>(reducer: UnidocReducer<Product>): UnidocReduction<Product | null> {
+  export function* content<Product>(reduction: UnidocReduction<Product>): UnidocReduction<Product | null> {
     let current: UnidocReduction.Input = yield UnidocReduction.CURRENT
 
     if (!current.isNext() || !current.value.isStartOfAnyTag()) {
       return null
     }
 
-    const reduction: UnidocReduction<Product> = reducer()
     const depth: number = current.value.path.size
 
     let result: UnidocReduction.Result<Product> = UnidocReduction.push(UnidocElement.start(), reduction)
