@@ -1,10 +1,12 @@
+import { Clearable } from "@cedric-demongivert/gl-tool-utils"
+
 import { UnidocProducer } from "./UnidocProducer"
 import { UnidocConsumer } from "./UnidocConsumer"
 
 /**
  * 
  */
-export class UnidocSink<Product> implements UnidocProducer<Product> {
+export class UnidocSink<Product> implements UnidocProducer<Product>, Clearable {
   /**
    * 
    */
@@ -202,6 +204,16 @@ export class UnidocSink<Product> implements UnidocProducer<Product> {
           )
       }
     }
+  }
+
+  /**
+   * 
+   */
+  public clear(): void {
+    this._failureListeners.clear()
+    this._nextListeners.clear()
+    this._startListeners.clear()
+    this._successListeners.clear()
   }
 }
 

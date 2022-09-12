@@ -1,6 +1,6 @@
 /**
-* Identifier of a type of unidoc event.
-*/
+ * Identifier of a type of unidoc event.
+ */
 export type UnidocEventType = number
 
 export namespace UnidocEventType {

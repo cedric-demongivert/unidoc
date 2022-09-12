@@ -8,6 +8,9 @@ import { DataObject } from '../DataObject'
 
 import { UnidocEventType } from './UnidocEventType'
 
+/**
+ * 
+ */
 const TAG_EVENT_CONFIGURATION: RegExp = /^([a-zA-Z0-9\-]+)(#[a-zA-Z0-9\-]+)?((?:\.[a-zA-Z0-9\-]+)+)?$/i
 
 /**
@@ -91,6 +94,22 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   /**
    *
    */
+  public assertStartOfUTF32Tag(tag: UTF32String): void {
+    if (this.type !== UnidocEventType.START_TAG || !this.symbols.equals(tag)) {
+      throw new Error(`Expected start of tag "${tag.toString()}", but received ${this.toString()}`)
+    }
+  }
+
+  /**
+   *
+   */
+  public isStartOfUTF32Tag(tag: UTF32String): boolean {
+    return this.type === UnidocEventType.START_TAG && this.symbols.equals(tag)
+  }
+
+  /**
+   *
+   */
   public assertEndOfAnyTag(): void {
     if (this.type !== UnidocEventType.END_TAG) {
       throw new Error(`Expected end of any tag, but received ${this.toString()}`)
@@ -118,6 +137,22 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
    */
   public isEndOfTag(tag: string): boolean {
     return this.type === UnidocEventType.END_TAG && this.symbols.equalsToString(tag)
+  }
+
+  /**
+   *
+   */
+  public assertEndOfUTF32Tag(tag: UTF32String): void {
+    if (this.type !== UnidocEventType.END_TAG || !this.symbols.equals(tag)) {
+      throw new Error(`Expected end of tag "${tag.toString()}", but received ${this.toString()}`)
+    }
+  }
+
+  /**
+   *
+   */
+  public isEndOfUTF32Tag(tag: UTF32String): boolean {
+    return this.type === UnidocEventType.END_TAG && this.symbols.equals(tag)
   }
 
   /**
@@ -338,8 +373,8 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   }
 
   /**
-    * @see DataObject.clear
-  */
+   * @see DataObject.clear
+   */
   public clear(): this {
     this.type = UnidocEventType.START_TAG
     this.identifier.clear()
@@ -425,8 +460,8 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
   }
 
   /**
-  * @see DataObject.equals
-  */
+   * @see DataObject.equals
+   */
   public equals(other: any): boolean {
     if (other == null) return false
     if (other === this) return true
@@ -459,15 +494,15 @@ export class UnidocEvent implements DataObject<UnidocEvent> {
 
 export namespace UnidocEvent {
   /**
-  * Create a new unidoc event.
-  */
+   * Create a new unidoc event.
+   */
   export function create(): UnidocEvent {
     return new UnidocEvent()
   }
 
   /**
-  * Create a word unidoc event.
-  */
+   * Create a word unidoc event.
+   */
   export function word(content: string): UnidocEvent {
     const result: UnidocEvent = new UnidocEvent()
     result.asWord(content)
@@ -475,8 +510,8 @@ export namespace UnidocEvent {
   }
 
   /**
-  * Create a whitespace unidoc event.
-  */
+   * Create a whitespace unidoc event.
+   */
   export function whitespace(content: string): UnidocEvent {
     const result: UnidocEvent = new UnidocEvent()
     result.asWhitespace(content)
@@ -484,8 +519,8 @@ export namespace UnidocEvent {
   }
 
   /**
-  * Create a tag start unidoc event.
-  */
+   * Create a tag start unidoc event.
+   */
   export function tagStart(configuration: string): UnidocEvent {
     const result: UnidocEvent = new UnidocEvent()
     result.asTagStart(configuration)
@@ -493,8 +528,8 @@ export namespace UnidocEvent {
   }
 
   /**
-  * Create a tag end unidoc event.
-  */
+   * Create a tag end unidoc event.
+   */
   export function tagEnd(configuration: string): UnidocEvent {
     const result: UnidocEvent = new UnidocEvent()
     result.asTagEnd(configuration)
