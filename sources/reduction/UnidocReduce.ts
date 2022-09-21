@@ -147,7 +147,7 @@ export class UnidocReduce<Product> extends UnidocFunction<UnidocEvent, Product> 
    */
   private handleReductionFailure(error: Error): void {
     this.output.start()
-    this.output.fail(error)
+    this.output.failure(error)
 
     this._reduction = null
     this._result = null

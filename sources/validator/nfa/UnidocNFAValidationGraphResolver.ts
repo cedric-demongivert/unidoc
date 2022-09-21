@@ -455,7 +455,7 @@ export class UnidocNFAValidationGraphResolver extends UnidocFunction<UnidocEvent
   * @see SubscribableUnidocConsumer.failure
   */
   public failure(error: Error): void {
-    this.output.fail(error)
+    this.output.failure(error)
   }
 
   /**

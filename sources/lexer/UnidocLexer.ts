@@ -60,7 +60,7 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
   * @see UnidocConsumer.handleFailure
   */
   public failure(error: Error): void {
-    this.output.fail(error)
+    this.output.failure(error)
   }
 
   /**

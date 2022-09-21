@@ -294,6 +294,6 @@ export class UnidocImportExtractor extends UnidocFunction<UnidocEvent>
    * 
    */
   public failure(error: Error): void {
-    this.output.fail(error)
+    this.output.failure(error)
   }
 }

@@ -29,7 +29,7 @@ export class UnidocSuccessSkipper<Product> extends UnidocFunction<Product> {
    * 
    */
   public failure(error: Error): void {
-    this.output.fail(error)
+    this.output.failure(error)
   }
 }
 

@@ -87,7 +87,7 @@ export class UnidocAutoCloser extends UnidocFunction<UnidocEvent>
    * @see UnidocConsumer.prototype.failure
    */
   public failure(error: Error): void {
-    this.output.fail(error)
+    this.output.failure(error)
   }
 
   /**

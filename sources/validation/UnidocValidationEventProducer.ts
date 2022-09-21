@@ -40,7 +40,7 @@ export class UnidocValidationEventProducer extends UnidocPublisher<UnidocValidat
    * 
    */
   public fail(error: Error): void {
-    this.output.fail(error)
+    this.output.failure(error)
   }
 
   /**

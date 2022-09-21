@@ -6,7 +6,7 @@ import { UnidocConsumer } from "./UnidocConsumer"
 /**
  * 
  */
-export class UnidocSink<Product> implements UnidocProducer<Product>, Clearable {
+export class UnidocSink<Product> implements UnidocProducer<Product>, UnidocConsumer<Product>, Clearable {
   /**
    * 
    */
@@ -28,6 +28,11 @@ export class UnidocSink<Product> implements UnidocProducer<Product>, Clearable {
   private readonly _failureListeners: Set<UnidocConsumer.Failure>
 
   /**
+   * 
+   */
+  private _producer: UnidocProducer<Product> | null
+
+  /**
    * Instantiate a new sink.
    */
   public constructor() {
@@ -35,10 +40,47 @@ export class UnidocSink<Product> implements UnidocProducer<Product>, Clearable {
     this._nextListeners = new Set()
     this._successListeners = new Set()
     this._failureListeners = new Set()
+    this._producer = null
+
+    this.start = this.start.bind(this)
+    this.failure = this.failure.bind(this)
+    this.success = this.success.bind(this)
+    this.next = this.next.bind(this)
   }
 
   /**
-   * Notify the begining of the production process.
+   * @see UnidocConsumer.subscribe
+   */
+  public subscribe(producer: UnidocProducer<Product>): void {
+    if (this._producer === producer) return
+    if (this._producer) this.unsubscribe()
+
+    if (producer) {
+      producer.on(UnidocProducer.START, this.start)
+      producer.on(UnidocProducer.NEXT, this.next)
+      producer.on(UnidocProducer.SUCCESS, this.success)
+      producer.on(UnidocProducer.FAILURE, this.failure)
+      this._producer = producer
+    }
+  }
+
+  /**
+   * @see UnidocConsumer.unsubscribe
+   */
+  public unsubscribe(): void {
+    if (this._producer) {
+      const producer: UnidocProducer<Product> = this._producer
+      this._producer = null
+
+      producer.off(UnidocProducer.START, this.start)
+      producer.off(UnidocProducer.NEXT, this.next)
+      producer.off(UnidocProducer.SUCCESS, this.success)
+      producer.off(UnidocProducer.FAILURE, this.failure)
+    }
+  }
+
+  /**
+   * @see UnidocConsumer.start
    */
   public start(): void {
     for (const listener of this._startListeners) {
@@ -47,16 +89,16 @@ export class UnidocSink<Product> implements UnidocProducer<Product>, Clearable {
   }
 
   /**
-   * Notify a failure of the production process.
+   * @see UnidocConsumer.failure
    */
-  public fail(error: Error): void {
+  public failure(error: Error): void {
     for (const listener of this._failureListeners) {
       listener(error)
     }
   }
 
   /**
-   * Notify the production of an element.
+   * @see UnidocConsumer.next
    */
   public next(produce: Product): void {
     for (const listener of this._nextListeners) {
@@ -65,7 +107,7 @@ export class UnidocSink<Product> implements UnidocProducer<Product>, Clearable {
   }
 
   /**
-   * Notify the success of the production process.
+   * @see UnidocConsumer.success
    */
   public success(): void {
     for (const listener of this._successListeners) {

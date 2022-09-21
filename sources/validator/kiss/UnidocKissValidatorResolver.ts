@@ -186,6 +186,6 @@ export class UnidocKissValidatorResolver extends UnidocFunction<UnidocEvent, Uni
   *
   */
   public failure(error: Error): void {
-    this.output.fail(error)
+    this.output.failure(error)
   }
 }
