@@ -5,13 +5,14 @@ import { UnidocTokenType } from '../token/UnidocTokenType'
 
 import { UnidocEvent } from '../event/UnidocEvent'
 
-import { UnidocFunction } from '../stream/UnidocFunction'
+import { UnidocProcess } from '../stream/UnidocProcess'
 import { UnidocSink } from '../stream/UnidocSink'
 
 import { UnidocParserState } from './UnidocParserState'
 import { UnidocPath, UnidocSection } from '../origin'
 import { UTF32String } from '../symbol'
 import { UnidocEventType } from '../event/UnidocEventType'
+import { UnidocProducer } from 'sources/stream'
 
 /**
  * 
@@ -21,7 +22,7 @@ const BLOCK_TAG: UTF32String = UTF32String.fromString('block')
 /**
  * A unidoc token stream parser.
  */
-export class UnidocParser extends UnidocFunction<UnidocToken, UnidocEvent>
+export class UnidocParser extends UnidocProcess<UnidocToken, UnidocEvent>
 {
   /**
    * Inner state of the parser.
@@ -537,6 +538,20 @@ export class UnidocParser extends UnidocFunction<UnidocToken, UnidocEvent>
  * 
  */
 export namespace UnidocParser {
+  /**
+   * 
+   */
+  export function create(capacity: number = 32): UnidocParser {
+    return new UnidocParser(capacity)
+  }
 
+  /**
+   * 
+   */
+  export function parse(source: UnidocProducer<UnidocToken>): UnidocProducer<UnidocEvent> {
+    const parser: UnidocParser = create()
+    parser.subscribe(source)
+    return parser
+  }
 }
 

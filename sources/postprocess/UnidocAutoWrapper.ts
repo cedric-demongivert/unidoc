@@ -1,7 +1,7 @@
 
 import { UnidocLayout, UnidocOrigin, UnidocPath, UnidocSection, UnidocURI } from "../origin"
 import { UTF32String } from "../symbol"
-import { UnidocFunction } from "../stream"
+import { UnidocProcess, UnidocProducer } from "../stream"
 import { UnidocEvent, UnidocEventType } from "../event"
 import { UnidocAutoWrapperState } from "./UnidocAutoWrapperState"
 
@@ -13,7 +13,7 @@ const DOCUMENT_TAG: UTF32String = UTF32String.fromString('document')
 /**
  * Automatically wrap an unidoc event stream into a root "document" tag if none are emitted.
  */
-export class UnidocAutoWrapper extends UnidocFunction<UnidocEvent>
+export class UnidocAutoWrapper extends UnidocProcess<UnidocEvent>
 {
   /**
    * 
@@ -295,6 +295,15 @@ export namespace UnidocAutoWrapper {
    */
   export function create(): UnidocAutoWrapper {
     return new UnidocAutoWrapper()
+  }
+
+  /**
+   * 
+   */
+  export function apply(source: UnidocProducer<UnidocEvent>): UnidocProducer<UnidocEvent> {
+    const postprocessor: UnidocAutoWrapper = create()
+    postprocessor.subscribe(source)
+    return postprocessor
   }
 
   /**

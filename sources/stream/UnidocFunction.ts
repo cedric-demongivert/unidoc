@@ -1,89 +1,89 @@
+import { Clonable } from "@cedric-demongivert/gl-tool-utils"
+import { UnidocBufferizer } from "./UnidocBufferizer"
 import { UnidocConsumer } from "./UnidocConsumer"
-import { UnidocPublisher } from "./UnidocPublisher"
+import { UnidocDuplicator } from "./UnidocDuplicator"
+import { UnidocElement } from "./UnidocElement"
+import { UnidocElementType } from "./UnidocElementType"
 import { UnidocProducer } from "./UnidocProducer"
 
 /**
  * 
  */
-export class UnidocFunction<Input, Output = Input> extends UnidocPublisher<Output> implements UnidocConsumer<Input> {
+export interface UnidocFunction<Input, Output = Input> extends UnidocConsumer<Input>, UnidocProducer<Output> {
+
+}
+
+/**
+ * 
+ */
+export namespace UnidocFunction {
   /**
    * 
    */
-  private _producer: UnidocProducer<Input> | undefined
+  export type Chain<Input, Output> = (
+    [UnidocFunction<Input, Output>] |
+    [UnidocFunction<Input, unknown>, ...Array<UnidocFunction<unknown, unknown>>, UnidocFunction<unknown, Output>]
+  )
 
   /**
    * 
    */
-  public constructor() {
-    super()
-
-    this.start = this.start.bind(this)
-    this.next = this.next.bind(this)
-    this.success = this.success.bind(this)
-    this.failure = this.failure.bind(this)
-
-    this._producer = undefined
-  }
-
-  /**
-   * @see UnidocConsumer.prototype.subscribe
-   */
-  public subscribe(producer: UnidocProducer<Input>): void {
-    if (this._producer === producer) return
-
-    if (this._producer) {
-      this.unsubscribe()
+  function* dump<Output>(output: Array<UnidocElement<Output>>): IterableIterator<Output> {
+    for (const element of output) {
+      switch (element.type) {
+        case UnidocElementType.START:
+          break
+        case UnidocElementType.NEXT:
+          yield element.value as Output
+          break
+        case UnidocElementType.FAILURE:
+          throw element.value
+        case UnidocElementType.SUCCESS:
+          return true
+        default:
+          throw new Error()
+      }
     }
 
-    if (producer) {
-      producer.on(UnidocProducer.START, this.start)
-      producer.on(UnidocProducer.NEXT, this.next)
-      producer.on(UnidocProducer.SUCCESS, this.success)
-      producer.on(UnidocProducer.FAILURE, this.failure)
-      this._producer = producer
+    output.length = 0
+    return false
+  }
+
+  /**
+   * 
+   */
+  function* exec<Input, Output = Input>(input: Iterator<Input>, target: UnidocFunction<Input, Output>, output: Array<UnidocElement<Output>>): IterableIterator<Output> {
+    target.start()
+
+    if (yield* dump(output)) return
+
+    let iteration: IteratorResult<Input> = input.next()
+
+    while (!iteration.done) {
+      target.next(iteration.value)
+
+      if (yield* dump(output)) return
+
+      iteration = input.next()
     }
+
+    target.success()
+
+    if (yield* dump(output)) return
+  }
+
+
+  /**
+   * 
+   */
+  export function iterate<Input, Output = Input>(input: Iterator<Input>, target: UnidocFunction<Input, Output>): IterableIterator<Output> {
+    return exec(input, target, UnidocBufferizer.bufferize(target))
   }
 
   /**
-   * @see UnidocConsumer.prototype.unsubscribe
+   * 
    */
-  public unsubscribe(): void {
-    if (this._producer) {
-      const producer: UnidocProducer<Input> = this._producer
-      this._producer = undefined
-
-      producer.off(UnidocProducer.START, this.start)
-      producer.off(UnidocProducer.NEXT, this.next)
-      producer.off(UnidocProducer.SUCCESS, this.success)
-      producer.off(UnidocProducer.FAILURE, this.failure)
-    }
-  }
-
-  /**
-   * @see UnidocConsumer.prototype.start
-   */
-  public start(): void {
-
-  }
-
-  /**
-   * @see UnidocConsumer.prototype.next
-   */
-  public next(value: Input): void {
-    console.warn('Unhandled production of value %o. To suppress this warning, override the next method.', value)
-  }
-
-  /**
-   * @see UnidocConsumer.prototype.success
-   */
-  public success(): void {
-
-  }
-
-  /**
-   * @see UnidocConsumer.prototype.failure
-   */
-  public failure(error: Error): void {
-    console.warn('Unhandled failure %o. To suppress this warning, override the failure method.', error)
+  export function iterateClonable<Input, Output extends Clonable<Output>>(input: Iterator<Input>, target: UnidocFunction<Input, Output>): IterableIterator<Output> {
+    return exec(input, target, UnidocDuplicator.duplicate(target))
   }
 }

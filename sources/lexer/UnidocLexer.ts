@@ -4,15 +4,16 @@ import { UnidocSymbol } from '../symbol/UnidocSymbol'
 import { UnidocToken } from '../token/UnidocToken'
 import { UnidocTokenType } from '../token/UnidocTokenType'
 
-import { UnidocFunction } from '../stream/UnidocFunction'
+import { UnidocProcess } from '../stream/UnidocProcess'
 import { UnidocSink } from '../stream/UnidocSink'
 
 import { UnidocLexerState } from './UnidocLexerState'
+import { UnidocProducer } from 'sources/stream'
 
 /**
 * Unidoc lexer.
 */
-export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
+export class UnidocLexer extends UnidocProcess<UnidocSymbol, UnidocToken>
 {
   /**
   * Current state of this lexer.
@@ -627,5 +628,26 @@ export class UnidocLexer extends UnidocFunction<UnidocSymbol, UnidocToken>
     this._token.clear()
     this._first = true
     this.off()
+  }
+}
+
+/**
+ * 
+ */
+export namespace UnidocLexer {
+  /**
+   * 
+   */
+  export function create(capacity: number = 64): UnidocLexer {
+    return new UnidocLexer(capacity)
+  }
+
+  /**
+   * 
+   */
+  export function lex(source: UnidocProducer<UnidocSymbol>): UnidocProducer<UnidocToken> {
+    const lexer: UnidocLexer = create()
+    lexer.subscribe(source)
+    return lexer
   }
 }

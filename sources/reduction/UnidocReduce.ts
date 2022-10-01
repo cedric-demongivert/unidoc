@@ -1,6 +1,6 @@
 import { toString } from '@cedric-demongivert/gl-tool-utils'
 
-import { UnidocElement, UnidocFunction } from '../stream'
+import { UnidocElement, UnidocProcess } from '../stream'
 import { UnidocEvent } from '../event'
 
 import { UnidocReducer } from './UnidocReducer'
@@ -9,7 +9,7 @@ import { UnidocReduction } from './UnidocReduction'
 /**
  * 
  */
-export class UnidocReduce<Product> extends UnidocFunction<UnidocEvent, Product> {
+export class UnidocReduce<Product> extends UnidocProcess<UnidocEvent, Product> {
   /**
    * 
    */

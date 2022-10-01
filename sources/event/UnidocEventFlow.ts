@@ -103,7 +103,7 @@ export class UnidocEventFlow {
     if (value.length <= 0) return this
 
     let offset: number = 0
-    let cursor: number = 1
+    let cursor: number = 0
     let state: number | undefined = STATE_WORD
 
     this.updatePath()

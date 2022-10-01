@@ -136,6 +136,11 @@ export namespace UTF16CodeUnit {
   /**
    * @see https://www.unicode.org/charts/PDF/U0000.pdf
    */
+  export const FULL_STOP: NonSurrogate = 0x002E
+
+  /**
+   * @see https://www.unicode.org/charts/PDF/U0000.pdf
+   */
   export const SEMICOLON: NonSurrogate = 0x003B
 
   /**
@@ -167,6 +172,11 @@ export namespace UTF16CodeUnit {
    * @see https://www.unicode.org/charts/PDF/U0000.pdf
    */
   export const COLON: NonSurrogate = 0x003A
+
+  /**
+   * @see https://www.unicode.org/charts/PDF/U0000.pdf
+   */
+  export const COMMA: NonSurrogate = 0x002C
 
 
   /**

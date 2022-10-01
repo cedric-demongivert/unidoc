@@ -1,12 +1,12 @@
 
 import { UnidocPath, UnidocSection } from "../origin"
-import { UnidocFunction } from "../stream"
+import { UnidocProcess, UnidocProducer } from "../stream"
 import { UnidocEvent, UnidocEventType } from "../event"
 
 /**
  * Automatically close unclosed tags.
  */
-export class UnidocAutoCloser extends UnidocFunction<UnidocEvent>
+export class UnidocAutoCloser extends UnidocProcess<UnidocEvent>
 {
   /**
    * 
@@ -109,5 +109,14 @@ export namespace UnidocAutoCloser {
    */
   export function create(): UnidocAutoCloser {
     return new UnidocAutoCloser()
+  }
+
+  /**
+   * 
+   */
+  export function apply(source: UnidocProducer<UnidocEvent>): UnidocProducer<UnidocEvent> {
+    const postprocessor: UnidocAutoCloser = create()
+    postprocessor.subscribe(source)
+    return postprocessor
   }
 }

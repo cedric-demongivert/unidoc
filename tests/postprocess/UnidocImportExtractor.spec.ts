@@ -1,9 +1,9 @@
 /** eslint-env jest */
 
-import { Empty, Factory } from '@cedric-demongivert/gl-tool-utils'
+import { Factory } from '@cedric-demongivert/gl-tool-utils'
 
 import { UnidocCoroutine } from '../../sources/stream/UnidocCoroutine'
-import { feed } from '../../sources/stream/feed'
+import { UnidocConsumer } from '../../sources/stream/UnidocConsumer'
 import { UnidocImportExtractor } from '../../sources/postprocess/UnidocImportExtractor'
 import { UnidocImport } from '../../sources/context/UnidocImport'
 import { UnidocImportScheme } from '../../sources/context/UnidocImportScheme'
@@ -24,7 +24,7 @@ function matchOutput(input: Factory<IterableIterator<UnidocEvent>, [UnidocEventF
   const outputFlow: UnidocEventFlow = new UnidocEventFlow()
 
   UnidocCoroutine.create<UnidocEvent>(scenario.bind(undefined, outputFlow)).subscribe(postprocess)
-  feed(input(inputFlow), postprocess)
+  UnidocConsumer.feed(input(inputFlow), postprocess)
 }
 
 /**
@@ -38,7 +38,7 @@ function matchOutputOnline(input: Factory<IterableIterator<UnidocEvent>, [Unidoc
   const coroutine: UnidocCoroutine<UnidocEvent> = UnidocCoroutine.create<UnidocEvent>(scenario.bind(undefined, outputFlow))
   coroutine.subscribe(postprocess)
 
-  feed.online(input(inputFlow), postprocess)
+  UnidocConsumer.feed.online(input(inputFlow), postprocess)
   coroutine.success()
 }
 
@@ -51,7 +51,7 @@ function matchImports(input: Factory<IterableIterator<UnidocEvent>, [UnidocEvent
   const outputFlow: UnidocEventFlow = new UnidocEventFlow()
 
   UnidocCoroutine.create<UnidocImport>(scenario.bind(undefined, outputFlow)).subscribe(postprocess.imports)
-  feed(input(inputFlow), postprocess)
+  UnidocConsumer.feed(input(inputFlow), postprocess)
 }
 
 /**

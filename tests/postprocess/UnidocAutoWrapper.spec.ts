@@ -3,7 +3,7 @@
 import { Empty, Factory } from '@cedric-demongivert/gl-tool-utils'
 
 import { UnidocCoroutine } from '../../sources/stream/UnidocCoroutine'
-import { feed } from '../../sources/stream/feed'
+import { UnidocConsumer } from '../../sources/stream/UnidocConsumer'
 import { UnidocAutoWrapper } from '../../sources/postprocess/UnidocAutoWrapper'
 import { UnidocEventFlow } from '../../sources/event/UnidocEventFlow'
 import { UnidocEvent } from '../../sources/event/UnidocEvent'
@@ -22,7 +22,7 @@ function match(input: Factory<IterableIterator<UnidocEvent>, [UnidocEventFlow]>,
   const outputFlow: UnidocEventFlow = new UnidocEventFlow()
 
   UnidocCoroutine.create<UnidocEvent>(scenario.bind(undefined, outputFlow)).subscribe(postprocess)
-  feed(input(inputFlow), postprocess)
+  UnidocConsumer.feed(input(inputFlow), postprocess)
 }
 
 /**
@@ -36,7 +36,7 @@ function matchOnline(input: Factory<IterableIterator<UnidocEvent>, [UnidocEventF
   const coroutine: UnidocCoroutine<UnidocEvent> = UnidocCoroutine.create<UnidocEvent>(scenario.bind(undefined, outputFlow))
   coroutine.subscribe(postprocess)
 
-  feed.online(input(inputFlow), postprocess)
+  UnidocConsumer.feed.online(input(inputFlow), postprocess)
   coroutine.success()
 }
 

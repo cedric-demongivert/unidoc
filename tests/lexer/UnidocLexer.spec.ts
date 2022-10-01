@@ -2,7 +2,7 @@
 
 import { Factory } from '@cedric-demongivert/gl-tool-utils'
 
-import { feed } from '../../sources/stream/feed'
+import { UnidocConsumer } from '../../sources/stream/UnidocConsumer'
 import { UnidocCoroutine } from '../../sources/stream/UnidocCoroutine'
 import { UnidocToken } from '../../sources/token/UnidocToken'
 import { UnidocTokenFlow } from '../../sources/token/UnidocTokenFlow'
@@ -23,7 +23,7 @@ function match(content: string, scenario: Factory<UnidocCoroutine.Coroutine<Unid
   const flow: UnidocTokenFlow = new UnidocTokenFlow(UnidocSymbols.fromString.URI)
 
   UnidocCoroutine.create<UnidocToken>(scenario.bind(undefined, flow)).subscribe(lexer)
-  feed(UnidocSymbols.fromString(content), lexer)
+  UnidocConsumer.feed(UnidocSymbols.fromString(content), lexer)
 }
 
 /**
@@ -35,7 +35,7 @@ function matchOnline(content: string, scenario: Factory<UnidocCoroutine.Coroutin
   const coroutine: UnidocCoroutine<UnidocToken> = UnidocCoroutine.create<UnidocToken>(scenario.bind(undefined, flow))
 
   coroutine.subscribe(lexer)
-  feed.online(UnidocSymbols.fromString(content), lexer)
+  UnidocConsumer.feed.online(UnidocSymbols.fromString(content), lexer)
   coroutine.success()
 }
 

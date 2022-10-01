@@ -4,7 +4,7 @@ import { Pack } from '@cedric-demongivert/gl-tool-collection'
 
 import { UTF32CodeUnit, UTF32String } from '../symbol'
 import { UnidocEvent, UnidocEventType } from '../event'
-import { UnidocSink, UnidocFunction } from '../stream'
+import { UnidocSink, UnidocProcess } from '../stream'
 import { UnidocImport, UnidocImportScheme } from '../context'
 
 import { UnidocImportExtractorState } from './UnidocImportExtractorState'
@@ -22,7 +22,7 @@ const AS_TEXT: UTF32String = UTF32String.fromString('as')
 /**
  * 
  */
-export class UnidocImportExtractor extends UnidocFunction<UnidocEvent>
+export class UnidocImportExtractor extends UnidocProcess<UnidocEvent>
 {
   /**
    * 
@@ -295,5 +295,17 @@ export class UnidocImportExtractor extends UnidocFunction<UnidocEvent>
    */
   public failure(error: Error): void {
     this.output.failure(error)
+  }
+}
+
+/**
+ * 
+ */
+export namespace UnidocImportExtractor {
+  /**
+   * 
+   */
+  export function create(): UnidocImportExtractor {
+    return new UnidocImportExtractor()
   }
 }

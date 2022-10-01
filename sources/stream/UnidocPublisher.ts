@@ -37,7 +37,7 @@ export class UnidocPublisher<Product> implements UnidocProducer<Product>{
   /**
    * @see UnidocProducer.prototype.on
    */
-  public on(event: UnidocProducer.Event, listener: UnidocConsumer<Product>): void
+  public on(event: UnidocProducer.Event, listener: UnidocConsumer.Listener<Product>): void
   /**
    * 
    */

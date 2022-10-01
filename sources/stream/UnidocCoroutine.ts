@@ -3,8 +3,6 @@ import { UnidocConsumer } from './UnidocConsumer'
 import { UnidocElement } from './UnidocElement'
 import { UnidocProducer } from './UnidocProducer'
 
-import { feed as feedConsumer } from './feed'
-
 /**
  * 
  */
@@ -124,6 +122,6 @@ export namespace UnidocCoroutine {
    * 
    */
   export function feed<Product>(iterator: Iterator<Product>, coroutine: Definition<Product>): void {
-    feedConsumer(iterator, UnidocCoroutine.create(coroutine))
+    UnidocConsumer.feed(iterator, UnidocCoroutine.create(coroutine))
   }
 }

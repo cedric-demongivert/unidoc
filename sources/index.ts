@@ -12,4 +12,4 @@ export * from './token'
 //export * from './validation'
 //export * from './validator'
 
-export { UnidocStream } from './UnidocStream'
+export { Unidoc } from './Unidoc'
